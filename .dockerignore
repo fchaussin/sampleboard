@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+.git
+node_modules
+dist
+.svelte-kit
+.vite
+src-tauri/target
+src-tauri/gen
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db

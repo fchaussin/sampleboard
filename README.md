@@ -34,29 +34,39 @@ src/
 src-tauri/   # coquille Tauri v2 (Rust minimal + plugins)
 ```
 
-## Prérequis
+## Développement — via Docker (recommandé, hôte propre)
 
-- **Node.js** ≥ 20 et **npm**.
-- **Rust** (stable) + cibles Tauri — voir <https://tauri.app/start/prerequisites/>.
-  Sur Linux : dépendances système WebKitGTK. Pour Android : SDK/NDK Android.
+**Toute la toolchain (Node, Rust, dépendances Tauri) vit dans l'image Docker.**
+Rien ne s'installe sur l'hôte : `node_modules`, `src-tauri/target` et le cache cargo
+sont des **volumes Docker** montés par-dessus le code (voir `docker-compose.yml`).
 
-## Développement
-
-Le développement se fait via `tauri dev` (frontend web dans la WebView native),
-**jamais** dans un onglet de navigateur nu (c'est ce qui donne accès à SQLite natif).
+Prérequis : **Docker** (+ Docker Compose v2). Sous Windows/WSL2 : activer l'intégration
+WSL dans Docker Desktop.
 
 ```bash
-npm install
-npm run tauri dev     # lance la fenêtre Tauri (nécessite Rust)
+docker compose build                          # construit l'image
+docker compose run --rm dev npm run check     # types (svelte-check)
+docker compose run --rm dev npm run build     # build front -> dist/
+docker compose up dev                         # serveur Vite -> http://localhost:1420
+docker compose run --rm dev bash              # shell interactif
 ```
 
-Scripts front seuls (sans Rust) :
+Fenêtre **Tauri desktop** (`npm run tauri dev`) : nécessite un serveur X.
+Sous WSLg/Linux, décommenter `DISPLAY` et les montages X11 dans `docker-compose.yml`, puis :
 
 ```bash
-npm run dev           # serveur Vite (front uniquement)
-npm run build         # build statique dans dist/
-npm run check         # svelte-check (types)
+docker compose run --rm dev npm run tauri dev
 ```
+
+> Le développement se fait via `tauri dev` (frontend web dans la WebView native),
+> **jamais** dans un onglet de navigateur nu (c'est ce qui donne accès à SQLite natif).
+> Le serveur Vite seul (`npm run dev`) sert à l'itération front uniquement.
+
+## Développement — sans Docker (hôte)
+
+Si tu préfères outiller l'hôte : **Node.js** ≥ 20, **npm**, et **Rust** (stable) +
+dépendances système Tauri (WebKitGTK sur Linux) — voir
+<https://tauri.app/start/prerequisites/>. Puis `npm install` et `npm run tauri dev`.
 
 ## i18n
 

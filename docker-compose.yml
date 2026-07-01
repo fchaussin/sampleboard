@@ -1,0 +1,47 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Environnement d'exécution isolé. Rien n'est installé sur l'hôte :
+#   - le code est monté en bind (.:/app) pour l'édition à chaud ;
+#   - node_modules, src-tauri/target et le cache cargo sont des VOLUMES Docker
+#     (montés PAR-DESSUS le bind), donc invisibles côté hôte.
+#
+# Usage courant :
+#   docker compose build
+#   docker compose run --rm dev npm run check          # types
+#   docker compose run --rm dev npm run build          # build front (dist/)
+#   docker compose up dev                              # serveur Vite -> http://localhost:1420
+#   docker compose run --rm dev bash                   # shell dans l'image
+#   docker compose run --rm dev npm run tauri dev      # fenêtre Tauri (voir GUI ci-dessous)
+
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: sampleboard-dev
+    working_dir: /app
+    # Serveur Vite par défaut quand on fait `docker compose up dev`.
+    command: ["npm", "run", "dev"]
+    stdin_open: true
+    tty: true
+    ports:
+      - "1420:1420"
+      - "1421:1421"
+    environment:
+      # Fait écouter Vite sur 0.0.0.0 dans le conteneur (accessible depuis l'hôte).
+      - TAURI_DEV_HOST=0.0.0.0
+      # GUI (tauri dev). Sous WSLg/Linux, décommenter aussi le montage X11 ci-dessous.
+      # - DISPLAY=${DISPLAY:-}
+    volumes:
+      - .:/app
+      # Dossiers lourds isolés dans des volumes -> l'hôte reste propre.
+      - node_modules:/app/node_modules
+      - cargo-target:/app/src-tauri/target
+      - cargo-registry:/usr/local/cargo/registry
+      # GUI Tauri (X11 / WSLg) — décommenter pour `npm run tauri dev` :
+      # - /tmp/.X11-unix:/tmp/.X11-unix
+      # - /mnt/wslg:/mnt/wslg
+
+volumes:
+  node_modules:
+  cargo-target:
+  cargo-registry:
