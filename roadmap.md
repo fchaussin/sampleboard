@@ -151,11 +151,16 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 - [ ] iOS.
 
 ### Entrantes — à trier
-_(vide — à alimenter au fil du dev)_
 
 | # | Feature | Décrite le | Cible proposée | Statut |
 |---|---|---|---|---|
-| — | — | — | — | À trier |
+| 1 | **Import par URL** — importer un sample depuis une URL (en plus du dialog fichier local) | 2026-07-01 | à arbitrer (adjacent M4) | À trier |
+
+> **Note tri #1 (Import par URL)** — points à trancher au tri :
+> - Réutilise le pipeline M4 (validation 20 Mo, `decodeAudioData`, ré-encodage OGG/Opus) : seule la **source** change (téléchargement réseau au lieu de `fs`).
+> - **F-Droid / confidentialité** : ajoute un accès réseau sortant → à documenter (pas de tracker, requête déclenchée par l'utilisateur uniquement). Vérifier les implications permission/manifest Android.
+> - Robustesse : gérer redirections, timeouts, `Content-Length`/type, erreurs réseau, et **taille max avant/pendant téléchargement**.
+> - Décider si M4 (v0.5.0) ou un `minor` ultérieur (ne pas gonfler le jalon en cours).
 
 ---
 
