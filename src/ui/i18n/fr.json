@@ -1,0 +1,8 @@
+{
+  "app.name": "Sampleboard",
+  "app.tagline": "Pads déclencheurs de sons",
+  "m0.greeting": "Socle opérationnel.",
+  "m0.hint": "Moteur audio, bibliothèque et édition arrivent aux prochains jalons.",
+  "nav.play": "Jeu",
+  "nav.edit": "Édition"
+}
