@@ -25,4 +25,5 @@ les règles projet :
 
 - [Environnement Docker (dev / prod)](./environnement-docker.md)
 - [Moteur audio (M1)](./moteur-audio.md)
+- [Cœur jouable (M2)](./coeur-jeu.md)
 - [Tests](./tests.md)

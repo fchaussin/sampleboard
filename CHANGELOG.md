@@ -8,6 +8,39 @@ versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-01 — M2 (Cœur)
+
+> **Validé sur web** : matrice de comportement §7 couverte par 47 tests + grille jouable en dev
+> (banque seed). Validation Android = 2ᵉ temps (spec §16).
+
+### Ajouté
+- **Moteur audio (M2)** : Gate (`press`/`release`), Loop (`toggleLoop` start/stop), **choke Mono**
+  (démarrer un pad arrête les autres voix de la page), re-déclenchement self, plafond de voix en
+  **FIFO** (lu depuis `Settings.maxVoices`), `stopPad` / `stopPage`. Une voix porte désormais sa
+  `pageId`.
+- **Domaine** : `selectors.ts` (lectures pures de l'arbre banque : `pagesSorted`, `padsOfPage`,
+  `padAtPosition`, `findPad`, `findPage`).
+- **Store** : arbre banque + `activePageId` + getter dérivé `activePage`.
+- **Commandes de jeu** : `firePad`, `pressPad`/`releasePad`, `toggleLoopPad`, `stopPad`,
+  `stopPage`, `setActivePage`, `hydrateBank` (chargement d'une banque — réutilisé par la
+  persistance M5).
+- **Entrée** : `pad-input.ts` (Pointer Events → intentions par Mode de lecture, `setPointerCapture`
+  pour Gate, relâchement de sécurité au détachement).
+- **UI** : `PageTabs` (navigation), `PadGrid` + `Pad` (grille `rows`×`cols`, état actif/vide,
+  indicateur de lecture piloté par `activePadIds`). Libellés de mode via i18n (`mode.*`).
+- **Seed dev (temporaire)** : `dev-seed.ts` (2 pages Poly/Mono couvrant les 3 modes) +
+  `M2SampleLoader.svelte` (charge des sons dans les slots via l'API File). Remplacés par
+  l'édition (M3) / l'import (M4) / la persistance (M5).
+
+### Tests
+- 47 tests (Vitest) : bornes/invariants, sélecteurs, moteur One-Shot + matrice §7 (Gate, Loop,
+  choke Mono, FIFO, stop), couche commandes, mappage `pad-input`. `AudioContext` factice partagé
+  (`tests/engine/fake-audio-context.ts`).
+
+### Retiré
+- Harnais de démo M1 (`M1AudioDemo.svelte` + commandes `loadDemoSound`/`fireDemoPad`) remplacé par
+  la grille réelle.
+
 ## [0.2.0] - 2026-07-01 — M1 (Audio)
 
 > **Validé sur web** (1er temps) : son émis + `resume()` en dev, tests verts, `svelte-check` +

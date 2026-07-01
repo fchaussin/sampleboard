@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Moteur audio (Web Audio) — jalon M1 (voir specifications.md §7).
-// Responsabilité unique : produire du son à faible latence et gérer les voix.
-// Autoritatif sur l'état de jeu éphémère : il notifie les voix actives, ne les duplique pas (§9, décision B).
+// Moteur audio (Web Audio) — jalons M1 (One-Shot) + M2 (Gate, Loop, Polyphonie, FIFO).
+// Responsabilité unique : produire du son à faible latence et gérer les voix (voir §7).
+// Autoritatif sur l'état de jeu éphémère : il notifie les voix actives, ne les duplique pas (§9).
 // TS pur : ne dépend jamais de Svelte.
 import type { Pad, Page } from '../domain/types';
+import { DEFAULT_MAX_VOICES } from '../domain/invariants';
 import { gainDbToAmplitude, type Voice } from './voice';
 import type { EngineState, PlayingChangedCallback } from './types';
 
@@ -13,21 +14,25 @@ const ANTI_CLICK_FADE_S = 0.008;
 export interface AudioEngineOptions {
   /** Fabrique d'AudioContext. Injectable pour les tests ; défaut : `new AudioContext()`. */
   createContext?: () => AudioContext;
+  /** Plafond global de voix, lu à chaque déclenchement (voir §7). Défaut : 8. */
+  getMaxVoices?: () => number;
 }
 
 export class AudioEngine {
   #ctx: AudioContext | null = null;
   readonly #createContext: () => AudioContext;
+  readonly #getMaxVoices: () => number;
 
   /** Buffers décodés, mis en cache par sampleId (voir §7). */
   readonly #buffers = new Map<string, AudioBuffer>();
-  /** Voix actives (une par lecture en cours). */
+  /** Voix actives (une par lecture en cours), dans l'ordre d'insertion (FIFO). */
   readonly #voices = new Set<Voice>();
 
   #onPlayingChanged: PlayingChangedCallback | null = null;
 
   constructor(options: AudioEngineOptions = {}) {
     this.#createContext = options.createContext ?? (() => new AudioContext());
+    this.#getMaxVoices = options.getMaxVoices ?? (() => DEFAULT_MAX_VOICES);
   }
 
   /** Crée l'AudioContext au besoin (politique autoplay : au 1er geste utilisateur). */
@@ -69,54 +74,46 @@ export class AudioEngine {
     return this.#buffers.has(sampleId);
   }
 
-  /**
-   * Mode One-Shot : joue le sample en entier. Re-tap → relance depuis 0
-   * (arrête d'abord la voix du même pad, jamais deux copies simultanées — voir §7).
-   * No-op silencieux si pad vide ou buffer non chargé (voir §12).
-   */
-  oneShot(pad: Pad, _page: Page): void {
-    if (!this.#ctx || pad.sampleId === null) return;
-    const buffer = this.#buffers.get(pad.sampleId);
-    if (!buffer) return;
+  // --- Déclenchements (voir la matrice §7) --------------------------------------------------
 
-    // Re-déclenchement (self) : couper d'abord la propre voix du pad.
-    this.#stopPadVoices(pad.id);
-
-    const ctx = this.#ctx;
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-
-    const gain = ctx.createGain();
-    gain.gain.value = gainDbToAmplitude(pad.gainDb);
-
-    source.connect(gain).connect(ctx.destination);
-
-    const voice: Voice = { padId: pad.id, source, gain, startedAt: ctx.currentTime };
-    source.onended = () => this.#removeVoice(voice);
-
-    this.#voices.add(voice);
-    source.start();
-    this.#notifyPlayingChanged();
+  /** One-Shot : joue le sample en entier ; re-tap → relance depuis 0. */
+  oneShot(pad: Pad, page: Page): void {
+    this.#startVoice(pad, page, false);
   }
 
-  press(_pad: Pad, _page: Page): void {
-    // TODO(M2) — Gate : gate on.
+  /** Gate — début (gate on) : joue tant que tenu ; l'arrêt viendra de `release`. */
+  press(pad: Pad, page: Page): void {
+    this.#startVoice(pad, page, false);
   }
 
-  release(_padId: string): void {
-    // TODO(M2) — Gate : gate off (fade court).
+  /** Gate — fin (gate off) : arrête la voix du pad (fade court). */
+  release(padId: string): void {
+    if (this.#stopVoices((v) => v.padId === padId)) {
+      this.#notifyPlayingChanged();
+    }
   }
 
-  toggleLoop(_pad: Pad, _page: Page): void {
-    // TODO(M2) — Loop : start/stop.
+  /** Loop — tap → boucle ; re-tap → stop. */
+  toggleLoop(pad: Pad, page: Page): void {
+    if (!this.#ctx) return;
+    const playing = this.#some((v) => v.padId === pad.id);
+    if (playing) {
+      if (this.#stopVoices((v) => v.padId === pad.id)) this.#notifyPlayingChanged();
+      return;
+    }
+    this.#startVoice(pad, page, true);
   }
 
-  stopPad(_padId: string): void {
-    // TODO(M2)
+  stopPad(padId: string): void {
+    if (this.#stopVoices((v) => v.padId === padId)) {
+      this.#notifyPlayingChanged();
+    }
   }
 
-  stopPage(_pageId: string): void {
-    // TODO(M2)
+  stopPage(pageId: string): void {
+    if (this.#stopVoices((v) => v.pageId === pageId)) {
+      this.#notifyPlayingChanged();
+    }
   }
 
   /** Abonnement au reflet minimal des voix actives (voir §9, décision B). */
@@ -124,19 +121,94 @@ export class AudioEngine {
     this.#onPlayingChanged = cb;
   }
 
-  /** Arrête (avec fade anti-clic) toutes les voix d'un pad et les retire du reflet. */
-  #stopPadVoices(padId: string): void {
-    for (const voice of this.#voices) {
-      if (voice.padId === padId) {
-        this.#stopVoice(voice);
-      }
+  // --- Interne -----------------------------------------------------------------------------
+
+  /**
+   * Démarre une voix pour `pad` (loop ou non). No-op silencieux si pad vide ou buffer non
+   * chargé (§12). Applique le choke Mono (§7), le re-déclenchement self, puis le plafond FIFO.
+   */
+  #startVoice(pad: Pad, page: Page, loop: boolean): void {
+    const ctx = this.#ctx;
+    if (!ctx || pad.sampleId === null) return;
+    const buffer = this.#buffers.get(pad.sampleId);
+    if (!buffer) return;
+
+    // Choke Mono : démarrer un pad arrête les autres voix de CETTE page.
+    if (page.voiceMode === 'mono') {
+      this.#stopVoices((v) => v.pageId === page.id && v.padId !== pad.id);
+    }
+    // Re-déclenchement (self) : jamais deux copies simultanées du même pad.
+    this.#stopVoices((v) => v.padId === pad.id);
+
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = loop;
+
+    const gain = ctx.createGain();
+    gain.gain.value = gainDbToAmplitude(pad.gainDb);
+
+    source.connect(gain).connect(ctx.destination);
+
+    const voice: Voice = {
+      padId: pad.id,
+      pageId: page.id,
+      source,
+      gain,
+      startedAt: ctx.currentTime,
+    };
+    source.onended = () => this.#removeVoice(voice);
+
+    this.#voices.add(voice);
+    source.start();
+
+    this.#enforceMaxVoices();
+    this.#notifyPlayingChanged();
+  }
+
+  /** Plafond global : au dépassement, retire la voix la plus ancienne (FIFO, fade court). */
+  #enforceMaxVoices(): void {
+    const max = Math.max(1, Math.trunc(this.#getMaxVoices()));
+    while (this.#voices.size > max) {
+      // Set conserve l'ordre d'insertion : le premier élément est le plus ancien.
+      const oldest = this.#voices.values().next().value;
+      if (!oldest) break;
+      this.#stopVoice(oldest);
     }
   }
 
-  /** Rampe le gain d'une voix vers 0 puis stoppe sa source (anti-clic, voir §7). */
+  #some(predicate: (voice: Voice) => boolean): boolean {
+    for (const voice of this.#voices) {
+      if (predicate(voice)) return true;
+    }
+    return false;
+  }
+
+  /** Arrête (fade anti-clic) toutes les voix satisfaisant `predicate`. Renvoie le nb arrêté. */
+  #stopVoices(predicate: (voice: Voice) => boolean): number {
+    let count = 0;
+    for (const voice of [...this.#voices]) {
+      if (predicate(voice)) {
+        this.#stopVoice(voice);
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
+   * Rampe le gain d'une voix vers 0 puis stoppe sa source (anti-clic, voir §7).
+   * Retire immédiatement la voix du reflet (le fade audio, lui, dure ~8 ms) ; ne notifie pas
+   * (les appelants notifient une fois par lot).
+   */
   #stopVoice(voice: Voice): void {
+    if (!this.#voices.delete(voice)) return;
     const ctx = this.#ctx;
-    if (!ctx) return;
+    // Après suppression, la fin naturelle ne doit plus re-notifier : nettoyage seul.
+    voice.source.onended = () => this.#disconnect(voice);
+    if (!ctx) {
+      this.#disconnect(voice);
+      return;
+    }
     const now = ctx.currentTime;
     const param = voice.gain.gain;
     try {
@@ -145,20 +217,24 @@ export class AudioEngine {
       param.linearRampToValueAtTime(0, now + ANTI_CLICK_FADE_S);
       voice.source.stop(now + ANTI_CLICK_FADE_S);
     } catch {
-      // Source déjà arrêtée : rien à faire, le nettoyage passe par onended.
+      // Source déjà arrêtée : le nettoyage passe par onended.
     }
   }
 
-  /** Retrait d'une voix terminée (onended) : libère les nœuds et rafraîchit le reflet. */
+  /** Retrait d'une voix terminée naturellement (onended) : nettoie et rafraîchit le reflet. */
   #removeVoice(voice: Voice): void {
     if (!this.#voices.delete(voice)) return;
+    this.#disconnect(voice);
+    this.#notifyPlayingChanged();
+  }
+
+  #disconnect(voice: Voice): void {
     try {
       voice.source.disconnect();
       voice.gain.disconnect();
     } catch {
       // Nœuds déjà déconnectés : sans conséquence.
     }
-    this.#notifyPlayingChanged();
   }
 
   /** Émet l'ensemble courant des pads qui jouent vers l'abonné (voir §9). */

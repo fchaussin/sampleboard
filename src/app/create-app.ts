@@ -8,6 +8,7 @@ import { createSettingsRepository } from '../storage/settings-repository';
 import { createStore, type AppStore } from './store.svelte';
 import { createCommands, type Commands } from './commands';
 import { createPersistence, type Persistence } from './persistence';
+import { createSeedBank } from './dev-seed';
 
 export interface App {
   store: AppStore;
@@ -18,13 +19,15 @@ export interface App {
 
 /** Construit et câble le graphe d'objets de l'application. */
 export function createApp(): App {
-  const engine = new AudioEngine();
+  const store = createStore();
+
+  // Plafond de voix lu dynamiquement depuis les réglages (FIFO interne, voir §7).
+  const engine = new AudioEngine({ getMaxVoices: () => store.settings.maxVoices });
 
   const bankRepository = createBankRepository();
   const sampleRepository = createSampleRepository();
   const settingsRepository = createSettingsRepository();
 
-  const store = createStore();
   const commands = createCommands({ store, engine });
   const persistence = createPersistence({ store, bankRepository, settingsRepository });
 
@@ -32,6 +35,9 @@ export function createApp(): App {
   engine.onPlayingChanged((activePadIds) => {
     store.activePadIds = activePadIds;
   });
+
+  // TEMP(M2) : banque de départ pour jouer la grille (hydratation SQLite au M5).
+  commands.hydrateBank(createSeedBank());
 
   // sampleRepository sera injecté aux commandes d'import au jalon M4.
   void sampleRepository;

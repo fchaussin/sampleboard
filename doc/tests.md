@@ -42,11 +42,17 @@ docker compose -f docker-compose.dev.yml run --rm dev npm run build    # build V
 Complète le hook `doc-sync` (rappel de mise à jour de `doc/`). Les deux sont déclarés dans
 `.claude/settings.json`.
 
-## Couverture actuelle (M1)
+## Couverture actuelle (M1 + M2) — 47 tests
 
 - `tests/engine/voice.test.ts` — conversion gain dB → amplitude (bornes, plancher -60 dB,
   monotonie).
 - `tests/engine/audio-engine.test.ts` — contexte & autoplay (`resume` idempotent, `state`), cache
-  (`load` / `unload` / `isLoaded`), One-Shot (branchement/démarrage, gain dB, no-op pad
-  vide/buffer absent, re-tap coupe la voix), reflet des voix actives (`onPlayingChanged`, Poly
-  multi-pads).
+  (`load` / `unload` / `isLoaded`), One-Shot, reflet des voix (`onPlayingChanged`).
+- `tests/engine/audio-engine.m2.test.ts` — matrice §7 : Gate (press/release), Loop (toggle),
+  choke Mono, plafond FIFO, `stopPad` / `stopPage`.
+- `tests/domain/invariants.test.ts` — bornes gain/grille, `padsFitGrid`.
+- `tests/domain/selectors.test.ts` — lectures dérivées de l'arbre banque.
+- `tests/app/commands.test.ts` — résolution pad/page + délégation au moteur (store & moteur
+  factices).
+- `tests/ui/pad-input.test.ts` — mappage Pointer Events par Mode de lecture (élément factice).
+- `tests/engine/fake-audio-context.ts` — `AudioContext` factice partagé (utilitaire, pas un test).

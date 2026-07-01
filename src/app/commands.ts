@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Couche de commandes — SEUL point de mutation du store (voir specifications.md §9).
-// Chaque commande coordonne store + engine + persistance de façon atomique.
-// M1 : `resumeAudio` (politique autoplay) + harnais de démo audio (temporaire, voir plus bas).
+// Chaque commande coordonne store + engine de façon atomique. L'UI n'émet que des intentions.
 import type { AudioEngine } from '../engine/audio-engine';
-import type { Pad, Page } from '../domain/types';
-import { DEFAULT_COLS, DEFAULT_GAIN_DB, DEFAULT_ROWS } from '../domain/invariants';
+import type { Bank, Pad, Page } from '../domain/types';
+import { findPad, findPage, pagesSorted } from '../domain/selectors';
 import type { AppStore } from './store.svelte';
 
 export interface CommandDeps {
@@ -19,38 +18,36 @@ export interface Commands {
   setLocale(locale: string): void;
   /** Reprend/crée l'AudioContext sur un geste utilisateur (idempotent, voir §7, §12). */
   resumeAudio(): Promise<void>;
-  /** TEMP(M1) : charge un son de démo dans le moteur (remplacé par l'import réel, M4). */
-  loadDemoSound(bytes: ArrayBuffer): Promise<void>;
-  /** TEMP(M1) : joue le pad de démo codé en dur (One-Shot). Remplacé par `firePad` (M2). */
-  fireDemoPad(): void;
+
+  /** Charge un arbre banque dans le store (seed M2 ; hydratation depuis SQLite au M5). */
+  hydrateBank(bank: Bank): void;
+  /** Change la page affichée. */
+  setActivePage(pageId: string): void;
+
+  // Jeu (voir la matrice §7). No-op silencieux si pad/page introuvable ou pad vide.
+  firePad(padId: string): void; // One-Shot
+  pressPad(padId: string): void; // Gate — gate on
+  releasePad(padId: string): void; // Gate — gate off
+  toggleLoopPad(padId: string): void; // Loop — start/stop
+  stopPad(padId: string): void;
+  stopPage(pageId: string): void;
+
+  /** TEMP(M2) : charge un fichier audio dans un slot de sample (remplacé par l'import M4). */
+  loadDevSample(sampleId: string, bytes: ArrayBuffer): Promise<void>;
 }
 
-// --- TEMP(M1) : pad/page codés en dur pour valider l'audio (voir roadmap M1). --------------
-// À retirer quand le vrai modèle (store/commands de jeu) arrivera aux jalons M2/M3.
-export const M1_DEMO_SAMPLE_ID = 'm1-demo-sample';
-export const M1_DEMO_PAD_ID = 'm1-demo-pad';
-
-const M1_DEMO_PAGE: Page = {
-  id: 'm1-demo-page',
-  name: 'demo',
-  voiceMode: 'poly',
-  rows: DEFAULT_ROWS,
-  cols: DEFAULT_COLS,
-  position: 0,
-};
-
-const M1_DEMO_PAD: Pad = {
-  id: M1_DEMO_PAD_ID,
-  pageId: M1_DEMO_PAGE.id,
-  name: 'demo',
-  sampleId: M1_DEMO_SAMPLE_ID,
-  playMode: 'oneShot',
-  gainDb: DEFAULT_GAIN_DB,
-  position: 0,
-};
-// ------------------------------------------------------------------------------------------
-
 export function createCommands({ store, engine }: CommandDeps): Commands {
+  /** Résout un pad et sa page dans la banque courante, ou `null`. */
+  function resolve(padId: string): { pad: Pad; page: Page } | null {
+    const bank = store.bank;
+    if (!bank) return null;
+    const pad = findPad(bank, padId);
+    if (!pad) return null;
+    const page = findPage(bank, pad.pageId);
+    if (!page) return null;
+    return { pad, page };
+  }
+
   return {
     toggleEditMode(): void {
       store.editMode = !store.editMode;
@@ -61,12 +58,48 @@ export function createCommands({ store, engine }: CommandDeps): Commands {
     resumeAudio(): Promise<void> {
       return engine.resume();
     },
-    async loadDemoSound(bytes: ArrayBuffer): Promise<void> {
-      await engine.resume();
-      await engine.load(M1_DEMO_SAMPLE_ID, bytes);
+
+    hydrateBank(bank: Bank): void {
+      store.bank = bank;
+      store.activePageId = pagesSorted(bank)[0]?.id ?? null;
     },
-    fireDemoPad(): void {
-      engine.oneShot(M1_DEMO_PAD, M1_DEMO_PAGE);
+    setActivePage(pageId: string): void {
+      const bank = store.bank;
+      if (!bank || !findPage(bank, pageId)) return;
+      store.activePageId = pageId;
+    },
+
+    firePad(padId: string): void {
+      const r = resolve(padId);
+      if (!r) return;
+      void engine.resume();
+      engine.oneShot(r.pad, r.page);
+    },
+    pressPad(padId: string): void {
+      const r = resolve(padId);
+      if (!r) return;
+      void engine.resume();
+      engine.press(r.pad, r.page);
+    },
+    releasePad(padId: string): void {
+      engine.release(padId);
+    },
+    toggleLoopPad(padId: string): void {
+      const r = resolve(padId);
+      if (!r) return;
+      void engine.resume();
+      engine.toggleLoop(r.pad, r.page);
+    },
+    stopPad(padId: string): void {
+      engine.stopPad(padId);
+    },
+    stopPage(pageId: string): void {
+      engine.stopPage(pageId);
+    },
+
+    async loadDevSample(sampleId: string, bytes: ArrayBuffer): Promise<void> {
+      await engine.resume();
+      await engine.load(sampleId, bytes);
     },
   };
 }

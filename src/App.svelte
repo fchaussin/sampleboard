@@ -2,7 +2,9 @@
 <script lang="ts">
   import type { App } from './app/create-app';
   import { t } from './ui/i18n';
-  import M1AudioDemo from './ui/dev/M1AudioDemo.svelte';
+  import PageTabs from './ui/components/PageTabs.svelte';
+  import PadGrid from './ui/components/PadGrid.svelte';
+  import M2SampleLoader from './ui/dev/M2SampleLoader.svelte';
 
   let { app }: { app: App } = $props();
 
@@ -11,32 +13,39 @@
 </script>
 
 <main>
-  <h1>{t('app.name', locale)}</h1>
-  <p class="tagline">{t('app.tagline', locale)}</p>
+  <header>
+    <h1>{t('app.name', locale)}</h1>
+    <p class="tagline">{t('app.tagline', locale)}</p>
+  </header>
 
-  <M1AudioDemo {app} />
+  <M2SampleLoader {app} />
+  <PageTabs {app} />
+  <PadGrid {app} />
 </main>
 
 <style>
   main {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
+    gap: 1rem;
     min-height: 100vh;
-    padding: 2rem;
+    padding: 1.5rem;
+    box-sizing: border-box;
+  }
+
+  header {
     text-align: center;
   }
 
   h1 {
     margin: 0;
-    font-size: 2.4rem;
+    font-size: 1.8rem;
     letter-spacing: 0.02em;
   }
 
   .tagline {
-    margin: 0;
+    margin: 0.2rem 0 0;
     color: var(--accent);
+    font-size: 0.9rem;
   }
 </style>

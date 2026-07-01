@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Représentation d'une voix active (voir specifications.md §7).
-// Squelette M0 : la logique de création/arrêt des voix arrive au jalon M1.
+// Une voix = une lecture en cours (One-Shot, Gate ou Loop). Créée/arrêtée par l'AudioEngine.
 
 export interface Voice {
   padId: string;
+  /** Page d'origine : sert au choke Mono et à `stopPage` (voir §7). */
+  pageId: string;
   source: AudioBufferSourceNode;
   gain: GainNode;
   /** AudioContext.currentTime au démarrage (sert au FIFO du plafond de voix). */

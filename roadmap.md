@@ -80,15 +80,16 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 - [ ] **Validation Android (2ᵉ temps)** : son émis + `resume()` sur **appareil réel** — web d'abord, Android ensuite (voir spec §16).
 
 ### M2 — Cœur · `0.3.0` · Phase B
-- [ ] `domain/types.ts` + `enums.ts` + `invariants.ts` (+ tests purs).
-- [ ] `store.svelte.ts` : arbre banque, `activePageId`, `editMode`, `activePadIds`.
-- [ ] `commands.ts` — jeu : `firePad`, `pressPad`/`releasePad`, `toggleLoopPad`, `stopPad`, `stopPage`.
-- [ ] `pad-input.ts` : Pointer Events → intentions par Mode de lecture (+ `setPointerCapture` Gate).
-- [ ] Multi-pages + `PageTabs` (navigation).
-- [ ] 3 Modes de lecture (One-Shot / Gate / Loop).
-- [ ] Polyphonie Mono/Poly : choke Mono, re-déclenchement self.
-- [ ] `maxVoices` en FIFO (interne).
-- [ ] **Validation** : la matrice de comportement §7 de la spec passe.
+- [x] `domain/types.ts` + `enums.ts` + `invariants.ts` + `selectors.ts` (+ tests purs).
+- [x] `store.svelte.ts` : arbre banque, `activePageId`, `editMode`, `activePadIds` (+ getter `activePage`).
+- [x] `commands.ts` — jeu : `firePad`, `pressPad`/`releasePad`, `toggleLoopPad`, `stopPad`, `stopPage` (+ `hydrateBank`, `setActivePage`).
+- [x] `pad-input.ts` : Pointer Events → intentions par Mode de lecture (+ `setPointerCapture` Gate, relâchement de sécurité au détachement).
+- [x] Multi-pages + `PageTabs` (navigation) ; `PadGrid` + `Pad` (grille `rows`×`cols`, état actif/vide).
+- [x] 3 Modes de lecture (One-Shot / Gate / Loop).
+- [x] Polyphonie Mono/Poly : choke Mono, re-déclenchement self.
+- [x] `maxVoices` en FIFO (interne, plafond lu depuis les réglages).
+- [x] **Tests** : 47 tests (domaine, moteur M2, commandes, pad-input), verts en Docker.
+- [x] **Validation web (1er temps)** : matrice §7 couverte par les tests + grille jouable (banque seed dev) sur http://localhost:1420. Android = 2ᵉ temps (voir §16).
 
 ### M3 — Édition · `0.4.0` · Phase C
 - [ ] `toggleEditMode` + bascule Édition ↔ Jeu.

@@ -21,8 +21,10 @@ Ce qui est implémenté au **M1** :
 | `onPlayingChanged(cb)` | Abonnement au reflet des voix actives (`Set<padId>`), émis à chaque démarrage/fin de voix. |
 | `state` | `suspended` \| `running` \| `closed` \| `interrupted`. |
 
-`press` / `release` / `toggleLoop` / `stopPad` / `stopPage` sont des **stubs (M2)** : Gate, Loop,
-Polyphonie Mono/Poly et plafond de voix FIFO arrivent au jalon suivant.
+**Complété au M2** (voir [cœur jouable](./coeur-jeu.md)) : `press`/`release` (Gate),
+`toggleLoop` (Loop), `stopPad`/`stopPage`, **choke Mono** (démarrer un pad arrête les autres voix
+de la page), et plafond de voix en **FIFO** (`getMaxVoices`, lu depuis `Settings.maxVoices`). Une
+voix porte sa `pageId` (choke + `stopPage`).
 
 ### Gain : dB → amplitude
 

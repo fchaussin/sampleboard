@@ -2,7 +2,7 @@
 // Store réactif (runes Svelte 5) — source de vérité de la config et de l'état UI (voir §9).
 // N'est muté QUE par la couche de commandes. Ne contient aucune logique de jeu (décision B).
 import { DEFAULT_LOCALE } from '../domain/invariants';
-import type { Bank, Sample, Settings } from '../domain/types';
+import type { Bank, Page, Sample, Settings } from '../domain/types';
 
 export class AppStore {
   /** Arbre banque chargé (null tant que non hydraté — jalon M5). */
@@ -26,6 +26,12 @@ export class AppStore {
   /** Raccourci pratique : langue courante de l'UI. */
   get locale(): string {
     return this.settings.locale;
+  }
+
+  /** Page couramment affichée (dérivée de `bank` + `activePageId`), ou `null`. */
+  get activePage(): Page | null {
+    if (!this.bank || this.activePageId === null) return null;
+    return this.bank.pages.find((p) => p.id === this.activePageId) ?? null;
   }
 }
 
