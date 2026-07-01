@@ -64,11 +64,11 @@ docker compose run --rm dev bash              # shell non-root interactif
 docker compose run --rm build
 ```
 
-Fenêtre **Tauri desktop** (`npm run tauri dev`) : nécessite un serveur X.
-Sous WSLg/Linux, décommenter `DISPLAY` et le montage X11 dans `docker-compose.yml`, puis :
+Fenêtre **Tauri desktop** (`npm run tauri dev`) : nécessite un serveur X. Utilise
+l'overlay GUI `docker-compose.gui.yml` (WSLg ou Linux + X ; sur Linux natif : `xhost +local:`) :
 
 ```bash
-docker compose run --rm dev npm run tauri dev
+docker compose -f docker-compose.yml -f docker-compose.gui.yml run --rm dev npm run tauri dev
 ```
 
 > Le développement se fait via `tauri dev` (frontend web dans la WebView native),

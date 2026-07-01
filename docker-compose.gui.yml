@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Overlay GUI : ajoute l'accès à un serveur X pour ouvrir la fenêtre `tauri dev`.
+# La base (docker-compose.yml) reste portable/sans dépendance à l'hôte ; on ne l'active
+# que via cet overlay, à la demande.
+#
+# WSLg (Windows/WSL2) ET Linux avec serveur X fonctionnent avec DISPLAY=:0 + socket X11.
+# Sur Linux natif, autoriser le conteneur : `xhost +local:` (puis `xhost -local:` après).
+#
+# Usage :
+#   docker compose -f docker-compose.yml -f docker-compose.gui.yml run --rm dev npm run tauri dev
+#
+# Dépannage rendu (si fenêtre noire / erreur GL) : décommenter LIBGL_ALWAYS_SOFTWARE.
+
+services:
+  dev:
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+      - XDG_RUNTIME_DIR=/mnt/wslg/runtime-dir
+      # - WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-}
+      # - PULSE_SERVER=${PULSE_SERVER:-/mnt/wslg/PulseServer}
+      # - LIBGL_ALWAYS_SOFTWARE=1
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      # WSLg uniquement (Windows/WSL2) — audio + runtime :
+      - /mnt/wslg:/mnt/wslg:rw
