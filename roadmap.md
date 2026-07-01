@@ -148,13 +148,15 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 - [ ] MIDI.
 - [ ] Mode navigateur pur (implémentation web des repositories).
 - [ ] Export/import de banque (fichier portable).
+- [ ] **Import par URL** — importer un sample depuis une URL (réutilise le pipeline d'import ; limite `Content-Length` configurable via `.env`, commune import local + URL). Accès réseau **demandé à la volée** (autorisation just-in-time au déclenchement, pas de permission permanente) → impact F-Droid. _(trié 2026-07-01)_
 - [ ] iOS.
 
 ### Entrantes — à trier
+_(vide — à alimenter au fil du dev)_
 
 | # | Feature | Décrite le | Cible proposée | Statut |
 |---|---|---|---|---|
-| 1 | **Import par URL** (source alternative au fichier local ; réutilise le pipeline M4 ; taille max `Content-Length` **configurable via `.env`, commune import local + URL** — généralise le 20 Mo fixe §16, à arbitrer) | 2026-07-01 | adjacent M4 | À trier |
+| — | — | — | — | À trier |
 
 ---
 
