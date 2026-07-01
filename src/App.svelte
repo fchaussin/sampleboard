@@ -5,7 +5,7 @@
   import PageTabs from './ui/components/PageTabs.svelte';
   import PadGrid from './ui/components/PadGrid.svelte';
   import Editor from './ui/components/Editor.svelte';
-  import DevLibrary from './ui/dev/DevLibrary.svelte';
+  import Library from './ui/components/Library.svelte';
 
   let { app }: { app: App } = $props();
 
@@ -21,7 +21,7 @@
     </button>
   </header>
 
-  <DevLibrary {app} />
+  <Library {app} />
   <PageTabs {app} />
   {#if editMode}
     <Editor {app} />

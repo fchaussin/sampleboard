@@ -24,7 +24,14 @@
   "editor.pad.sample": "Sample",
   "editor.pad.sampleNone": "— aucun —",
   "editor.pad.delete": "Supprimer le pad",
-  "devlib.add": "Ajouter un son",
-  "devlib.load": "Charger",
-  "devlib.stopPage": "Stopper la page"
+  "library.import": "Importer un son",
+  "library.importing": "Import…",
+  "library.empty": "Bibliothèque vide — importe un son.",
+  "library.preview": "Pré-écouter",
+  "library.delete": "Supprimer",
+  "library.confirm": "Confirmer",
+  "library.impacted": "pad(s) impacté(s) —",
+  "library.error.tooLarge": "Fichier trop lourd (max 20 Mo).",
+  "library.error.undecodable": "Format non décodable.",
+  "library.error.encodeFailed": "Échec de l'encodage Opus."
 }

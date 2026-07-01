@@ -27,4 +27,5 @@ les règles projet :
 - [Moteur audio (M1)](./moteur-audio.md)
 - [Cœur jouable (M2)](./coeur-jeu.md)
 - [Édition (M3)](./edition.md)
+- [Bibliothèque & import (M4)](./bibliotheque-import.md)
 - [Tests](./tests.md)

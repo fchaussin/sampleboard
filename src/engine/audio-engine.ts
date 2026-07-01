@@ -6,7 +6,7 @@
 import type { Pad, Page } from '../domain/types';
 import { DEFAULT_MAX_VOICES } from '../domain/invariants';
 import { gainDbToAmplitude, type Voice } from './voice';
-import type { EngineState, PlayingChangedCallback } from './types';
+import type { DecodedAudio, EngineState, PlayingChangedCallback } from './types';
 
 /** Rampe de gain courte à l'arrêt d'une voix (anti-clic, voir §7). */
 const ANTI_CLICK_FADE_S = 0.008;
@@ -72,6 +72,37 @@ export class AudioEngine {
   /** Vrai si le buffer d'un sample est déjà décodé/en cache. */
   isLoaded(sampleId: string): boolean {
     return this.#buffers.has(sampleId);
+  }
+
+  /** Décode des octets audio en PCM (canaux copiés) + durée — sert au pipeline d'import (§13). */
+  async decode(bytes: ArrayBuffer): Promise<DecodedAudio> {
+    const ctx = this.#ensureContext();
+    const buffer = await ctx.decodeAudioData(bytes.slice(0));
+    const channelData: Float32Array[] = [];
+    for (let c = 0; c < buffer.numberOfChannels; c++) {
+      // Copie : on ne veut pas exposer/détacher le stockage interne de l'AudioBuffer.
+      channelData.push(new Float32Array(buffer.getChannelData(c)));
+    }
+    return { channelData, sampleRate: buffer.sampleRate, durationMs: buffer.duration * 1000 };
+  }
+
+  /** Pré-écoute : joue une fois le buffer d'un sample (hors pads, hors reflet). No-op si absent. */
+  previewSample(sampleId: string): void {
+    const ctx = this.#ctx;
+    if (!ctx) return;
+    const buffer = this.#buffers.get(sampleId);
+    if (!buffer) return;
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.onended = () => {
+      try {
+        source.disconnect();
+      } catch {
+        // déjà déconnecté
+      }
+    };
+    source.start();
   }
 
   // --- Déclenchements (voir la matrice §7) --------------------------------------------------

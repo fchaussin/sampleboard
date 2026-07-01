@@ -6,6 +6,12 @@ dist/
 .svelte-kit/
 .vite/
 
+# Tests E2E (Playwright)
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+
 # Sortie build Docker (prod)
 /artifacts/*
 !/artifacts/.gitkeep

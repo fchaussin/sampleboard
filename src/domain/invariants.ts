@@ -18,6 +18,9 @@ export const DEFAULT_GAIN_DB = 0;
 export const DEFAULT_MAX_VOICES = 8;
 export const DEFAULT_LOCALE = 'fr';
 
+/** Taille max d'un fichier importé, sur la source avant décodage (20 Mo, §16). */
+export const IMPORT_MAX_BYTES = 20 * 1024 * 1024;
+
 export function isValidGainDb(gainDb: number): boolean {
   return Number.isFinite(gainDb) && gainDb >= GAIN_DB_MIN && gainDb <= GAIN_DB_MAX;
 }

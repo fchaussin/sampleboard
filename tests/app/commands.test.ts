@@ -49,7 +49,11 @@ function fakeEngine() {
 function setup(b: Bank | null = null) {
   const store = fakeStore(b);
   const engine = fakeEngine();
-  const commands = createCommands({ store, engine: engine as unknown as AudioEngine });
+  const commands = createCommands({
+    store,
+    engine: engine as unknown as AudioEngine,
+    encode: async () => new Uint8Array(),
+  });
   return { store, engine, commands };
 }
 

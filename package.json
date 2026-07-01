@@ -1,6 +1,6 @@
 {
   "name": "sampleboard",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "license": "GPL-3.0-or-later",
@@ -12,15 +12,18 @@
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "tauri": "tauri"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.11.1",
     "@tauri-apps/plugin-dialog": "^2.7.1",
     "@tauri-apps/plugin-fs": "^2.5.1",
-    "@tauri-apps/plugin-sql": "^2.4.0"
+    "@tauri-apps/plugin-sql": "^2.4.0",
+    "opus-recorder": "^8.0.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@tauri-apps/cli": "^2.11.4",
     "svelte": "^5.56.4",

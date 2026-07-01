@@ -8,6 +8,42 @@ versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-07-01 — M4 (Bibliothèque & import)
+
+> **Validé sur web** (navigateur réel, E2E) : import → OGG/Opus → re-décodage → bibliothèque, et
+> lecture d'un sample assigné. Chaîne sur appareil Android = 2ᵉ temps (spec §16).
+
+### Ajouté
+- **Encodeur Opus/WASM** (`engine/encoder.ts`) : socle **opus-recorder** (MIT, libopus + ogg en
+  WASM, worker embarqué), 96 kbps ; `Encoder` injectable. Émet OpusHead + OpusTags + audio.
+- **Pipeline d'import** (`commands.importSample`) : garde 20 Mo → `decodeAudioData` → encode Opus →
+  **re-décodage garde-fou** → entrée `Sample`. Erreurs typées (`tooLarge` / `undecodable` /
+  `encodeFailed`).
+- **Bibliothèque** (`Library.svelte`) : import (API File), pré-écoute (`previewSample`), renommage,
+  suppression avec **avertissement des pads impactés** (qui passent *introuvable*, §12).
+- Moteur : `decode` (PCM + durée) et `previewSample` (voix transitoire).
+- **État de pad *introuvable*** (sample assigné puis supprimé) en plus de actif / vide.
+
+### Tests — couche E2E (nouveau, durable)
+- **Playwright / Chromium** en Docker (image officielle version-alignée, `docker-compose.e2e.yml`,
+  `npm run test:e2e`). Exerce le **vrai** navigateur : Web Audio + Worker WASM (encodeur), import
+  et lecture réels — ce que les mocks Vitest ne peuvent pas voir.
+- `e2e/import.spec.ts` (encodage OGG/Opus réel), `e2e/play.spec.ts` (assignation + lecture Loop →
+  pad actif).
+- Hook `tests-gate` étendu : lance l'E2E et **bloque le commit** si un fichier `src/`/`e2e/` est
+  touché et que l'E2E échoue (garantit que la dette « encodeur cassé qui passe les mocks » ne
+  revienne pas).
+
+### Corrigé
+- Encodeur Opus : les en-têtes **OpusHead/OpusTags** manquaient (OGG indécodable) — ajout de la
+  requête `getHeaderPages`. Bug invisible aux tests mockés, attrapé par l'E2E.
+- Dev : HMR Vite (`ws://0.0.0.0:1421` injoignable) → HMR sur le port de l'app ; serveur en
+  `host: true`.
+
+### Retiré
+- Loader dev M3 (`DevLibrary`, commandes `devAddSample`/`attachSampleBuffer`) remplacé par la
+  Bibliothèque réelle + le pipeline d'import.
+
 ## [0.4.0] - 2026-07-01 — M3 (Édition)
 
 > **Validé sur web** : une banque se configure de A à Z sans toucher au code (63 tests).

@@ -62,6 +62,7 @@ function setup(bank = makeBank(), samples: Sample[] = []) {
   const commands = createCommands({
     store,
     engine: engine as unknown as AudioEngine,
+    encode: async () => new Uint8Array(),
     ids: () => `id-${n++}`,
   });
   return { store, engine, commands };
@@ -204,22 +205,6 @@ describe('grille — invariant de réduction', () => {
     const { store, commands } = setup();
     commands.setPageGrid('pg', 99, 99);
     expect(findPage(store.bank!, 'pg')).toMatchObject({ rows: 4, cols: 4 });
-  });
-});
-
-describe('bibliothèque (pont dev)', () => {
-  it('devAddSample crée une entrée et charge le buffer', async () => {
-    const { store, engine, commands } = setup();
-    const id = await commands.devAddSample('kick.wav', new ArrayBuffer(8));
-    expect(engine.load).toHaveBeenCalledWith(id, expect.any(ArrayBuffer));
-    expect(store.samples).toHaveLength(1);
-    expect(store.samples[0]).toMatchObject({ id, label: 'kick.wav' });
-  });
-
-  it('attachSampleBuffer charge le buffer d’un sample existant', async () => {
-    const { engine, commands } = setup();
-    await commands.attachSampleBuffer('dev-sample-a', new ArrayBuffer(4));
-    expect(engine.load).toHaveBeenCalledWith('dev-sample-a', expect.any(ArrayBuffer));
   });
 });
 

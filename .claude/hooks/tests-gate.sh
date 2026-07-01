@@ -45,13 +45,31 @@ if ! command -v docker >/dev/null 2>&1 || ! docker info >/dev/null 2>&1; then
   exit 0   # non bloquant : on ne casse pas le commit si l'outillage n'est pas là.
 fi
 
-echo "▶ tests-gate : exécution de la suite de tests (Docker rootless)…" >&2
-if output="$(docker compose -f docker-compose.dev.yml run --rm -T dev npm run test 2>&1)"; then
-  echo "✓ tests-gate : suite verte — commit autorisé." >&2
-  exit 0
-else
+echo "▶ tests-gate : tests unitaires (Vitest, Docker rootless)…" >&2
+if ! output="$(docker compose -f docker-compose.dev.yml run --rm -T dev npm run test 2>&1)"; then
   echo "$output" | tail -30 >&2
-  echo "✗ tests-gate : la suite de tests ÉCHOUE — commit refusé." >&2
+  echo "✗ tests-gate : les tests unitaires ÉCHOUENT — commit refusé." >&2
   echo "  → Corrige/complète les tests jusqu'au vert avant de committer." >&2
   exit 2   # bloquant : les tests doivent être VALIDÉS.
 fi
+echo "✓ tests-gate : tests unitaires verts." >&2
+
+# E2E (navigateur réel) — couvre ce que les mocks ne voient pas (Web Audio, encodeur Opus WASM).
+# Déclenché seulement si du code navigateur/E2E est touché (src/ ou e2e/) : commits doc/chore rapides.
+browser_relevant="$(printf '%s\n' "$staged" | grep -E '^(src/|e2e/)' || true)"
+if [ -n "$browser_relevant" ]; then
+  if docker image inspect mcr.microsoft.com/playwright:v1.61.1-noble >/dev/null 2>&1; then
+    echo "▶ tests-gate : tests E2E (Playwright/Chromium)…" >&2
+    if ! e2eout="$(docker compose -f docker-compose.e2e.yml run --rm e2e 2>&1)"; then
+      echo "$e2eout" | tail -40 >&2
+      echo "✗ tests-gate : les tests E2E ÉCHOUENT — commit refusé." >&2
+      exit 2   # bloquant : les chemins navigateur doivent être VALIDÉS (dette encodeur).
+    fi
+    echo "✓ tests-gate : E2E verts — commit autorisé." >&2
+  else
+    echo "⚠ tests-gate : image Playwright absente — E2E NON exécutés." >&2
+    echo "  → docker compose -f docker-compose.e2e.yml run --rm e2e (avant de pousser)." >&2
+  fi
+fi
+
+exit 0

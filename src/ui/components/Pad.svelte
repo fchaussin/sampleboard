@@ -12,7 +12,13 @@
   const editMode = $derived(app.store.editMode);
   const selected = $derived(app.store.selectedPadId === pad.id);
   const playing = $derived(app.store.activePadIds.has(pad.id));
-  const status = $derived(playing ? 'active' : pad.sampleId === null ? 'empty' : 'idle');
+  const inLibrary = $derived(
+    pad.sampleId !== null && app.store.samples.some((s) => s.id === pad.sampleId),
+  );
+  // active > vide (aucun sample) > introuvable (sample supprimé) > au repos (§12, Glossaire).
+  const status = $derived(
+    playing ? 'active' : pad.sampleId === null ? 'empty' : inLibrary ? 'idle' : 'missing',
+  );
 
   const handlers: PadInputHandlers = {
     fire: (id) => app.commands.firePad(id),
@@ -85,6 +91,11 @@
 
   .pad.empty {
     opacity: 0.4;
+  }
+
+  .pad.missing {
+    border-color: #e0574f;
+    border-style: dashed;
   }
 
   .pad.active {

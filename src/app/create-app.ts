@@ -8,7 +8,8 @@ import { createSettingsRepository } from '../storage/settings-repository';
 import { createStore, type AppStore } from './store.svelte';
 import { createCommands, type Commands } from './commands';
 import { createPersistence, type Persistence } from './persistence';
-import { createSeedBank, createSeedSamples } from './dev-seed';
+import { createOpusEncoder } from '../engine/encoder';
+import { createSeedBank } from './dev-seed';
 
 export interface App {
   store: AppStore;
@@ -28,7 +29,7 @@ export function createApp(): App {
   const sampleRepository = createSampleRepository();
   const settingsRepository = createSettingsRepository();
 
-  const commands = createCommands({ store, engine });
+  const commands = createCommands({ store, engine, encode: createOpusEncoder() });
   const persistence = createPersistence({ store, bankRepository, settingsRepository });
 
   // Reflet minimal des voix actives : l'engine notifie, le store reflète (décision B).
@@ -36,8 +37,7 @@ export function createApp(): App {
     store.activePadIds = activePadIds;
   });
 
-  // TEMP(M2/M3) : bibliothèque + banque de départ (hydratation SQLite au M5).
-  commands.hydrateLibrary(createSeedSamples());
+  // TEMP(M2/M3) : banque de départ (pages/pads vides ; bibliothèque remplie par l'import M4).
   commands.hydrateBank(createSeedBank());
 
   // sampleRepository sera injecté aux commandes d'import au jalon M4.

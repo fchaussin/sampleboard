@@ -2,6 +2,7 @@
 // Couche de commandes — SEUL point de mutation du store (voir specifications.md §9).
 // Coordonne store + engine de façon atomique. L'UI n'émet que des intentions.
 import type { AudioEngine } from '../engine/audio-engine';
+import type { Encoder } from '../engine/encoder';
 import type { Bank, Pad, Page, Sample } from '../domain/types';
 import type { PlayMode, VoiceMode } from '../domain/enums';
 import { findPad, findPage, padsOfPage, pagesSorted, firstFreePosition } from '../domain/selectors';
@@ -11,6 +12,7 @@ import {
   DEFAULT_ROWS,
   GAIN_DB_MAX,
   GAIN_DB_MIN,
+  IMPORT_MAX_BYTES,
   gridCapacity,
   isValidCols,
   isValidRows,
@@ -19,9 +21,15 @@ import {
 import { newId } from '../domain/id';
 import type { AppStore } from './store.svelte';
 
+/** Motif d'échec d'un import (voir §12, §13). */
+export type ImportError = 'tooLarge' | 'undecodable' | 'encodeFailed';
+export type ImportResult = { ok: true; sampleId: string } | { ok: false; reason: ImportError };
+
 export interface CommandDeps {
   store: AppStore;
   engine: AudioEngine;
+  /** Encodeur OGG/Opus (injectable pour les tests). */
+  encode: Encoder;
   /** Générateur d'identifiants (injectable pour les tests). Défaut : `newId()`. */
   ids?: () => string;
 }
@@ -65,12 +73,17 @@ export interface Commands {
   setPageGrid(pageId: string, rows: number, cols: number): void;
   reorderPages(pageId: string, toIndex: number): void;
 
-  // Bibliothèque — pont dev (remplacé par l'import réel M4)
-  attachSampleBuffer(sampleId: string, bytes: ArrayBuffer): Promise<void>;
-  devAddSample(label: string, bytes: ArrayBuffer): Promise<string>;
+  // Bibliothèque (§8, §13)
+  /** Pipeline d'import : validation taille → décodage → ré-encodage Opus → entrée bibliothèque. */
+  importSample(fileName: string, bytes: ArrayBuffer): Promise<ImportResult>;
+  /** Pré-écoute d'un sample de la bibliothèque. */
+  previewSample(sampleId: string): void;
+  renameSample(sampleId: string, label: string): void;
+  /** Supprime un sample ; les pads qui le référençaient deviennent *introuvables* (§12). */
+  deleteSample(sampleId: string): void;
 }
 
-export function createCommands({ store, engine, ids = () => newId() }: CommandDeps): Commands {
+export function createCommands({ store, engine, encode, ids = () => newId() }: CommandDeps): Commands {
   function resolve(padId: string): { pad: Pad; page: Page } | null {
     const bank = store.bank;
     if (!bank) return null;
@@ -272,26 +285,56 @@ export function createCommands({ store, engine, ids = () => newId() }: CommandDe
       });
     },
 
-    async attachSampleBuffer(sampleId: string, bytes: ArrayBuffer): Promise<void> {
+    async importSample(fileName: string, bytes: ArrayBuffer): Promise<ImportResult> {
+      if (bytes.byteLength > IMPORT_MAX_BYTES) return { ok: false, reason: 'tooLarge' };
       await engine.resume();
-      await engine.load(sampleId, bytes);
-    },
-    async devAddSample(label: string, bytes: ArrayBuffer): Promise<string> {
+
+      let decoded;
+      try {
+        decoded = await engine.decode(bytes);
+      } catch {
+        return { ok: false, reason: 'undecodable' }; // format non décodable (§12)
+      }
+
+      let ogg: Uint8Array;
+      try {
+        ogg = await encode({ channelData: decoded.channelData, sampleRate: decoded.sampleRate });
+      } catch {
+        return { ok: false, reason: 'encodeFailed' };
+      }
+
       const id = ids();
-      await engine.resume();
-      await engine.load(id, bytes);
+      try {
+        // Charge le RÉ-ENCODÉ : vérifie qu'il est décodable et le rend jouable/pré-écoutable.
+        await engine.load(id, ogg.slice().buffer);
+      } catch {
+        return { ok: false, reason: 'encodeFailed' };
+      }
+
       const sample: Sample = {
         id,
-        label,
+        label: fileName,
         fileName: `${id}.ogg`,
-        originalName: label,
+        originalName: fileName,
         mime: 'audio/ogg',
-        sizeBytes: bytes.byteLength,
-        durationMs: null,
+        sizeBytes: ogg.byteLength,
+        durationMs: Math.round(decoded.durationMs),
         createdAt: 0,
       };
       store.samples = [...store.samples, sample];
-      return id;
+      return { ok: true, sampleId: id };
+    },
+    previewSample(sampleId: string): void {
+      void engine.resume();
+      engine.previewSample(sampleId);
+    },
+    renameSample(sampleId: string, label: string): void {
+      store.samples = store.samples.map((s) => (s.id === sampleId ? { ...s, label } : s));
+    },
+    deleteSample(sampleId: string): void {
+      // Les pads gardent leur sampleId : ils basculent en état *introuvable* (§12), pas de purge.
+      engine.unload(sampleId);
+      store.samples = store.samples.filter((s) => s.id !== sampleId);
     },
   };
 }

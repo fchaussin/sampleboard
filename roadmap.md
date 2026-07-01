@@ -102,12 +102,13 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 - [x] **Validation web (1er temps)** : configurer une banque de A à Z sans toucher au code, sur http://localhost:1420. Android = 2ᵉ temps (§16).
 
 ### M4 — Bibliothèque & import · `0.5.0` · Phase C
-- [ ] `engine/encoder.ts` : intégration **WASM libopus** (build + fallback WebCodecs opportuniste).
-- [ ] Pipeline import : `dialog` → `fs` → validation 20 Mo → `decodeAudioData` → `durationMs` → encode Opus 96 kbps → écriture `{sampleId}.ogg`.
-- [ ] `Library.svelte` : import, renommage `label`, suppression (avertissement pads impactés), **pré-écoute**.
-- [ ] `assignSample` depuis la bibliothèque (sélecteur dans l'Editor).
-- [ ] États pad : *actif / introuvable / vide*.
-- [ ] **Validation** : chaîne décode→encode fiable sur **appareil réel**.
+- [x] `engine/encoder.ts` : **WASM libopus** via opus-recorder (worker embarqué, OpusHead/Tags + audio, 96 kbps), `Encoder` injectable. _(fallback WebCodecs opportuniste : non requis, plus tard ; build-from-source → M6)_
+- [x] Pipeline import : validation 20 Mo → `decodeAudioData` → `durationMs` → encode Opus 96 kbps → garde-fou re-décodage → entrée bibliothèque. _(source via API File ; `dialog`/`fs` + écriture disque `{sampleId}.ogg` → **M5** avec la persistance, Tauri-only)_
+- [x] `Library.svelte` : import, renommage `label`, suppression (avertissement pads impactés), **pré-écoute**.
+- [x] `assignSample` depuis la bibliothèque (sélecteur dans l'Editor).
+- [x] États pad : *actif / introuvable / vide*.
+- [x] **Tests E2E (Playwright/Chromium)** : encodeur Opus réel + import + lecture — la couche qui manquait (dette encodeur résolue).
+- [x] **Validation web (1er temps)** : chaîne décode→encode→re-décode fiable en navigateur réel (E2E). Chaîne sur **appareil réel** Android = 2ᵉ temps (§16).
 
 ### M5 — Persistance & réglages · `0.6.0` · Phase D
 - [ ] `db.ts` : wrapper `tauri-plugin-sql` + migrations (`user_version`).
