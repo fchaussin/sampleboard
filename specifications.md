@@ -75,7 +75,7 @@ C'est un **sampleboard** (façon soundboard), **pas un sampler** : pas de DSP, p
 - Persistance locale fiable (config + bibliothèque de fichiers audio), rechargée au démarrage.
 
 ### Hors périmètre (v1) — voir §17
-Découpe/rognage de sample, multi-banques, raccourcis clavier, enregistrement, effets/DSP, waveform, MIDI, synchro cloud, iOS.
+Découpe/rognage de sample, multi-banques, raccourcis clavier, enregistrement, effets/DSP, waveform, MIDI, synchro cloud, **accès réseau / import par URL** (v1 hors-ligne, voir §16), iOS.
 
 ### Contenu
 L'application est livrée **vide** : aucun extrait audio n'est embarqué. Les répliques et bruitages sont fournis par l'utilisateur via import. Aucun contenu sous droit d'auteur n'est distribué avec l'app (contrainte produit **et** contrainte F-Droid).
@@ -444,6 +444,7 @@ Le ré-encodage se fait **côté frontend** (règle « pas de logique métier en
 - **Multi-banques** : **v1 mono-banque** (une ligne `bank`) ; schéma déjà prêt pour du multi, renvoyé en v2.
 - **Nombre maximum de voix** : défaut **8** ; dépassement géré en **FIFO**, interne, non exposé.
 - **Taille max d'import** : **20 Mo** (sur le fichier source, avant décodage).
+- **Réseau** : **v1 100 % hors-ligne** — aucun accès réseau, aucune permission réseau Android (renforce la contrainte F-Droid §15, cohérent avec le côté offline-first « l'utilisateur importe ses fichiers »). L'import par URL (accès réseau, autorisation à la volée) est renvoyé en **v2**.
 
 ## 17. Évolutions futures (hors v1)
 
