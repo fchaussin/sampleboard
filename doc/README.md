@@ -9,14 +9,20 @@ spécification** :
 - `doc/` (ici) — le **comment** : guides d'utilisation et de développement de ce qui est
   **réellement implémenté**. Suit le code.
 
-## Convention : doc-sync à chaque commit
+## Conventions : garde-fous automatiques (`.claude/hooks/`)
 
-Tout commit qui touche l'implémentation (`src/`, `src-tauri/src/`) met à jour la doc
-correspondante dans `doc/`. Un mécanisme le rappelle automatiquement :
-`.claude/hooks/doc-sync.sh` (hook `PreToolUse` sur `git commit`, non bloquant) signale un
-commit de code sans mise à jour de `doc/`. Les commits purement chore/refactor peuvent s'en
-dispenser en connaissance de cause.
+À chaque `git commit`, deux hooks `PreToolUse` (déclarés dans `.claude/settings.json`) appliquent
+les règles projet :
+
+- **doc-sync** (`doc-sync.sh`, non bloquant) — tout commit qui touche l'implémentation (`src/`,
+  `src-tauri/src/`) met à jour la doc correspondante dans `doc/`. Signale un commit de code sans
+  mise à jour de `doc/`. Les commits purement chore/refactor peuvent s'en dispenser en
+  connaissance de cause.
+- **tests-gate** (`tests-gate.sh`) — avertit si du code est commité sans test et **exécute la
+  suite en Docker, bloquant le commit si elle échoue**. Voir [tests](./tests.md).
 
 ## Sommaire
 
 - [Environnement Docker (dev / prod)](./environnement-docker.md)
+- [Moteur audio (M1)](./moteur-audio.md)
+- [Tests](./tests.md)

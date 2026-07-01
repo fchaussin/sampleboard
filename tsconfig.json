@@ -22,6 +22,6 @@
 
     "types": ["svelte", "vite/client"]
   },
-  "include": ["src/**/*.ts", "src/**/*.svelte", "src/**/*.svelte.ts"],
+  "include": ["src/**/*.ts", "src/**/*.svelte", "src/**/*.svelte.ts", "tests/**/*.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

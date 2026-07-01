@@ -2,6 +2,7 @@
 <script lang="ts">
   import type { App } from './app/create-app';
   import { t } from './ui/i18n';
+  import M1AudioDemo from './ui/dev/M1AudioDemo.svelte';
 
   let { app }: { app: App } = $props();
 
@@ -12,8 +13,8 @@
 <main>
   <h1>{t('app.name', locale)}</h1>
   <p class="tagline">{t('app.tagline', locale)}</p>
-  <p class="greeting">{t('m0.greeting', locale)}</p>
-  <p class="hint">{t('m0.hint', locale)}</p>
+
+  <M1AudioDemo {app} />
 </main>
 
 <style>
@@ -37,17 +38,5 @@
   .tagline {
     margin: 0;
     color: var(--accent);
-  }
-
-  .greeting {
-    margin-top: 1.5rem;
-    font-weight: 600;
-  }
-
-  .hint {
-    margin: 0;
-    max-width: 32ch;
-    color: var(--muted);
-    font-size: 0.9rem;
   }
 </style>

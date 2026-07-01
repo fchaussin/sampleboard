@@ -1,8 +1,15 @@
 {
   "app.name": "Sampleboard",
   "app.tagline": "Pads déclencheurs de sons",
-  "m0.greeting": "Socle opérationnel.",
-  "m0.hint": "Moteur audio, bibliothèque et édition arrivent aux prochains jalons.",
   "nav.play": "Jeu",
-  "nav.edit": "Édition"
+  "nav.edit": "Édition",
+  "m1.demo.title": "Démo audio (M1)",
+  "m1.demo.hint": "Chargez un fichier audio, puis appuyez sur le pad pour l'entendre (One-Shot).",
+  "m1.demo.load": "Charger un son…",
+  "m1.demo.loading": "Chargement…",
+  "m1.demo.error": "Fichier audio non décodable.",
+  "m1.demo.loadedPrefix": "Son chargé :",
+  "m1.demo.empty": "Aucun son chargé.",
+  "m1.demo.pad": "Pad démo",
+  "m1.demo.playing": "Lecture…"
 }

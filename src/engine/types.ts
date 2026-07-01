@@ -5,5 +5,9 @@
 /** Notifié quand l'ensemble des pads en train de jouer change. */
 export type PlayingChangedCallback = (activePadIds: Set<string>) => void;
 
-/** État de l'AudioContext exposé à l'app (politique autoplay mobile, veille Android). */
-export type EngineState = 'suspended' | 'running' | 'closed';
+/**
+ * État de l'AudioContext exposé à l'app (politique autoplay mobile, veille Android).
+ * Reflète directement `AudioContextState` : `interrupted` apparaît sur certaines plateformes
+ * mobiles (interruption système) et se traite comme un `suspended` à reprendre (voir §12).
+ */
+export type EngineState = 'suspended' | 'running' | 'closed' | 'interrupted';

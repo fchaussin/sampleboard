@@ -68,14 +68,16 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 > « pas de routeur » (spec §4). Aucun SSR n'existe donc à désactiver. À confirmer/figer en spec §16.
 
 ### M1 — Audio · `0.2.0` · Phase B
-- [ ] `AudioEngine` squelette + `AudioContext`.
-- [ ] `resume()` idempotent sur 1er geste (politique autoplay).
-- [ ] Cache de buffers `load()` / `unload()` (`Map<sampleId, AudioBuffer>`).
-- [ ] `voice.ts` (structure d'une voix active).
-- [ ] `oneShot()` : `AudioBufferSourceNode` → `GainNode` (conversion dB→amplitude) → sortie.
-- [ ] `onPlayingChanged` callback.
-- [ ] Un pad **codé en dur** qui joue un buffer importé (One-Shot).
-- [ ] **Validation** : son émis + `resume()` OK sur **Android réel**.
+- [x] `AudioEngine` + `AudioContext` (fabrique injectable pour les tests).
+- [x] `resume()` idempotent sur 1er geste (politique autoplay ; reprend aussi depuis `interrupted`).
+- [x] Cache de buffers `load()` / `unload()` (`Map<sampleId, AudioBuffer>`) + `isLoaded()`.
+- [x] `voice.ts` (structure d'une voix active + `gainDbToAmplitude`).
+- [x] `oneShot()` : `AudioBufferSourceNode` → `GainNode` (conversion dB→amplitude) → sortie ; re-tap = relance depuis 0 (fade anti-clic ~8 ms).
+- [x] `onPlayingChanged` callback (reflet des voix actives ; no-op silencieux si pad vide/buffer absent).
+- [x] Un pad **codé en dur** qui joue un buffer importé (One-Shot) — harnais démo `M1AudioDemo.svelte` (temporaire, retiré au M2/M4).
+- [x] **Tests** : suite Vitest du cœur audio (18 tests, verts en Docker) — voir `doc/moteur-audio.md`.
+- [x] **Validation web (1er temps)** : son émis + `resume()` OK en dev via `M1AudioDemo` (http://localhost:1420 + `tauri dev` bureau) ; tests verts + `svelte-check` + build.
+- [ ] **Validation Android (2ᵉ temps)** : son émis + `resume()` sur **appareil réel** — web d'abord, Android ensuite (voir spec §16).
 
 ### M2 — Cœur · `0.3.0` · Phase B
 - [ ] `domain/types.ts` + `enums.ts` + `invariants.ts` (+ tests purs).

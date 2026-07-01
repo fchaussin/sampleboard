@@ -6,7 +6,35 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) ;
 versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
 `1.0.0` n'est pas planifiée : elle sanctionne la première version **stable et complète**.
 
-## [Unreleased]
+## [Unreleased] — M1 (Audio)
+
+> Cible `0.2.0`. **Validé sur web** (1er temps) : son émis + `resume()` en dev, tests verts,
+> `svelte-check` + build OK. La **validation sur Android réel** est le **2ᵉ temps** (web d'abord,
+> Android ensuite — spec §16), pas un prérequis. Tag posé sur demande.
+
+### Ajouté
+- **Moteur audio** (`engine/audio-engine.ts`, Web Audio) : création/reprise de l'`AudioContext`
+  (`resume()` idempotent, politique autoplay ; reprend aussi depuis `interrupted`), cache de
+  buffers (`load` / `unload` / `isLoaded`), lecture **One-Shot** (`AudioBufferSourceNode` →
+  `GainNode` → sortie, gain **dB → amplitude**), re-tap = relance depuis 0 avec fade anti-clic
+  (~8 ms), et reflet des voix actives via `onPlayingChanged` (no-op silencieux si pad vide /
+  buffer absent).
+- Commandes `resumeAudio` (reprise sur geste) + harnais **temporaire** de démo M1
+  (`loadDemoSound`, `fireDemoPad`, composant `ui/dev/M1AudioDemo.svelte`) : un pad codé en dur
+  qui joue un fichier audio chargé via l'API File (testable en Vite nu ET WebView Tauri).
+- **Tests** : Vitest ajouté ; suite du cœur audio (`voice.test.ts`, `audio-engine.test.ts`,
+  18 tests) — Web Audio simulé par injection, aucune dépendance navigateur.
+
+### Outillage
+- Conteneur Docker **dev permanent** (`docker-compose.dev.yml up dev`) — Vite sur
+  http://localhost:1420, HMR, pour observer l'évolution en continu.
+- Hook `.claude/hooks/tests-gate.sh` (PreToolUse `git commit`) : avertit si du code est commité
+  sans test, **exécute la suite en Docker et bloque le commit si elle échoue** (règle projet :
+  tests écrits → exécutés → validés, puis doc).
+
+### Validé (dev)
+- `npm run test` : 18/18 verts · `svelte-check` : 0 erreur / 0 warning · `vite build` : OK
+  (le tout exécuté en Docker rootless).
 
 ## [0.1.0] - 2026-07-01 — M0 (Socle)
 

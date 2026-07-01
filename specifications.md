@@ -445,6 +445,7 @@ Le ré-encodage se fait **côté frontend** (règle « pas de logique métier en
 - **Nombre maximum de voix** : défaut **8** ; dépassement géré en **FIFO**, interne, non exposé.
 - **Taille max d'import** : **20 Mo** (sur le fichier source, avant décodage).
 - **Réseau** : **v1 100 % hors-ligne** — aucun accès réseau, aucune permission réseau Android (renforce la contrainte F-Droid §15, cohérent avec le côté offline-first « l'utilisateur importe ses fichiers »). L'import par URL (accès réseau, autorisation à la volée) est renvoyé en **v2**.
+- **Ordre de validation : web d'abord, Android ensuite.** Chaque jalon est d'abord développé et validé sur **web** (dev Vite http://localhost:1420 + fenêtre `tauri dev` bureau) ; la validation sur **appareil Android réel** est un **second temps**, jamais un prérequis pour avancer. La cible finale reste F-Droid/Android (§15) — c'est l'ordre de travail qui est fixé, pas la cible.
 
 ## 17. Évolutions futures (hors v1)
 
