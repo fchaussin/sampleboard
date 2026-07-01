@@ -154,7 +154,7 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 
 | # | Feature | Décrite le | Cible proposée | Statut |
 |---|---|---|---|---|
-| 1 | **Import par URL** (source alternative au fichier local ; réutilise le pipeline M4 ; taille max `Content-Length` **configurable via `.env`**) | 2026-07-01 | adjacent M4 | À trier |
+| 1 | **Import par URL** (source alternative au fichier local ; réutilise le pipeline M4 ; taille max `Content-Length` **configurable via `.env`, commune import local + URL** — généralise le 20 Mo fixe §16, à arbitrer) | 2026-07-01 | adjacent M4 | À trier |
 
 ---
 
