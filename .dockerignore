@@ -6,6 +6,7 @@ dist
 .vite
 src-tauri/target
 src-tauri/gen
+artifacts
 *.log
 .env
 .env.*

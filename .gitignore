@@ -6,6 +6,10 @@ dist/
 .svelte-kit/
 .vite/
 
+# Sortie build Docker (prod)
+/artifacts/*
+!/artifacts/.gitkeep
+
 # Tauri / Rust
 src-tauri/target/
 src-tauri/gen/

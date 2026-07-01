@@ -1,47 +1,91 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Environnement d'exécution isolé. Rien n'est installé sur l'hôte :
-#   - le code est monté en bind (.:/app) pour l'édition à chaud ;
-#   - node_modules, src-tauri/target et le cache cargo sont des VOLUMES Docker
-#     (montés PAR-DESSUS le bind), donc invisibles côté hôte.
+# Environnement d'exécution isolé, non-root, à capabilities minimales et PORTABLE.
 #
-# Usage courant :
+# Portabilité :
+#   - UID/GID paramétrables (défaut 1000) via variables d'env ou fichier .env
+#     -> `cp .env.example .env` puis ajuste, ou `UID=$(id -u) GID=$(id -g) docker compose ...`
+#   - image multi-arch (amd64/arm64) : base node + rustup auto-détectent l'architecture ;
+#   - compatible Docker (rootful/rootless) et Podman ; aucun chemin spécifique à l'hôte ;
+#   - toutes les clés utilisées sont standard Compose (pas d'extension propriétaire).
+#
+# Isolation : le code est monté en bind, mais node_modules / target / caches sont des
+# VOLUMES Docker montés par-dessus -> jamais écrits sur l'hôte.
+#
+# Usage :
 #   docker compose build
-#   docker compose run --rm dev npm run check          # types
-#   docker compose run --rm dev npm run build          # build front (dist/)
-#   docker compose up dev                              # serveur Vite -> http://localhost:1420
-#   docker compose run --rm dev bash                   # shell dans l'image
-#   docker compose run --rm dev npm run tauri dev      # fenêtre Tauri (voir GUI ci-dessous)
+#   docker compose run --rm dev npm run check      # types
+#   docker compose up dev                          # Vite -> http://localhost:1420
+#   docker compose run --rm build                  # build prod -> ./artifacts/
+#   docker compose run --rm dev bash               # shell non-root
+
+# Socle de durcissement commun (non-root imposé par l'image ; ici on verrouille le reste).
+x-hardening: &hardening
+  init: true                       # PID 1 qui reap les zombies (portable)
+  security_opt:
+    - no-new-privileges:true       # interdit l'escalade de privilèges
+  cap_drop:
+    - ALL                          # aucune capability Linux (dev front + build n'en ont pas besoin)
+  read_only: false
+  tmpfs:
+    - /tmp
+
+x-build-args: &build-args
+  UID: ${UID:-1000}
+  GID: ${GID:-1000}
 
 services:
+  # --- Développement : itération à chaud -----------------------------------
   dev:
+    <<: *hardening
     build:
       context: .
       dockerfile: docker/Dockerfile
+      target: dev
+      args: *build-args
     image: sampleboard-dev
+    user: "${UID:-1000}:${GID:-1000}"
     working_dir: /app
-    # Serveur Vite par défaut quand on fait `docker compose up dev`.
     command: ["npm", "run", "dev"]
     stdin_open: true
     tty: true
     ports:
-      - "1420:1420"
-      - "1421:1421"
+      - "1420:1420"   # Vite
+      - "1421:1421"   # HMR
     environment:
-      # Fait écouter Vite sur 0.0.0.0 dans le conteneur (accessible depuis l'hôte).
-      - TAURI_DEV_HOST=0.0.0.0
-      # GUI (tauri dev). Sous WSLg/Linux, décommenter aussi le montage X11 ci-dessous.
+      - TAURI_DEV_HOST=0.0.0.0   # Vite écoute 0.0.0.0 (accessible depuis l'hôte)
+      # GUI Tauri (tauri dev) : décommenter + les montages X11 plus bas.
       # - DISPLAY=${DISPLAY:-}
     volumes:
       - .:/app
-      # Dossiers lourds isolés dans des volumes -> l'hôte reste propre.
       - node_modules:/app/node_modules
       - cargo-target:/app/src-tauri/target
       - cargo-registry:/usr/local/cargo/registry
-      # GUI Tauri (X11 / WSLg) — décommenter pour `npm run tauri dev` :
+      - npm-cache:/home/app/.npm
+      # GUI Tauri (X11) — portable sur hôtes Linux/WSLg avec un serveur X :
       # - /tmp/.X11-unix:/tmp/.X11-unix
-      # - /mnt/wslg:/mnt/wslg
+
+  # --- Production : build reproductible, artefacts dans ./artifacts --------
+  build:
+    <<: *hardening
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: builder
+      args: *build-args
+    image: sampleboard-build
+    user: "${UID:-1000}:${GID:-1000}"
+    working_dir: /app
+    command: ["npm", "run", "build"]
+    read_only: true               # durcissement max : rootfs en lecture seule
+    volumes:
+      - .:/app:ro                 # source en LECTURE SEULE (build déterministe)
+      - ./artifacts:/app/dist     # sortie des artefacts sur l'hôte
+      - node_modules:/app/node_modules
+      - cargo-registry:/usr/local/cargo/registry
+      - npm-cache:/home/app/.npm
 
 volumes:
   node_modules:
   cargo-target:
   cargo-registry:
+  npm-cache:
