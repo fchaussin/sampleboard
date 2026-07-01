@@ -37,22 +37,35 @@ src-tauri/   # coquille Tauri v2 (Rust minimal + plugins)
 ## Développement — via Docker (recommandé, hôte propre)
 
 **Toute la toolchain (Node, Rust, dépendances Tauri) vit dans l'image Docker.**
-Rien ne s'installe sur l'hôte : `node_modules`, `src-tauri/target` et le cache cargo
+Rien ne s'installe sur l'hôte : `node_modules`, `src-tauri/target` et les caches cargo/npm
 sont des **volumes Docker** montés par-dessus le code (voir `docker-compose.yml`).
 
-Prérequis : **Docker** (+ Docker Compose v2). Sous Windows/WSL2 : activer l'intégration
+Propriétés de l'environnement :
+
+- **Non-root** : le conteneur tourne sous un UID/GID non privilégié, aligné sur l'hôte.
+- **Capabilities minimales** : `cap_drop: ALL` + `no-new-privileges` (dev et build n'en
+  ont besoin d'aucune) ; le service `build` va jusqu'au rootfs en lecture seule.
+- **Portable** : image multi-arch (amd64/arm64), UID/GID paramétrables, compatible Docker
+  (rootful/rootless) et Podman, sans chemin spécifique à l'hôte.
+
+Prérequis : **Docker** (+ Compose v2) ou Podman. Sous Windows/WSL2 : activer l'intégration
 WSL dans Docker Desktop.
 
 ```bash
+# Portabilité : aligne l'utilisateur du conteneur sur ton hôte
+cp .env.example .env            # puis, au besoin : UID=$(id -u)  GID=$(id -g)
+
 docker compose build                          # construit l'image
 docker compose run --rm dev npm run check     # types (svelte-check)
-docker compose run --rm dev npm run build     # build front -> dist/
 docker compose up dev                         # serveur Vite -> http://localhost:1420
-docker compose run --rm dev bash              # shell interactif
+docker compose run --rm dev bash              # shell non-root interactif
+
+# Build de production reproductible -> artefacts dans ./artifacts/
+docker compose run --rm build
 ```
 
 Fenêtre **Tauri desktop** (`npm run tauri dev`) : nécessite un serveur X.
-Sous WSLg/Linux, décommenter `DISPLAY` et les montages X11 dans `docker-compose.yml`, puis :
+Sous WSLg/Linux, décommenter `DISPLAY` et le montage X11 dans `docker-compose.yml`, puis :
 
 ```bash
 docker compose run --rm dev npm run tauri dev
