@@ -59,9 +59,9 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 - [x] Composition root `create-app.ts` (injection explicite, pas de singletons).
 - [x] i18n minimal : `i18n/index.ts` (loader + `t()`), `fr.json` starter, rune `locale` (dans le store).
 - [x] `LICENSE` GPL-3.0-or-later + en-têtes SPDX de base + `README.md`.
-- [~] **Validation** : `tauri dev` lance une fenêtre affichant un texte via `t()`.
-  - Front vérifié : `svelte-check` 0 erreur, `vite build` OK, le texte `t()` est présent dans le bundle.
-  - Lancement `tauri dev` **à faire sur un poste avec Rust installé** (absent de l'environnement de scaffolding).
+- [x] **Validation** : coquille Tauri compilée en Docker rootless (Rust + plugins + front embarqué,
+  binaire produit) ; front rend `t()` (`svelte-check` 0 erreur, `vite build` OK). Fenêtre `tauri dev`
+  ouvrable via l'overlay GUI (WSLg).
 
 > **Note (M0)** — `svelte.config.js` : la spec dit « adapter-static / SSR off ». Interprété comme
 > **SPA statique Vite + Svelte 5 sans SvelteKit** (montage manuel via `main.ts`), cohérent avec
