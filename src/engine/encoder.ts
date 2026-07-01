@@ -41,9 +41,16 @@ export function createOpusEncoder(): Encoder {
       const pages: Uint8Array[] = [];
       let settled = false;
 
+      // Filet anti-blocage : si le worker ne finit jamais, on échoue proprement (pas de hang).
+      const timer = setTimeout(
+        () => finish(() => reject(new Error('opus encoder: timeout'))),
+        60_000,
+      );
+
       const finish = (fn: () => void): void => {
         if (settled) return;
         settled = true;
+        clearTimeout(timer);
         try {
           worker.terminate();
         } catch {

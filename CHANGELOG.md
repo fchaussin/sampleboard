@@ -8,6 +8,20 @@ versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
 
 ## [Unreleased]
 
+### Corrigé
+- **Import silencieux** (rien ajouté, aucun message) : `crypto.randomUUID` n'existe qu'en
+  **contexte sécurisé** (https / localhost) ; ailleurs (http via IP LAN) la génération d'ID jetait
+  et l'import était abandonné sans trace. `newId` retombe désormais sur `crypto.getRandomValues`
+  (UUID v4) — fonctionne partout. C'était le seul chemin d'échec silencieux ; toute erreur d'import
+  restante est maintenant **affichée**.
+- **Encodeur** : filet anti-blocage (timeout 60 s) — un worker qui ne rend jamais la main échoue
+  proprement au lieu de figer l'import.
+
+### Tests
+- Régression unitaire (`newId` sans `randomUUID`) + **E2E** (import en contexte non sécurisé simulé
+  via `addInitScript`). E2E d'import étendus au **WAV stéréo & plus long**. Total : 70 unitaires,
+  4 E2E.
+
 ## [0.5.0] - 2026-07-01 — M4 (Bibliothèque & import)
 
 > **Validé sur web** (navigateur réel, E2E) : import → OGG/Opus → re-décodage → bibliothèque, et

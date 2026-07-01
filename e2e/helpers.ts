@@ -2,13 +2,15 @@
 // Utilitaires E2E partagés.
 import type { Page } from '@playwright/test';
 
-/** Génère un WAV PCM 16-bit mono (sinus) — décodable partout, sans fixture binaire. */
-export function makeWav(seconds = 0.25, sampleRate = 44100, freq = 440): Buffer {
+/** Génère un WAV PCM 16-bit (mono ou stéréo, sinus) — décodable partout, sans fixture binaire. */
+export function makeWav(seconds = 0.25, sampleRate = 44100, freq = 440, channels = 1): Buffer {
   const n = Math.floor(sampleRate * seconds);
-  const data = Buffer.alloc(n * 2);
+  const bytesPerSample = 2;
+  const blockAlign = channels * bytesPerSample;
+  const data = Buffer.alloc(n * blockAlign);
   for (let i = 0; i < n; i++) {
-    const s = Math.sin((2 * Math.PI * freq * i) / sampleRate) * 0.5;
-    data.writeInt16LE(Math.round(s * 32767), i * 2);
+    const v = Math.round(Math.sin((2 * Math.PI * freq * i) / sampleRate) * 0.5 * 32767);
+    for (let c = 0; c < channels; c++) data.writeInt16LE(v, i * blockAlign + c * bytesPerSample);
   }
   const header = Buffer.alloc(44);
   header.write('RIFF', 0);
@@ -17,10 +19,10 @@ export function makeWav(seconds = 0.25, sampleRate = 44100, freq = 440): Buffer 
   header.write('fmt ', 12);
   header.writeUInt32LE(16, 16);
   header.writeUInt16LE(1, 20); // PCM
-  header.writeUInt16LE(1, 22); // mono
+  header.writeUInt16LE(channels, 22);
   header.writeUInt32LE(sampleRate, 24);
-  header.writeUInt32LE(sampleRate * 2, 28);
-  header.writeUInt16LE(2, 32);
+  header.writeUInt32LE(sampleRate * blockAlign, 28);
+  header.writeUInt16LE(blockAlign, 32);
   header.writeUInt16LE(16, 34);
   header.write('data', 36);
   header.writeUInt32LE(data.length, 40);
