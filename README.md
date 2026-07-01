@@ -38,42 +38,34 @@ src-tauri/   # coquille Tauri v2 (Rust minimal + plugins)
 
 **Toute la toolchain (Node, Rust, dépendances Tauri) vit dans l'image Docker.**
 Rien ne s'installe sur l'hôte : `node_modules`, `src-tauri/target` et les caches cargo/npm
-sont des **volumes Docker** montés par-dessus le code (voir `docker-compose.yml`).
+sont des **volumes Docker**. Deux environnements séparés : **dev** et **prod**.
 
-Propriétés de l'environnement :
-
-- **Non-root** : le conteneur tourne sous un UID/GID non privilégié, aligné sur l'hôte.
-- **Capabilities minimales** : `cap_drop: ALL` + `no-new-privileges` (dev et build n'en
-  ont besoin d'aucune) ; le service `build` va jusqu'au rootfs en lecture seule.
-- **Portable** : image multi-arch (amd64/arm64), UID/GID paramétrables, compatible Docker
-  (rootful/rootless) et Podman, sans chemin spécifique à l'hôte.
-
-Prérequis : **Docker** (+ Compose v2) ou Podman. Sous Windows/WSL2 : activer l'intégration
-WSL dans Docker Desktop.
+- **Rootless** : conçu pour Docker rootless ; le conteneur tourne en root‑conteneur = ton
+  user hôte **non privilégié**. Le non‑privilège vient du moteur rootless.
+- **Durci** : `cap_drop: ALL` + `no-new-privileges` partout ; source en lecture seule pour
+  la prod (build déterministe).
+- **Portable** : multi‑arch (amd64/arm64), UID/GID paramétrables, Docker rootful/rootless
+  ou Podman.
 
 ```bash
-# Portabilité : aligne l'utilisateur du conteneur sur ton hôte
-cp .env.example .env            # puis, au besoin : UID=$(id -u)  GID=$(id -g)
+cp .env.example .env    # optionnel (UID/GID) ; défaut 1000
 
-docker compose build                          # construit l'image
-docker compose run --rm dev npm run check     # types (svelte-check)
-docker compose up dev                         # serveur Vite -> http://localhost:1420
-docker compose run --rm dev bash              # shell non-root interactif
+# Dev
+docker compose -f docker-compose.dev.yml build
+docker compose -f docker-compose.dev.yml run --rm dev npm run check   # types
+docker compose -f docker-compose.dev.yml up dev                       # Vite -> localhost:1420
 
-# Build de production reproductible -> artefacts dans ./artifacts/
-docker compose run --rm build
+# Fenêtre Tauri desktop (serveur X requis ; sinon `xhost +local:`)
+docker compose -f docker-compose.dev.yml -f docker-compose.gui.yml run --rm dev npm run tauri dev
+
+# Prod (build release reproductible -> ./artifacts)
+mkdir -p artifacts && docker compose -f docker-compose.prod.yml run --rm prod
 ```
 
-Fenêtre **Tauri desktop** (`npm run tauri dev`) : nécessite un serveur X. Utilise
-l'overlay GUI `docker-compose.gui.yml` (WSLg ou Linux + X ; sur Linux natif : `xhost +local:`) :
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.gui.yml run --rm dev npm run tauri dev
-```
+Détails complets : **[`doc/environnement-docker.md`](./doc/environnement-docker.md)**.
 
 > Le développement se fait via `tauri dev` (frontend web dans la WebView native),
 > **jamais** dans un onglet de navigateur nu (c'est ce qui donne accès à SQLite natif).
-> Le serveur Vite seul (`npm run dev`) sert à l'itération front uniquement.
 
 ## Développement — sans Docker (hôte)
 

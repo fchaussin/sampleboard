@@ -1,0 +1,48 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Environnement de PRODUCTION — build release reproductible, puis le conteneur s'arrête.
+# Ce n'est pas un serveur : Sampleboard est une app cliente ; « prod » = produire l'artefact.
+#
+#   mkdir -p artifacts
+#   docker compose -f docker-compose.prod.yml build
+#   docker compose -f docker-compose.prod.yml run --rm prod
+#     -> front prod dans ./artifacts, binaire release dans le volume prod-target.
+#        (Bundling F-Droid/APK complet : jalon M6.)
+#
+# Durcissement : source en LECTURE SEULE (déterminisme), cap_drop ALL, no-new-privileges,
+# rootless (root conteneur = user hôte non privilégié). Les écritures sont confinées aux
+# volumes (target, gen, caches) et à ./artifacts.
+
+services:
+  prod:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: prod
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    image: sampleboard-prod
+    working_dir: /app
+    command: ["npm", "run", "tauri", "build", "--", "--no-bundle"]
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp
+    volumes:
+      - .:/app:ro                       # source figée (build déterministe)
+      - ./artifacts:/app/dist           # front prod exporté sur l'hôte
+      - prod-target:/app/src-tauri/target
+      - prod-gen:/app/src-tauri/gen     # tauri build écrit ses schémas ici
+      - node_modules:/app/node_modules
+      - cargo-registry:/usr/local/cargo/registry
+      - npm-cache:/home/app/.npm
+
+volumes:
+  node_modules:
+  cargo-registry:
+  npm-cache:
+  prod-target:
+  prod-gen:

@@ -1,0 +1,52 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Environnement de DÉVELOPPEMENT — rootless, non privilégié, itération à chaud.
+#
+#   docker compose -f docker-compose.dev.yml build
+#   docker compose -f docker-compose.dev.yml up dev                 # Vite -> http://localhost:1420
+#   docker compose -f docker-compose.dev.yml run --rm dev npm run check
+#   docker compose -f docker-compose.dev.yml run --rm dev bash
+#   # Fenêtre Tauri (GUI) : ajouter l'overlay X11
+#   docker compose -f docker-compose.dev.yml -f docker-compose.gui.yml run --rm dev npm run tauri dev
+#
+# Rootless : le conteneur tourne en root = ton utilisateur hôte NON privilégié.
+# Hôte rootful : décommenter `user:` pour ne pas être vraiment root.
+
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: dev
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    image: sampleboard-dev
+    # user: "${UID:-1000}:${GID:-1000}"   # hôtes rootful uniquement
+    working_dir: /app
+    command: ["npm", "run", "dev"]
+    init: true
+    stdin_open: true
+    tty: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp
+    ports:
+      - "1420:1420"   # Vite
+      - "1421:1421"   # HMR
+    environment:
+      - TAURI_DEV_HOST=0.0.0.0   # Vite écoute 0.0.0.0 (accessible depuis l'hôte)
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+      - cargo-target:/app/src-tauri/target
+      - cargo-registry:/usr/local/cargo/registry
+      - npm-cache:/home/app/.npm
+
+volumes:
+  node_modules:
+  cargo-target:
+  cargo-registry:
+  npm-cache:

@@ -1,13 +1,13 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # syntax=docker/dockerfile:1
 #
-# Image Sampleboard multi-étages, exécutée en NON-ROOT.
+# Image Sampleboard multi-étages, pensée pour Docker ROOTLESS.
 # Toolchain (Node + Rust + deps système Tauri v2) dans l'image ; les dossiers lourds
 # (node_modules, src-tauri/target, caches cargo/npm) vivent dans des volumes Docker.
-# L'hôte n'est jamais pollué et le conteneur tourne sans privilèges (voir docker-compose.yml).
+# L'hôte n'est jamais pollué ; le non-privilège vient du moteur rootless (voir docker-compose.yml).
 
 ############################################
-# base — toolchain commune, utilisateur non-root
+# base — toolchain commune (exécution en root du conteneur = user hôte en rootless)
 ############################################
 FROM node:22-bookworm-slim AS base
 
@@ -43,25 +43,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
       | sh -s -- -y --profile minimal --default-toolchain stable
 
-# Utilisateur non-root. On réutilise l'UID s'il existe déjà (ex. user 'node' = 1000),
-# sinon on le crée. HOME dédié + points de montage possédés par l'UID cible pour que
-# les volumes Docker (créés vides) héritent des bonnes permissions d'écriture.
-RUN set -eux; \
-    if ! getent passwd "$UID" >/dev/null 2>&1; then \
-      if ! getent group "$GID" >/dev/null 2>&1; then groupadd -g "$GID" app; fi; \
-      useradd -M -u "$UID" -g "$GID" -d "$HOME" -s /bin/bash app; \
-    fi; \
-    mkdir -p /app /app/node_modules /app/src-tauri/target \
-             /usr/local/cargo/registry "$NPM_CONFIG_CACHE"; \
-    chown -R "$UID:$GID" /app /usr/local/cargo /usr/local/rustup "$HOME"
+# Modèle rootless : le conteneur tourne en root, qui correspond à ton utilisateur
+# NON privilégié côté hôte (mapping rootless). Répertoires et volumes appartiennent donc
+# à root -> écriture des bind-mounts hôte ET des volumes sans conflit d'uid, tout en gardant
+# cap_drop:ALL + no-new-privileges (le non-privilège vient du rootless, pas de l'uid interne).
+# (Hôte rootful : surcharger `user:` dans docker-compose.yml pour ne pas être vraiment root.)
+RUN mkdir -p /app /app/node_modules /app/src-tauri/target \
+             /usr/local/cargo/registry "$NPM_CONFIG_CACHE"
 
 WORKDIR /app
 
-COPY --chown=$UID:$GID docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod 0755 /usr/local/bin/entrypoint.sh
 
-# Bascule non-root (numérique : valable que l'utilisateur soit nommé ou non).
-USER $UID:$GID
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 ############################################
@@ -72,8 +66,9 @@ EXPOSE 1420 1421
 CMD ["npm", "run", "dev"]
 
 ############################################
-# builder — build de production reproductible
-# Source fournie en lecture seule au runtime (voir service `build`).
+# prod — build de production reproductible (coquille Tauri en release)
+# Source montée en LECTURE SEULE au runtime (voir docker-compose.prod.yml).
+# Le bundling F-Droid/APK complet est branché au jalon M6.
 ############################################
-FROM base AS builder
-CMD ["npm", "run", "build"]
+FROM base AS prod
+CMD ["npm", "run", "tauri", "build", "--", "--no-bundle"]
