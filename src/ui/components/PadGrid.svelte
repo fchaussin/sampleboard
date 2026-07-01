@@ -1,5 +1,5 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- Grille rows×cols de la page active ; place les pads par position, cases vides sinon. -->
+<!-- Grille rows×cols de la page active. En Édition, les cases vides permettent d'ajouter un pad. -->
 <script lang="ts">
   import type { App } from '../../app/create-app';
   import { padsOfPage, padAtPosition } from '../../domain/selectors';
@@ -9,6 +9,7 @@
   let { app }: { app: App } = $props();
 
   const page = $derived(app.store.activePage);
+  const editMode = $derived(app.store.editMode);
   const pads = $derived(page && app.store.bank ? padsOfPage(app.store.bank, page.id) : []);
   const cells = $derived(page ? Array.from({ length: gridCapacity(page) }, (_, i) => i) : []);
 </script>
@@ -19,6 +20,15 @@
       {@const p = padAtPosition(pads, position)}
       {#if p}
         <Pad {app} pad={p} />
+      {:else if editMode}
+        <button
+          class="cell-add"
+          type="button"
+          aria-label="add"
+          onclick={() => app.commands.addPad(page.id, position)}
+        >
+          +
+        </button>
       {:else}
         <div class="cell-empty" aria-hidden="true"></div>
       {/if}
@@ -42,5 +52,20 @@
     border-radius: 12px;
     opacity: 0.2;
     aspect-ratio: 1;
+  }
+
+  .cell-add {
+    border: 1px dashed var(--accent);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--accent);
+    font-size: 1.4rem;
+    aspect-ratio: 1;
+    cursor: pointer;
+    opacity: 0.6;
+  }
+
+  .cell-add:hover {
+    opacity: 1;
   }
 </style>

@@ -3,12 +3,27 @@
 // et la persistance (M5). Deux pages (Poly / Mono) et des pads couvrant les 3 Modes de lecture,
 // référençant deux slots de sample chargés par le loader dev. À retirer au profit de
 // l'hydratation SQLite (M5) et de l'édition réelle (M3).
-import type { Bank, Pad } from '../domain/types';
+import type { Bank, Pad, Sample } from '../domain/types';
 import { DEFAULT_GAIN_DB } from '../domain/invariants';
 
 /** Slots de sample que les pads seed référencent (le loader dev y charge des fichiers). */
 export const DEV_SAMPLE_A = 'dev-sample-a';
 export const DEV_SAMPLE_B = 'dev-sample-b';
+
+/** Bibliothèque de départ : deux entrées (buffers chargés à la volée par le loader dev). */
+export function createSeedSamples(): Sample[] {
+  const sample = (id: string, label: string): Sample => ({
+    id,
+    label,
+    fileName: `${id}.ogg`,
+    originalName: label,
+    mime: 'audio/ogg',
+    sizeBytes: 0,
+    durationMs: null,
+    createdAt: 0,
+  });
+  return [sample(DEV_SAMPLE_A, 'Son A'), sample(DEV_SAMPLE_B, 'Son B')];
+}
 
 function pad(
   id: string,

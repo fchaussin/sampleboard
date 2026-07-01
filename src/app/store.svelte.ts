@@ -20,6 +20,8 @@ export class AppStore {
   activePageId = $state<string | null>(null);
   /** Édition (true) ↔ Jeu (false). */
   editMode = $state(false);
+  /** Pad sélectionné en Édition (cible de l'Editor), ou null. */
+  selectedPadId = $state<string | null>(null);
   /** Reflet minimal des voix actives émis par l'engine (jamais calculé ici). */
   activePadIds = $state<Set<string>>(new Set());
 

@@ -4,22 +4,28 @@
   import { t } from './ui/i18n';
   import PageTabs from './ui/components/PageTabs.svelte';
   import PadGrid from './ui/components/PadGrid.svelte';
-  import M2SampleLoader from './ui/dev/M2SampleLoader.svelte';
+  import Editor from './ui/components/Editor.svelte';
+  import DevLibrary from './ui/dev/DevLibrary.svelte';
 
   let { app }: { app: App } = $props();
 
-  // Langue réactive : lue depuis le store (rune settings.locale).
   const locale = $derived(app.store.locale);
+  const editMode = $derived(app.store.editMode);
 </script>
 
 <main>
   <header>
     <h1>{t('app.name', locale)}</h1>
-    <p class="tagline">{t('app.tagline', locale)}</p>
+    <button class="mode-toggle" class:on={editMode} type="button" onclick={() => app.commands.toggleEditMode()}>
+      {editMode ? t('nav.play', locale) : t('nav.edit', locale)}
+    </button>
   </header>
 
-  <M2SampleLoader {app} />
+  <DevLibrary {app} />
   <PageTabs {app} />
+  {#if editMode}
+    <Editor {app} />
+  {/if}
   <PadGrid {app} />
 </main>
 
@@ -34,18 +40,30 @@
   }
 
   header {
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
   }
 
   h1 {
     margin: 0;
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     letter-spacing: 0.02em;
   }
 
-  .tagline {
-    margin: 0.2rem 0 0;
+  .mode-toggle {
+    padding: 0.35rem 0.9rem;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    background: transparent;
     color: var(--accent);
-    font-size: 0.9rem;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .mode-toggle.on {
+    background: var(--accent);
+    color: #101014;
   }
 </style>

@@ -28,6 +28,7 @@ function fakeStore(b: Bank | null = null): AppStore {
     settings: { backgroundBehavior: 'stopAll', maxVoices: 8, locale: 'fr' },
     activePageId: null,
     editMode: false,
+    selectedPadId: null,
     activePadIds: new Set<string>(),
   } as unknown as AppStore;
 }

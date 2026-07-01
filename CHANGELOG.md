@@ -8,6 +8,31 @@ versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-07-01 — M3 (Édition)
+
+> **Validé sur web** : une banque se configure de A à Z sans toucher au code (63 tests).
+> Validation Android = 2ᵉ temps (spec §16).
+
+### Ajouté
+- **Mode Édition** : bascule Jeu ↔ Édition, sélection de pad (`selectedPadId`).
+- **Commandes pads** : `addPad` (1ʳᵉ case libre / position donnée), `renamePad`, `setPadPlayMode`,
+  `setPadGainDb` (borné [-60, +6]), `assignSample` (depuis la bibliothèque, ou vider), `deletePad`
+  (stoppe la voix), `reorderPads` (échange de position).
+- **Commandes pages** : `addPage`, `renamePage`, `deletePage` (refuse la dernière ; stoppe +
+  renumérote), `setPageVoiceMode`, `setPageGrid` (**invariant de réduction** : refus si un pad
+  tomberait hors grille), `reorderPages`.
+- **Bibliothèque** : `hydrateLibrary`, et le pont dev `devAddSample` / `attachSampleBuffer`
+  (le loader dev alimente `store.samples` ; remplacé par l'import réel en M4).
+- **UI** : `Editor.svelte` (réglages page + pad : mode, gain slider dB, renommage, assignation,
+  suppression, redimensionnement de grille avec gardes), sélection de pad et cases « + » dans
+  `PadGrid`, ajout de page dans `PageTabs`, bouton bascule Jeu/Édition. `DevLibrary.svelte`
+  remplace le loader M2.
+- **Domaine** : `id.ts` (`newId`, Web Crypto, injectable), `firstFreePosition`.
+
+### Tests
+- 63 tests (Vitest), dont 16 dédiés à l'édition : CRUD pads/pages, invariant de réduction de
+  grille, bibliothèque (pont dev), sélection.
+
 ## [0.3.0] - 2026-07-01 — M2 (Cœur)
 
 > **Validé sur web** : matrice de comportement §7 couverte par 47 tests + grille jouable en dev

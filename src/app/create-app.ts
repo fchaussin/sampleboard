@@ -8,7 +8,7 @@ import { createSettingsRepository } from '../storage/settings-repository';
 import { createStore, type AppStore } from './store.svelte';
 import { createCommands, type Commands } from './commands';
 import { createPersistence, type Persistence } from './persistence';
-import { createSeedBank } from './dev-seed';
+import { createSeedBank, createSeedSamples } from './dev-seed';
 
 export interface App {
   store: AppStore;
@@ -36,7 +36,8 @@ export function createApp(): App {
     store.activePadIds = activePadIds;
   });
 
-  // TEMP(M2) : banque de départ pour jouer la grille (hydratation SQLite au M5).
+  // TEMP(M2/M3) : bibliothèque + banque de départ (hydratation SQLite au M5).
+  commands.hydrateLibrary(createSeedSamples());
   commands.hydrateBank(createSeedBank());
 
   // sampleRepository sera injecté aux commandes d'import au jalon M4.

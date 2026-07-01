@@ -1,5 +1,5 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- Pad « bête » : rend l'état et branche pad-input selon le Mode de lecture (voir §11). -->
+<!-- Pad « bête ». En Jeu : branche pad-input (matrice §7). En Édition : sélection pour l'Editor. -->
 <script lang="ts">
   import type { App } from '../../app/create-app';
   import type { Pad } from '../../domain/types';
@@ -9,8 +9,9 @@
   let { app, pad }: { app: App; pad: Pad } = $props();
 
   const locale = $derived(app.store.locale);
+  const editMode = $derived(app.store.editMode);
+  const selected = $derived(app.store.selectedPadId === pad.id);
   const playing = $derived(app.store.activePadIds.has(pad.id));
-  // État visuel dérivé (voir Glossaire). 'missing' arrivera avec la bibliothèque (M4).
   const status = $derived(playing ? 'active' : pad.sampleId === null ? 'empty' : 'idle');
 
   const handlers: PadInputHandlers = {
@@ -25,10 +26,23 @@
   }
 </script>
 
-<button class="pad {status}" data-mode={pad.playMode} type="button" use:padInput>
-  <span class="name">{pad.name}</span>
-  <span class="mode">{t(`mode.${pad.playMode}`, locale)}</span>
-</button>
+{#if editMode}
+  <button
+    class="pad {status}"
+    class:selected
+    data-mode={pad.playMode}
+    type="button"
+    onclick={() => app.commands.selectPad(pad.id)}
+  >
+    <span class="name">{pad.name || t('pad.untitled', locale)}</span>
+    <span class="mode">{t(`mode.${pad.playMode}`, locale)}</span>
+  </button>
+{:else}
+  <button class="pad {status}" data-mode={pad.playMode} type="button" use:padInput>
+    <span class="name">{pad.name}</span>
+    <span class="mode">{t(`mode.${pad.playMode}`, locale)}</span>
+  </button>
+{/if}
 
 <style>
   .pad {
@@ -45,7 +59,6 @@
     color: inherit;
     font: inherit;
     cursor: pointer;
-    /* Tactile : pas de scroll/zoom ni sélection sur un pad (Gate maintenu). */
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
@@ -72,7 +85,6 @@
 
   .pad.empty {
     opacity: 0.4;
-    cursor: default;
   }
 
   .pad.active {
@@ -84,5 +96,11 @@
 
   .pad.active .mode {
     color: #101014;
+  }
+
+  .pad.selected {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+    opacity: 1;
   }
 </style>

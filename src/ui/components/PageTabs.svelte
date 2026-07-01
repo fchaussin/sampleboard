@@ -8,19 +8,25 @@
 
   const pages = $derived(app.store.bank ? pagesSorted(app.store.bank) : []);
   const activeId = $derived(app.store.activePageId);
+  const editMode = $derived(app.store.editMode);
 </script>
 
 <nav class="tabs">
-  {#each pages as page (page.id)}
+  {#each pages as page, i (page.id)}
     <button
       class="tab"
       class:active={page.id === activeId}
       type="button"
       onclick={() => app.commands.setActivePage(page.id)}
     >
-      {page.name}
+      {page.name || i + 1}
     </button>
   {/each}
+  {#if editMode}
+    <button class="tab add" type="button" aria-label="add-page" onclick={() => app.commands.addPage()}>
+      +
+    </button>
+  {/if}
 </nav>
 
 <style>

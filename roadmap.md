@@ -92,12 +92,14 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 - [x] **Validation web (1er temps)** : matrice §7 couverte par les tests + grille jouable (banque seed dev) sur http://localhost:1420. Android = 2ᵉ temps (voir §16).
 
 ### M3 — Édition · `0.4.0` · Phase C
-- [ ] `toggleEditMode` + bascule Édition ↔ Jeu.
-- [ ] Commandes pads : `addPad`, `renamePad`, `setPadPlayMode`, `setPadGainDb`, `assignSample`, `deletePad`, `reorderPads`.
-- [ ] Commandes pages : `addPage`, `renamePage`, `deletePage`, `setPageVoiceMode`, `setPageGrid`, `reorderPages`.
-- [ ] `Editor.svelte` : Mode de lecture, gain (slider dB), renommage, assignation, suppression.
-- [ ] Grille redimensionnable `rows`×`cols` + invariant de réduction.
-- [ ] **Validation** : configurer une banque de A à Z sans toucher au code.
+- [x] `toggleEditMode` + bascule Édition ↔ Jeu (sélection de pad `selectedPadId`).
+- [x] Commandes pads : `addPad`, `renamePad`, `setPadPlayMode`, `setPadGainDb`, `assignSample`, `deletePad`, `reorderPads`.
+- [x] Commandes pages : `addPage`, `renamePage`, `deletePage`, `setPageVoiceMode`, `setPageGrid`, `reorderPages`.
+- [x] `Editor.svelte` : Mode de lecture, gain (slider dB), renommage, assignation, suppression ; réglages de page.
+- [x] Grille redimensionnable `rows`×`cols` + invariant de réduction (réduction refusée si un pad tomberait hors grille).
+- [x] Assignation depuis la bibliothèque (sélecteur Editor) ; loader dev `DevLibrary` alimente `store.samples` (pont vers l'import M4).
+- [x] **Tests** : 63 tests (dont 16 dédiés à l'édition), verts en Docker.
+- [x] **Validation web (1er temps)** : configurer une banque de A à Z sans toucher au code, sur http://localhost:1420. Android = 2ᵉ temps (§16).
 
 ### M4 — Bibliothèque & import · `0.5.0` · Phase C
 - [ ] `engine/encoder.ts` : intégration **WASM libopus** (build + fallback WebCodecs opportuniste).

@@ -25,3 +25,12 @@ export function findPad(bank: Bank, padId: string): Pad | undefined {
 export function findPage(bank: Bank, pageId: string): Page | undefined {
   return bank.pages.find((p) => p.id === pageId);
 }
+
+/** Première position libre dans une grille de capacité `capacity`, ou `null` si pleine. */
+export function firstFreePosition(pads: readonly Pad[], capacity: number): number | null {
+  const taken = new Set(pads.map((p) => p.position));
+  for (let i = 0; i < capacity; i++) {
+    if (!taken.has(i)) return i;
+  }
+  return null;
+}

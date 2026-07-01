@@ -42,7 +42,7 @@ docker compose -f docker-compose.dev.yml run --rm dev npm run build    # build V
 Complète le hook `doc-sync` (rappel de mise à jour de `doc/`). Les deux sont déclarés dans
 `.claude/settings.json`.
 
-## Couverture actuelle (M1 + M2) — 47 tests
+## Couverture actuelle (M1 → M3) — 63 tests
 
 - `tests/engine/voice.test.ts` — conversion gain dB → amplitude (bornes, plancher -60 dB,
   monotonie).
@@ -54,5 +54,7 @@ Complète le hook `doc-sync` (rappel de mise à jour de `doc/`). Les deux sont d
 - `tests/domain/selectors.test.ts` — lectures dérivées de l'arbre banque.
 - `tests/app/commands.test.ts` — résolution pad/page + délégation au moteur (store & moteur
   factices).
+- `tests/app/commands.edit.test.ts` — édition M3 : CRUD pads/pages, invariant de réduction de
+  grille, bibliothèque (pont dev), sélection.
 - `tests/ui/pad-input.test.ts` — mappage Pointer Events par Mode de lecture (élément factice).
 - `tests/engine/fake-audio-context.ts` — `AudioContext` factice partagé (utilitaire, pas un test).
