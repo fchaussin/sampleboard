@@ -1,0 +1,33 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+[package]
+name = "sampleboard"
+version = "0.1.0"
+description = "Sampleboard — application de pads déclencheurs de sons (soundboard)."
+authors = ["Sampleboard contributors"]
+license = "GPL-3.0-or-later"
+edition = "2021"
+rust-version = "1.77.2"
+
+[lib]
+# Le nom du crate lib ; `_lib` évite un conflit avec le binaire sur Windows.
+name = "sampleboard_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-sql = { version = "2", features = ["sqlite"] }
+tauri-plugin-fs = "2"
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+# Build de release compact et déterministe (contrainte F-Droid, voir spec §15).
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true
