@@ -50,16 +50,22 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 ## 3. Tâches par jalon
 
 ### M0 — Socle · `0.1.0` · Phase A
-- [ ] Init dépôt + `package.json`, Vite + Svelte 5 (runes).
-- [ ] `tsconfig.json` strict.
-- [ ] `svelte.config.js` : `adapter-static`, SSR désactivé (SPA).
-- [ ] Init Tauri v2 (`src-tauri/`), Rust minimal.
-- [ ] Plugins Tauri : `sql`, `fs`, `dialog` (config + capabilities).
-- [ ] Arborescence `domain / engine / storage / app / ui` (dossiers + stubs).
-- [ ] Composition root `create-app.ts` (injection explicite, pas de singletons).
-- [ ] i18n minimal : `i18n/index.ts` (loader + `t()`), `fr.json` starter, rune `locale`.
-- [ ] `LICENSE` GPL-3.0-or-later + en-têtes SPDX de base + `README.md`.
-- [ ] **Validation** : `tauri dev` lance une fenêtre affichant un texte via `t()`.
+- [x] Init dépôt + `package.json`, Vite + Svelte 5 (runes).
+- [x] `tsconfig.json` strict.
+- [x] `svelte.config.js` : SPA statique, SSR désactivé (Vite + Svelte, sans routeur — voir note).
+- [x] Init Tauri v2 (`src-tauri/`), Rust minimal.
+- [x] Plugins Tauri : `sql`, `fs`, `dialog` (config + capabilities).
+- [x] Arborescence `domain / engine / storage / app / ui` (dossiers + stubs).
+- [x] Composition root `create-app.ts` (injection explicite, pas de singletons).
+- [x] i18n minimal : `i18n/index.ts` (loader + `t()`), `fr.json` starter, rune `locale` (dans le store).
+- [x] `LICENSE` GPL-3.0-or-later + en-têtes SPDX de base + `README.md`.
+- [~] **Validation** : `tauri dev` lance une fenêtre affichant un texte via `t()`.
+  - Front vérifié : `svelte-check` 0 erreur, `vite build` OK, le texte `t()` est présent dans le bundle.
+  - Lancement `tauri dev` **à faire sur un poste avec Rust installé** (absent de l'environnement de scaffolding).
+
+> **Note (M0)** — `svelte.config.js` : la spec dit « adapter-static / SSR off ». Interprété comme
+> **SPA statique Vite + Svelte 5 sans SvelteKit** (montage manuel via `main.ts`), cohérent avec
+> « pas de routeur » (spec §4). Aucun SSR n'existe donc à désactiver. À confirmer/figer en spec §16.
 
 ### M1 — Audio · `0.2.0` · Phase B
 - [ ] `AudioEngine` squelette + `AudioContext`.
