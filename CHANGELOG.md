@@ -6,11 +6,13 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) ;
 versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
 `1.0.0` n'est pas planifiée : elle sanctionne la première version **stable et complète**.
 
-## [Unreleased] — M1 (Audio)
+## [Unreleased]
 
-> Cible `0.2.0`. **Validé sur web** (1er temps) : son émis + `resume()` en dev, tests verts,
-> `svelte-check` + build OK. La **validation sur Android réel** est le **2ᵉ temps** (web d'abord,
-> Android ensuite — spec §16), pas un prérequis. Tag posé sur demande.
+## [0.2.0] - 2026-07-01 — M1 (Audio)
+
+> **Validé sur web** (1er temps) : son émis + `resume()` en dev, tests verts, `svelte-check` +
+> build OK. La **validation sur Android réel** est le **2ᵉ temps** (web d'abord, Android ensuite —
+> spec §16), suivie hors de ce tag.
 
 ### Ajouté
 - **Moteur audio** (`engine/audio-engine.ts`, Web Audio) : création/reprise de l'`AudioContext`
