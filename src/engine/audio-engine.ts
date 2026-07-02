@@ -109,12 +109,12 @@ export class AudioEngine {
 
   /** One-Shot : joue le sample en entier ; re-tap → relance depuis 0. */
   oneShot(pad: Pad, page: Page): void {
-    this.#startVoice(pad, page, false);
+    this.#startVoice(pad, page, { loop: false, sustained: false });
   }
 
   /** Gate — début (gate on) : joue tant que tenu ; l'arrêt viendra de `release`. */
   press(pad: Pad, page: Page): void {
-    this.#startVoice(pad, page, false);
+    this.#startVoice(pad, page, { loop: false, sustained: true });
   }
 
   /** Gate — fin (gate off) : arrête la voix du pad (fade court). */
@@ -132,7 +132,7 @@ export class AudioEngine {
       if (this.#stopVoices((v) => v.padId === pad.id)) this.#notifyPlayingChanged();
       return;
     }
-    this.#startVoice(pad, page, true);
+    this.#startVoice(pad, page, { loop: true, sustained: true });
   }
 
   stopPad(padId: string): void {
@@ -147,6 +147,28 @@ export class AudioEngine {
     }
   }
 
+  /** Arrête toutes les voix (Arrière-plan 'stopAll', voir §12). */
+  stopAll(): void {
+    if (this.#stopVoices(() => true)) {
+      this.#notifyPlayingChanged();
+    }
+  }
+
+  /** Arrête les voix entretenues (Gate/Loop) ; laisse finir les One-Shot ('stopSustained'). */
+  stopSustained(): void {
+    if (this.#stopVoices((v) => v.sustained)) {
+      this.#notifyPlayingChanged();
+    }
+  }
+
+  /** Suspend l'AudioContext (Arrière-plan 'stopAll') ; la reprise passe par `resume()` au geste suivant. */
+  async suspend(): Promise<void> {
+    const ctx = this.#ctx;
+    if (ctx && ctx.state === 'running') {
+      await ctx.suspend();
+    }
+  }
+
   /** Abonnement au reflet minimal des voix actives (voir §9, décision B). */
   onPlayingChanged(cb: PlayingChangedCallback): void {
     this.#onPlayingChanged = cb;
@@ -158,7 +180,7 @@ export class AudioEngine {
    * Démarre une voix pour `pad` (loop ou non). No-op silencieux si pad vide ou buffer non
    * chargé (§12). Applique le choke Mono (§7), le re-déclenchement self, puis le plafond FIFO.
    */
-  #startVoice(pad: Pad, page: Page, loop: boolean): void {
+  #startVoice(pad: Pad, page: Page, { loop, sustained }: { loop: boolean; sustained: boolean }): void {
     const ctx = this.#ctx;
     if (!ctx || pad.sampleId === null) return;
     const buffer = this.#buffers.get(pad.sampleId);
@@ -186,6 +208,7 @@ export class AudioEngine {
       source,
       gain,
       startedAt: ctx.currentTime,
+      sustained,
     };
     source.onended = () => this.#removeVoice(voice);
 

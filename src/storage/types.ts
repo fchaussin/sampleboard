@@ -21,3 +21,13 @@ export interface SettingsRepository {
   load(): Promise<Settings>;
   save(settings: Settings): Promise<void>;
 }
+
+/**
+ * Octets audio de la bibliothèque sur disque ({appDataDir}/audio/{fileName}, voir §8, §13).
+ * Implémentation réelle : tauri-plugin-fs (tauri.ts) ; en mémoire pour le web nu et les tests.
+ */
+export interface AudioFileStore {
+  write(fileName: string, data: Uint8Array): Promise<void>;
+  read(fileName: string): Promise<Uint8Array>;
+  remove(fileName: string): Promise<void>;
+}

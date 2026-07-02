@@ -1,6 +1,7 @@
 {
   "app.name": "Sampleboard",
   "app.tagline": "Pads déclencheurs de sons",
+  "app.bootError": "Échec du démarrage de l'application.",
   "nav.play": "Jeu",
   "nav.edit": "Édition",
   "mode.oneShot": "One-Shot",
@@ -33,5 +34,14 @@
   "library.impacted": "pad(s) impacté(s) —",
   "library.error.tooLarge": "Fichier trop lourd (max 20 Mo).",
   "library.error.undecodable": "Format non décodable.",
-  "library.error.encodeFailed": "Échec de l'encodage Opus."
+  "library.error.encodeFailed": "Échec de l'encodage Opus.",
+  "library.error.writeFailed": "Échec de l'écriture sur disque.",
+  "settings.title": "Réglages",
+  "settings.backgroundBehavior": "Arrière-plan",
+  "settings.background.stopAll": "Tout stopper",
+  "settings.background.stopSustained": "Stopper les sons en cours",
+  "settings.background.keepPlaying": "Laisser jouer",
+  "settings.maxVoices": "Nombre maximum de voix",
+  "settings.locale": "Langue",
+  "locale.fr": "Français"
 }

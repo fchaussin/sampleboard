@@ -46,7 +46,7 @@ suffisent pas).
 Complète le hook `doc-sync` (rappel de mise à jour de `doc/`). Les deux sont déclarés dans
 `.claude/settings.json`.
 
-## Couverture actuelle (M1 → M4) — 68 unitaires + 2 E2E
+## Couverture actuelle (M1 → M5) — 128 unitaires + 4 E2E
 
 - `tests/engine/voice.test.ts` — conversion gain dB → amplitude (bornes, plancher -60 dB,
   monotonie).
@@ -60,10 +60,21 @@ Complète le hook `doc-sync` (rappel de mise à jour de `doc/`). Les deux sont d
   factices).
 - `tests/app/commands.edit.test.ts` — édition M3 : CRUD pads/pages, invariant de réduction de
   grille, sélection.
-- `tests/app/commands.library.test.ts` — import M4 : pipeline (taille/décodage/encodage), preview,
-  rename, delete (pad → *introuvable*).
+- `tests/app/commands.library.test.ts` — import M4/M5 : pipeline (taille/décodage/encodage/
+  écriture disque), preview, rename, delete (pads → `sampleId` null, §8), échecs d'écriture.
 - `tests/ui/pad-input.test.ts` — mappage Pointer Events par Mode de lecture (élément factice).
+- `tests/engine/audio-engine.m5.test.ts` — arrêts liés à l'Arrière-plan : `stopAll`,
+  `stopSustained` (voix entretenues vs One-Shot), `suspend`.
+- `tests/app/commands.settings.test.ts` — réglages M5 (bornes `maxVoices`, hydratation) +
+  `applyBackgroundBehavior`.
+- `tests/app/persistence.test.ts` — autosave : debounce, rafale → un save, flush, stop,
+  résilience aux échecs (réactivité factice, timers simulés).
+- `tests/storage/db.test.ts`, `bank-repository.test.ts`, `sample-settings-repository.test.ts`,
+  `write-lock.test.ts` — couche storage contre un **vrai SQLite en mémoire** (`node:sqlite`) :
+  migrations, aller-retour banque (upsert/élagage, cascades, `ON DELETE SET NULL`), bibliothèque,
+  réglages, verrou d'écriture. Utilitaires : `node-sqlite-executor.ts`, `node-sqlite.d.ts`.
 - `tests/engine/fake-audio-context.ts` — `AudioContext` factice partagé (utilitaire, pas un test).
+- `tests/app/fake-sample-repository.ts` — dépôt bibliothèque factice partagé (utilitaire).
 
 **E2E (navigateur réel) :**
 
@@ -72,3 +83,7 @@ Complète le hook `doc-sync` (rappel de mise à jour de `doc/`). Les deux sont d
 - `e2e/play.spec.ts` — import → assignation à un pad Loop → lecture → pad *actif* (moteur Web Audio
   + reflet `activePadIds` réels).
 - `e2e/helpers.ts` — génération de WAV + helper d'import (utilitaire, pas un test).
+
+> Au navigateur nu, la persistance passe par les dépôts **mémoire** (voir doc M5) : l'E2E couvre
+> le boot asynchrone et la banque par défaut, pas SQLite — celui-ci est couvert par les tests
+> `tests/storage/*` (vrai SQLite) et la validation manuelle `tauri dev`.

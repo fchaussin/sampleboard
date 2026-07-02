@@ -6,7 +6,64 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) ;
 versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
 `1.0.0` n'est pas planifiée : elle sanctionne la première version **stable et complète**.
 
-## [Unreleased]
+## [0.6.0] - 2026-07-02 — M5 (Persistance & réglages)
+
+> **Validé** : 128 tests unitaires (storage exercé contre un **vrai SQLite** via `node:sqlite`)
+> + 4 E2E + build + `cargo check` en Docker rootless ; persistance vérifiée dans la fenêtre
+> `tauri dev` (banque écrite par la transaction réelle du plugin, relue après relance).
+> Son dans la fenêtre WSLg encore muet (environnement dev, suivi backlog #3) ; Android =
+> 2ᵉ temps (spec §16).
+
+### Ajouté
+- **Persistance SQLite** (`storage/`) : `db.ts` (contrat `SqlExecutor`, **migrations** par
+  `user_version`, schéma §8 complet en migration 1), `bank-repository` (**transaction** +
+  **upsert-puis-élagage** : une sauvegarde interrompue ne détruit rien ; référence de sample
+  pendante écrite `NULL`), `sample-repository` (fichiers `{appDataDir}/audio/{sampleId}.ogg` +
+  métadonnées, jamais de BLOB), `settings-repository` (ligne unique `id = 0`).
+- **Adaptateurs Tauri** (`storage/tauri.ts`, seul module touchant les plugins, chargé
+  dynamiquement) + **fallback mémoire** (`storage/memory.ts`) pour le navigateur nu :1420
+  (session seulement ; mode navigateur pur persistant = v2 §17).
+- **Verrou d'écriture partagé** (`createWriteLock`) : le pool sqlx de tauri-plugin-sql ouvre une
+  connexion par requête concurrente — les écritures des trois dépôts sont sérialisées pour que
+  `BEGIN`/`COMMIT` restent sur une connexion et qu'aucune écriture ne s'entrelace.
+- **Autosave** (`persistence.ts`, décision A §9) : abonné réactif unique, **débounce 400 ms**
+  (banque, dernier état gagne), réglages **immédiats**, file d'écritures (jamais concurrentes,
+  échec absorbé), `flush()` au passage en arrière-plan. Réactivité **injectée** (contrat `Watch`) ;
+  implémentation runes dans `watch.svelte.ts` (`$effect.root`, premier passage ignoré).
+- **Hydratation au démarrage** (`create-app.ts` asynchrone) : réglages → bibliothèque (+ buffers
+  moteur ; fichier illisible = no-op §12) → banque ; **banque par défaut** au premier lancement
+  (`default-bank.ts` : 1 page 4×4 Poly vide). `main.ts` attend le boot (`app.bootError` sinon).
+- **`Settings.svelte`** : Arrière-plan, Nombre maximum de voix (≥ 1), langue — persistés
+  immédiatement. Commandes `setBackgroundBehavior`, `setMaxVoices`, `hydrateSettings`.
+- **Arrière-plan (§12)** : `visibilitychange → hidden` applique le réglage — `stopAll` (tout +
+  suspension du contexte), `stopSustained` (voix **entretenues** Gate/Loop, les One-Shot
+  finissent), `keepPlaying`. Moteur : marquage `sustained` des voix, `stopAll()`,
+  `stopSustained()`, `suspend()` ; reprise au prochain geste (jamais automatique).
+- **Import** : écriture disque **immédiate** (hors debounce) — fichier + ligne `samples` ; nouvel
+  échec typé `writeFailed` (buffer déchargé, rien en bibliothèque) ; `createdAt` réel.
+- Capabilities : `sql:allow-execute`, `fs:allow-appdata-write-recursive`.
+
+### Modifié
+- **`deleteSample`** aligné sur la décision §8 : après confirmation, le `sampleId` des pads
+  impactés passe à **`null`** (état *vide*), miroir du `ON DELETE SET NULL` — l'état
+  *introuvable* reste pour les données altérées hors app. Renommage/suppression écrivent
+  immédiatement via le dépôt.
+- **Seed dev retirée** (`dev-seed.ts`) : l'app démarre sur la banque par défaut, vide (§2).
+
+### Outillage
+- **Volume `app-home`** (`docker-compose.dev.yml`) : les données de l'app Tauri
+  (`~/.config`/`~/.local/share` du conteneur) survivent aux `run --rm` — sans lui, fermer la
+  fenêtre `tauri dev` emportait base et bibliothèque.
+- **`PULSE_SERVER`** activé dans l'overlay GUI (socket PulseAudio WSLg) — prérequis au son
+  dans la fenêtre dev (résolution complète suivie en backlog #3).
+
+### Tests
+- **Storage contre un vrai SQLite en mémoire** (`node:sqlite` du Node 22 du conteneur, exécuteur
+  de test dédié, types ambiants minimaux — pas de dépendance ajoutée) : migrations
+  (ordre, idempotence, CHECK, clés étrangères), aller-retour banque, élagage/cascades,
+  `ON DELETE SET NULL`, bibliothèque (fichier + ligne, échecs), réglages, verrou d'écriture.
+- Persistance aux **timers simulés** (debounce, rafale → un save, flush, stop, résilience) ;
+  commandes réglages/arrière-plan ; moteur M5. Total : **128 unitaires + 4 E2E**.
 
 ### Corrigé
 - **Import silencieux** (rien ajouté, aucun message) : `crypto.randomUUID` n'existe qu'en

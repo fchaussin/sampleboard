@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Store réactif (runes Svelte 5) — source de vérité de la config et de l'état UI (voir §9).
 // N'est muté QUE par la couche de commandes. Ne contient aucune logique de jeu (décision B).
-import { DEFAULT_LOCALE } from '../domain/invariants';
+import { defaultSettings } from '../domain/invariants';
 import type { Bank, Page, Sample, Settings } from '../domain/types';
 
 export class AppStore {
@@ -10,11 +10,7 @@ export class AppStore {
   /** La bibliothèque chargée. */
   samples = $state<Sample[]>([]);
   /** Réglages globaux (défauts jusqu'à hydratation). */
-  settings = $state<Settings>({
-    backgroundBehavior: 'stopAll',
-    maxVoices: 8,
-    locale: DEFAULT_LOCALE,
-  });
+  settings = $state<Settings>(defaultSettings());
 
   /** Page couramment affichée. */
   activePageId = $state<string | null>(null);

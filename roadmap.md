@@ -111,14 +111,29 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 - [x] **Validation web (1er temps)** : chaîne décode→encode→re-décode fiable en navigateur réel (E2E). Chaîne sur **appareil réel** Android = 2ᵉ temps (§16).
 
 ### M5 — Persistance & réglages · `0.6.0` · Phase D
-- [ ] `db.ts` : wrapper `tauri-plugin-sql` + migrations (`user_version`).
-- [ ] Schéma SQLite complet (`bank`, `pages`, `samples`, `pads`, `settings`).
-- [ ] `BankRepository`, `SampleRepository`, `SettingsRepository`.
-- [ ] `persistence.ts` : autosave débouncé (config) + écritures immédiates (import, réglages).
-- [ ] `Settings.svelte` : Arrière-plan, Nombre maximum de voix, langue (`setLocale`).
-- [ ] Application de `backgroundBehavior` sur cycle de vie Android.
-- [ ] Hydratation du store au démarrage.
-- [ ] **Validation** : fermer/rouvrir → tout est rechargé fidèlement.
+- [x] `db.ts` : contrat `SqlExecutor` + migrations (`user_version`) + verrou d'écriture partagé
+  (pool sqlx du plugin : une seule écriture logique à la fois, transactions sûres).
+- [x] Schéma SQLite complet (`bank`, `pages`, `samples`, `pads`, `settings`) — migration 1.
+- [x] `BankRepository` (transaction, upsert-puis-élagage), `SampleRepository` (fichiers
+  `{appDataDir}/audio/` + métadonnées), `SettingsRepository` (ligne unique) ; adaptateurs
+  Tauri (`storage/tauri.ts`, sql + fs, capabilities étendues) et **fallback mémoire** pour le
+  navigateur nu (`storage/memory.ts`, session seulement).
+- [x] `persistence.ts` : autosave débouncé 400 ms (banque) + écritures immédiates (import,
+  réglages) + `flush()` au passage en arrière-plan. Réactivité injectée (`watch.svelte.ts`).
+- [x] `Settings.svelte` : Arrière-plan, Nombre maximum de voix, langue (`setLocale`).
+- [x] Application de `backgroundBehavior` sur cycle de vie (visibilitychange) : `stopAll` /
+  `stopSustained` (voix entretenues Gate/Loop) / `keepPlaying` ; moteur `stopAll`,
+  `stopSustained`, `suspend`.
+- [x] Hydratation du store au démarrage (réglages → bibliothèque + buffers → banque ; banque
+  par défaut au premier lancement). Seed dev retirée.
+- [x] **Tests** : 128 unitaires (dont storage contre un **vrai SQLite** via `node:sqlite`,
+  persistance aux timers simulés) + 4 E2E, verts en Docker ; build + `cargo check` OK.
+- [x] **Validation (fenêtre `tauri dev`)** : fermer/rouvrir → rechargé fidèlement. Nécessitait
+  deux correctifs d'environnement (volume `app-home` — le conteneur `--rm` emportait la base ;
+  `PULSE_SERVER` WSLg). Persistance vérifiée par sonde : banque par défaut écrite par la
+  transaction réelle du plugin puis relue depuis un autre conteneur. **Son dans la fenêtre
+  WSLg toujours muet** (environnement non idéal) → suivi en backlog (Entrantes #3), à
+  recorriger avant/pendant M6 ; audio sur appareil Android = 2ᵉ temps (§16).
 
 ### M6 — Empaquetage · `0.7.0` · Phase E
 - [ ] Build Android (APK).
@@ -158,11 +173,12 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 - [ ] iOS.
 
 ### Entrantes — à trier
-_(vide — à alimenter au fil du dev)_
 
 | # | Feature | Décrite le | Cible proposée | Statut |
 |---|---|---|---|---|
-| — | — | — | — | À trier |
+| 1 | Signalement visuel d'un sample dont le **fichier disque a disparu** (aujourd'hui : sample listé, pad muet no-op — voir doc M5) | 2026-07-02 | — | À trier |
+| 2 | **Refonte de l'agencement UI** : *bottombar* (actions principales + pages + accès Réglages généraux) ; *topbar* (infos importantes de la page) ; *drawer* contextuel à droite (réglages page & pad), ouvert au clic sur les infos page, sur un pad ou sur l'accès Réglages. **Spec à affiner avant intégration.** | 2026-07-02 | — | À trier |
+| 3 | **Correctif env dev** : son muet dans la fenêtre `tauri dev` sous WSLg malgré `PULSE_SERVER` (diagnostiquer WebKitGTK/GStreamer/Pulse — cookie ? sink ?). N'affecte pas la cible Android. | 2026-07-02 | — | À trier |
 
 ---
 

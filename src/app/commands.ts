@@ -3,8 +3,9 @@
 // Coordonne store + engine de façon atomique. L'UI n'émet que des intentions.
 import type { AudioEngine } from '../engine/audio-engine';
 import type { Encoder } from '../engine/encoder';
-import type { Bank, Pad, Page, Sample } from '../domain/types';
-import type { PlayMode, VoiceMode } from '../domain/enums';
+import type { SampleRepository } from '../storage/types';
+import type { Bank, Pad, Page, Sample, Settings } from '../domain/types';
+import type { BackgroundBehavior, PlayMode, VoiceMode } from '../domain/enums';
 import { findPad, findPage, padsOfPage, pagesSorted, firstFreePosition } from '../domain/selectors';
 import {
   DEFAULT_COLS,
@@ -22,7 +23,7 @@ import { newId } from '../domain/id';
 import type { AppStore } from './store.svelte';
 
 /** Motif d'échec d'un import (voir §12, §13). */
-export type ImportError = 'tooLarge' | 'undecodable' | 'encodeFailed';
+export type ImportError = 'tooLarge' | 'undecodable' | 'encodeFailed' | 'writeFailed';
 export type ImportResult = { ok: true; sampleId: string } | { ok: false; reason: ImportError };
 
 export interface CommandDeps {
@@ -30,19 +31,30 @@ export interface CommandDeps {
   engine: AudioEngine;
   /** Encodeur OGG/Opus (injectable pour les tests). */
   encode: Encoder;
+  /** Dépôt bibliothèque : écritures immédiates, hors autosave débouncé (voir §9, décision A). */
+  sampleRepository: SampleRepository;
   /** Générateur d'identifiants (injectable pour les tests). Défaut : `newId()`. */
   ids?: () => string;
+  /** Horloge (injectable pour les tests). Défaut : `Date.now`. */
+  now?: () => number;
 }
 
 export interface Commands {
   // UI globale
   toggleEditMode(): void;
-  setLocale(locale: string): void;
   resumeAudio(): Promise<void>;
 
-  // Chargement (seed M2/M3 ; hydratation SQLite au M5)
+  // Réglages (§9)
+  setLocale(locale: string): void;
+  setBackgroundBehavior(backgroundBehavior: BackgroundBehavior): void;
+  setMaxVoices(maxVoices: number): void;
+  /** Applique le réglage Arrière-plan au passage caché/visible de l'app (§12). */
+  applyBackgroundBehavior(hidden: boolean): void;
+
+  // Hydratation au démarrage (M5)
   hydrateBank(bank: Bank): void;
   hydrateLibrary(samples: Sample[]): void;
+  hydrateSettings(settings: Settings): void;
   setActivePage(pageId: string): void;
 
   // Jeu (matrice §7)
@@ -83,7 +95,14 @@ export interface Commands {
   deleteSample(sampleId: string): void;
 }
 
-export function createCommands({ store, engine, encode, ids = () => newId() }: CommandDeps): Commands {
+export function createCommands({
+  store,
+  engine,
+  encode,
+  sampleRepository,
+  ids = () => newId(),
+  now = () => Date.now(),
+}: CommandDeps): Commands {
   function resolve(padId: string): { pad: Pad; page: Page } | null {
     const bank = store.bank;
     if (!bank) return null;
@@ -106,11 +125,34 @@ export function createCommands({ store, engine, encode, ids = () => newId() }: C
       store.editMode = !store.editMode;
       if (!store.editMode) store.selectedPadId = null;
     },
+    resumeAudio(): Promise<void> {
+      return engine.resume();
+    },
+
     setLocale(locale: string): void {
       store.settings = { ...store.settings, locale };
     },
-    resumeAudio(): Promise<void> {
-      return engine.resume();
+    setBackgroundBehavior(backgroundBehavior: BackgroundBehavior): void {
+      store.settings = { ...store.settings, backgroundBehavior };
+    },
+    setMaxVoices(maxVoices: number): void {
+      if (!Number.isFinite(maxVoices)) return;
+      store.settings = { ...store.settings, maxVoices: Math.max(1, Math.trunc(maxVoices)) };
+    },
+    applyBackgroundBehavior(hidden: boolean): void {
+      // Retour au premier plan : rien à faire ici — resume() repart au prochain geste (§12).
+      if (!hidden) return;
+      switch (store.settings.backgroundBehavior) {
+        case 'stopAll':
+          engine.stopAll();
+          void engine.suspend();
+          break;
+        case 'stopSustained':
+          engine.stopSustained();
+          break;
+        case 'keepPlaying':
+          break;
+      }
     },
 
     hydrateBank(bank: Bank): void {
@@ -119,6 +161,9 @@ export function createCommands({ store, engine, encode, ids = () => newId() }: C
     },
     hydrateLibrary(samples: Sample[]): void {
       store.samples = samples;
+    },
+    hydrateSettings(settings: Settings): void {
+      store.settings = { ...settings };
     },
     setActivePage(pageId: string): void {
       const bank = store.bank;
@@ -319,8 +364,16 @@ export function createCommands({ store, engine, encode, ids = () => newId() }: C
         mime: 'audio/ogg',
         sizeBytes: ogg.byteLength,
         durationMs: Math.round(decoded.durationMs),
-        createdAt: 0,
+        createdAt: now(),
       };
+      // Écriture immédiate, hors autosave débouncé (§9) : fichier {sampleId}.ogg + ligne samples.
+      try {
+        await sampleRepository.add(sample, ogg);
+      } catch (err) {
+        console.error('import: échec de l’écriture du sample', err);
+        engine.unload(id);
+        return { ok: false, reason: 'writeFailed' };
+      }
       store.samples = [...store.samples, sample];
       return { ok: true, sampleId: id };
     },
@@ -329,12 +382,26 @@ export function createCommands({ store, engine, encode, ids = () => newId() }: C
       engine.previewSample(sampleId);
     },
     renameSample(sampleId: string, label: string): void {
+      if (!store.samples.some((s) => s.id === sampleId)) return;
       store.samples = store.samples.map((s) => (s.id === sampleId ? { ...s, label } : s));
+      sampleRepository.rename(sampleId, label).catch((err) => {
+        console.error('bibliothèque: échec du renommage', err);
+      });
     },
     deleteSample(sampleId: string): void {
-      // Les pads gardent leur sampleId : ils basculent en état *introuvable* (§12), pas de purge.
+      if (!store.samples.some((s) => s.id === sampleId)) return;
       engine.unload(sampleId);
       store.samples = store.samples.filter((s) => s.id !== sampleId);
+      // §8 (décision verrouillée) : les pads qui le référençaient passent à vide — miroir en
+      // mémoire du ON DELETE SET NULL du schéma (sample_id → NULL après confirmation).
+      if (store.bank) {
+        for (const pad of store.bank.pads) {
+          if (pad.sampleId === sampleId) pad.sampleId = null;
+        }
+      }
+      sampleRepository.remove(sampleId).catch((err) => {
+        console.error('bibliothèque: échec de la suppression', err);
+      });
     },
   };
 }

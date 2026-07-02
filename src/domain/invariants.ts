@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Domaine pur : bornes et validations (voir specifications.md §6). Fonctions pures, testables.
 // Les tests dédiés arrivent au jalon M2 ; ce module pose les constantes et gardes de base.
-import type { Pad, Page } from './types';
+import type { BackgroundBehavior } from './enums';
+import type { Pad, Page, Settings } from './types';
 
 export const GAIN_DB_MIN = -60;
 export const GAIN_DB_MAX = 6;
@@ -17,6 +18,16 @@ export const DEFAULT_COLS = 4;
 export const DEFAULT_GAIN_DB = 0;
 export const DEFAULT_MAX_VOICES = 8;
 export const DEFAULT_LOCALE = 'fr';
+export const DEFAULT_BACKGROUND_BEHAVIOR: BackgroundBehavior = 'stopAll';
+
+/** Réglages par défaut (voir §6) — utilisés avant hydratation et au premier lancement. */
+export function defaultSettings(): Settings {
+  return {
+    backgroundBehavior: DEFAULT_BACKGROUND_BEHAVIOR,
+    maxVoices: DEFAULT_MAX_VOICES,
+    locale: DEFAULT_LOCALE,
+  };
+}
 
 /** Taille max d'un fichier importé, sur la source avant décodage (20 Mo, §16). */
 export const IMPORT_MAX_BYTES = 20 * 1024 * 1024;

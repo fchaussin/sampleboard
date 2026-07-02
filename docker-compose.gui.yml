@@ -16,8 +16,10 @@ services:
     environment:
       - DISPLAY=${DISPLAY:-:0}
       - XDG_RUNTIME_DIR=/mnt/wslg/runtime-dir
+      # Sortie audio : socket PulseAudio de WSLg — sans lui, WebKitGTK n'a aucun sink
+      # et les pads restent muets (M5).
+      - PULSE_SERVER=${PULSE_SERVER:-/mnt/wslg/PulseServer}
       # - WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-}
-      # - PULSE_SERVER=${PULSE_SERVER:-/mnt/wslg/PulseServer}
       # - LIBGL_ALWAYS_SOFTWARE=1
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw

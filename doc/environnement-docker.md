@@ -44,6 +44,17 @@ Fenêtre **Tauri desktop** (serveur X requis ; WSLg ou Linux+X, sinon `xhost +lo
 docker compose -f docker-compose.dev.yml -f docker-compose.gui.yml run --rm dev npm run tauri dev
 ```
 
+Depuis M5 :
+
+- **Données de l'app persistées** : le volume **`app-home`** (`/home/app`) porte la base SQLite
+  (`~/.config/org.sampleboard.app/sampleboard.db`) et les fichiers audio
+  (`~/.local/share/org.sampleboard.app/audio/`) — banque, bibliothèque et réglages survivent
+  aux `run --rm`. Repartir de zéro : `docker volume rm ambianceur_app-home`.
+- **Audio** : l'overlay GUI exporte `PULSE_SERVER` vers le socket PulseAudio de WSLg
+  (`/mnt/wslg/PulseServer`, déjà bind-monté) — sans lui, WebKitGTK n'a aucune sortie et les
+  pads restent muets. Linux natif : `PULSE_SERVER=unix:$XDG_RUNTIME_DIR/pulse/native` dans
+  l'environnement avant `docker compose`.
+
 ## Production (build d'artefacts)
 
 Sampleboard est une app **cliente** : « prod » ne fait pas tourner un serveur, il **produit

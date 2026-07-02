@@ -44,9 +44,14 @@ services:
       - cargo-target:/app/src-tauri/target
       - cargo-registry:/usr/local/cargo/registry
       - npm-cache:/home/app/.npm
+      # Données de l'app Tauri (SQLite {appConfigDir} + audio {appDataDir}, sous $HOME) :
+      # persistées entre deux `run --rm` — sans ce volume, fermer la fenêtre `tauri dev`
+      # emporte la banque et la bibliothèque avec le conteneur (M5).
+      - app-home:/home/app
 
 volumes:
   node_modules:
   cargo-target:
   cargo-registry:
   npm-cache:
+  app-home:

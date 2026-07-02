@@ -28,4 +28,5 @@ les règles projet :
 - [Cœur jouable (M2)](./coeur-jeu.md)
 - [Édition (M3)](./edition.md)
 - [Bibliothèque & import (M4)](./bibliotheque-import.md)
+- [Persistance & réglages (M5)](./persistance-reglages.md)
 - [Tests](./tests.md)

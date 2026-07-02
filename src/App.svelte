@@ -6,6 +6,7 @@
   import PadGrid from './ui/components/PadGrid.svelte';
   import Editor from './ui/components/Editor.svelte';
   import Library from './ui/components/Library.svelte';
+  import Settings from './ui/components/Settings.svelte';
 
   let { app }: { app: App } = $props();
 
@@ -27,6 +28,7 @@
     <Editor {app} />
   {/if}
   <PadGrid {app} />
+  <Settings {app} />
 </main>
 
 <style>

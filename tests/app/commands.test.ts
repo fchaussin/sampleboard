@@ -6,6 +6,7 @@ import { createCommands } from '../../src/app/commands';
 import type { AppStore } from '../../src/app/store.svelte';
 import type { AudioEngine } from '../../src/engine/audio-engine';
 import type { Bank } from '../../src/domain/types';
+import { fakeSampleRepository } from './fake-sample-repository';
 
 function bank(): Bank {
   return {
@@ -53,6 +54,7 @@ function setup(b: Bank | null = null) {
     store,
     engine: engine as unknown as AudioEngine,
     encode: async () => new Uint8Array(),
+    sampleRepository: fakeSampleRepository(),
   });
   return { store, engine, commands };
 }

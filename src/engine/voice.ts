@@ -10,6 +10,8 @@ export interface Voice {
   gain: GainNode;
   /** AudioContext.currentTime au démarrage (sert au FIFO du plafond de voix). */
   startedAt: number;
+  /** Voix entretenue (Gate tenu, Loop) — ciblée par Arrière-plan 'stopSustained' (§12). */
+  sustained: boolean;
 }
 
 /** Convertit un gain en dB vers une amplitude linéaire (voir §7). -60 dB = muet. */

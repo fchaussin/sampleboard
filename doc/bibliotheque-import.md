@@ -34,21 +34,29 @@ avec un faux encodeur, réel en E2E.
 3. **Encodage** Opus (`encode`) → octets OGG/Opus. Échec → `encodeFailed`.
 4. **`engine.load` du ré-encodé** : re-décode l'OGG produit → garde-fou (un encodage cassé fait
    *échouer* l'import au lieu de corrompre la bibliothèque) + rend le sample jouable/pré-écoutable.
-5. Entrée `Sample` ajoutée à `store.samples` (`mime: audio/ogg`, `durationMs`, taille encodée).
+5. **Écriture immédiate** (M5, hors autosave) : fichier `{appDataDir}/audio/{sampleId}.ogg` +
+   ligne `samples` via `sampleRepository.add`. Échec → `writeFailed` (buffer déchargé, rien en
+   bibliothèque).
+6. Entrée `Sample` ajoutée à `store.samples` (`mime: audio/ogg`, `durationMs`, taille encodée,
+   `createdAt`).
 
-> Écriture disque `{appDataDir}/audio/{sampleId}.ogg` + métadonnées SQLite : faites au **M5**
-> (persistance, Tauri fs/sql). En M4 la bibliothèque vit en mémoire (validable 100 % web).
+> Voir [persistance & réglages (M5)](./persistance-reglages.md). Au navigateur nu, le dépôt est
+> en mémoire (session seulement) — le pipeline reste validable 100 % web.
 
 ## Bibliothèque (`Library.svelte`)
 
 Import (bouton), **pré-écoute** (`previewSample` → voix transitoire hors pads), **renommage** du
-`label`, **suppression** avec **avertissement du nombre de pads impactés** : après suppression, ces
-pads gardent leur `sampleId` et passent à l'état **introuvable** (§12) — jamais de purge silencieuse.
+`label`, **suppression** avec **avertissement du nombre de pads impactés** : après confirmation,
+le `sampleId` de ces pads passe à **`null`** (état *vide*) — miroir en mémoire du
+`ON DELETE SET NULL` du schéma (§8), appliqué depuis M5. Renommage et suppression écrivent
+**immédiatement** via le dépôt.
 
 ## États de pad (§12, Glossaire)
 
 `Pad.svelte` dérive : **actif** (dans `activePadIds`) › **vide** (`sampleId` null) › **introuvable**
-(`sampleId` absent de la bibliothèque) › **au repos**.
+(`sampleId` absent de la bibliothèque — ex. données altérées hors app) › **au repos**. Depuis M5,
+un fichier audio illisible au démarrage laisse le sample en bibliothèque mais son pad joue un
+no-op (§12) ; un signalement visuel dédié est au backlog.
 
 ## Essayer (dev, http://localhost:1420)
 

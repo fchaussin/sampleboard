@@ -55,6 +55,11 @@ export class FakeAudioContext {
     this.resumeCalls++;
     this.state = 'running';
   }
+  suspendCalls = 0;
+  async suspend(): Promise<void> {
+    this.suspendCalls++;
+    this.state = 'suspended';
+  }
   createGain(): FakeGainNode {
     const g = new FakeGainNode();
     this.gains.push(g);
