@@ -55,7 +55,13 @@
   /** Retravail (M7) : rouvre le sample dans l'éditeur audio (« découper »). */
   async function rework(sampleId: string): Promise<void> {
     error = null;
-    error = await app.commands.beginSampleRework(sampleId);
+    try {
+      error = await app.commands.beginSampleRework(sampleId);
+    } catch (err) {
+      // Jamais d'échec muet : un imprévu s'affiche comme une erreur de lecture.
+      console.error('découper: échec inattendu', err);
+      error = 'readFailed';
+    }
   }
 </script>
 

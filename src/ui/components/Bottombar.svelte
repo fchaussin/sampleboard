@@ -42,16 +42,19 @@
 {/if}
 
 <nav class="bottombar">
-  <!-- Toggle explicite : l'icône montre le mode VERS LEQUEL on bascule (pen ↔ play). -->
+  <!-- Toggle segmenté Jeu ↔ Édition : les DEUX options visibles, curseur glissant sur l'active. -->
   <button
-    class="action mode-toggle"
-    class:on={editMode}
+    class="mode-toggle"
     type="button"
+    role="switch"
+    aria-checked={editMode}
     title={editMode ? t('nav.play', locale) : t('nav.edit', locale)}
-    aria-label={editMode ? t('nav.play', locale) : t('nav.edit', locale)}
+    aria-label={t('nav.edit', locale)}
     onclick={() => app.commands.toggleEditMode()}
   >
-    <Icon name={editMode ? 'play' : 'edit'} />
+    <span class="knob" class:right={editMode}></span>
+    <span class="seg" class:active={!editMode}><Icon name="play" size={16} /></span>
+    <span class="seg" class:active={editMode}><Icon name="edit" size={16} /></span>
   </button>
 
   <button
@@ -149,9 +152,48 @@
     background: var(--border);
   }
 
-  .mode-toggle.on {
-    background: var(--accent);
+  /* Toggle segmenté : curseur (knob) glissant sous le segment actif. */
+  .mode-toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: stretch;
+    min-height: 44px;
+    padding: 4px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .mode-toggle .seg {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    color: var(--muted);
+    transition: color 0.15s ease;
+  }
+
+  .mode-toggle .seg.active {
     color: var(--accent-contrast);
+  }
+
+  .mode-toggle .knob {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: 38px;
+    border-radius: 999px;
+    background: var(--accent);
+    transition: transform 0.18s ease;
+  }
+
+  .mode-toggle .knob.right {
+    transform: translateX(38px);
   }
 
   .stop:active {
