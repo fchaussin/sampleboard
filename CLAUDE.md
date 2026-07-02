@@ -6,10 +6,12 @@ Contexte projet chargé à chaque session. **Lire aussi** [`specifications.md`](
 **Audio Sample Board** : application de **pads** déclencheurs de sons (façon soundboard), organisés en **pages**. L'utilisateur importe ses fichiers audio (→ **bibliothèque**) et configure ses pads. Cible : **F-Droid** (Android). C'est un *audio-sample-board*, **pas un sampler** : volontairement simple (pas de DSP, pas d'édition audio poussée).
 
 ## État actuel
-- **M0 → M5 livrés** (`v0.6.0`). **M6 — Interface** (`0.7.0`, agencement topbar/bottombar/
-  drawer) implémenté et testé — tag après revue visuelle utilisateur. Voir `roadmap.md` §3.
-- **M7 — Empaquetage** (`0.8.0`) déjà bien entamé (APK debug+release OK, audit FOSS,
-  fastlane) ; reste : opus WASM from-source, captures (nouvelle UI), soumission F-Droid.
+- **M0 → M6 livrés** (`v0.7.0` : interface topbar/bottombar/tiroir, board coloré complet,
+  visualiseurs). Projet renommé **audio-sample-board** (répertoire local inchangé).
+- En cours : **M7 — Éditeur audio** (`0.8.0`) : « découper » — waveform + rognage start/end
+  avant encodage, undo/redo, vue dédiée. Voir roadmap §3.
+- **M8 — Empaquetage** (`0.9.0`) déjà bien entamé (APK debug+release OK, audit FOSS,
+  fastlane) ; reste : opus WASM from-source, captures (UI finale), soumission F-Droid.
 - Points ouverts : son muet fenêtre `tauri dev` WSLg (env dev — backlog #3) ; hébergement
   public du dépôt à choisir (pré-requis F-Droid).
 

@@ -6,11 +6,11 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) ;
 versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
 `1.0.0` n'est pas planifiée : elle sanctionne la première version **stable et complète**.
 
-## [Unreleased] — M6 (Interface), candidate `0.7.0`
+## [0.7.0] - 2026-07-02 — M6 (Interface)
 
-> Refonte complète de l'agencement (tri backlog #2, décisions §11/§16) : validée sur web
-> (141 unitaires + 4 E2E sur les nouveaux parcours, captures 390×844). Tag après revue
-> visuelle utilisateur.
+> Refonte complète de l'agencement (tri backlog #2, décisions §11/§16) + trois passes de
+> retours UX le jour même. **Validé** : 172 unitaires + 4 E2E, captures 390×844, revue
+> visuelle utilisateur OK.
 
 ### Ajouté
 - **Topbar** : infos de la page active (nom/numéro, chip Édition, Polyphonie, grille) —
