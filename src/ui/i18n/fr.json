@@ -18,6 +18,8 @@
   "voice.poly": "Poly",
   "voice.mono": "Mono",
   "pad.untitled": "(sans nom)",
+  "pad.empty": "(vide)",
+  "pad.stop": "Stopper le pad",
   "page.defaultName": "Principal",
   "page.namePrefix": "Page",
   "editor.color": "Couleur",

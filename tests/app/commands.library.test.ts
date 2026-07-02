@@ -151,10 +151,10 @@ describe('bibliothèque — preview / rename / delete', () => {
     const bank: Bank = {
       id: 'b',
       name: 'b',
-      pages: [{ id: 'pg', name: 'P', voiceMode: 'poly', rows: 4, cols: 4, position: 0 }],
+      pages: [{ id: 'pg', name: 'P', voiceMode: 'poly', rows: 4, cols: 4, position: 0, color: null }],
       pads: [
-        { id: 'pad', pageId: 'pg', name: '', sampleId: 's1', playMode: 'oneShot', gainDb: 0, position: 0 },
-        { id: 'autre', pageId: 'pg', name: '', sampleId: 's2', playMode: 'oneShot', gainDb: 0, position: 1 },
+        { id: 'pad', pageId: 'pg', name: '', sampleId: 's1', playMode: 'oneShot', gainDb: 0, position: 0, color: null },
+        { id: 'autre', pageId: 'pg', name: '', sampleId: 's2', playMode: 'oneShot', gainDb: 0, position: 1, color: null },
       ],
     };
     const store = fakeStore(bank, [sample('s1'), sample('s2')]);

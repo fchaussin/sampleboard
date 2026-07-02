@@ -3,9 +3,11 @@
 <script lang="ts">
   import type { App } from '../../app/create-app';
   import type { Pad } from '../../domain/types';
+  import type { PadStatus } from '../../domain/enums';
   import { attachPadInput, type PadInputHandlers } from '../interaction/pad-input';
   import { t } from '../i18n';
   import { tintStyle } from '../tint';
+  import Icon from './Icon.svelte';
 
   let { app, pad }: { app: App; pad: Pad } = $props();
 
@@ -17,7 +19,7 @@
     pad.sampleId !== null && app.store.samples.some((s) => s.id === pad.sampleId),
   );
   // active > vide (aucun sample) > introuvable (sample supprimé) > au repos (§12, Glossaire).
-  const status = $derived(
+  const status = $derived<PadStatus>(
     playing ? 'active' : pad.sampleId === null ? 'empty' : inLibrary ? 'idle' : 'missing',
   );
 
@@ -34,39 +36,70 @@
 
   // Teinte de palette (M6) : sans couleur, l'accent reste la teinte par défaut.
   const tint = $derived(tintStyle(pad.color));
+
+  // Stop du pad, en évidence pendant la lecture (One-Shot/Loop). Gate se stoppe au
+  // relâchement : pas de bouton.
+  const stoppable = $derived(!editMode && playing && pad.playMode !== 'gate');
+
+  // Substitut de nom : un pad VIDE (sans sample) n'est pas un pad « sans nom ».
+  const displayName = $derived(
+    pad.name || (status === 'empty' ? t('pad.empty', locale) : t('pad.untitled', locale)),
+  );
 </script>
 
-{#if editMode}
-  <button
-    class="pad {status}"
-    class:selected
-    data-mode={pad.playMode}
-    type="button"
-    style={tint}
-    onclick={() => app.commands.openPadDrawer(pad.id)}
-  >
-    <span class="name">{pad.name || t('pad.untitled', locale)}</span>
-    <span class="mode">{t(`mode.${pad.playMode}`, locale)}</span>
-  </button>
-{:else}
-  <button class="pad {status}" data-mode={pad.playMode} type="button" style={tint} use:padInput>
-    <span class="name">{pad.name}</span>
-    <span class="mode">{t(`mode.${pad.playMode}`, locale)}</span>
-  </button>
-{/if}
+<div class="cell" style={tint}>
+  {#if editMode}
+    <button
+      class="pad {status}"
+      class:selected
+      data-mode={pad.playMode}
+      type="button"
+      onclick={() => app.commands.openPadDrawer(pad.id)}
+    >
+      <span class="name">{displayName}</span>
+      <span class="mode">{t(`mode.${pad.playMode}`, locale)}</span>
+    </button>
+  {:else}
+    <button class="pad {status}" data-mode={pad.playMode} type="button" use:padInput>
+      <span class="name">{displayName}</span>
+      <span class="mode">{t(`mode.${pad.playMode}`, locale)}</span>
+    </button>
+    {#if stoppable}
+      <button
+        class="pad-stop"
+        type="button"
+        title={t('pad.stop', locale)}
+        aria-label={t('pad.stop', locale)}
+        onclick={() => app.commands.stopPad(pad.id)}
+      >
+        <Icon name="stop" size={14} />
+      </button>
+    {/if}
+  {/if}
+</div>
 
 <style>
+  /* Case de grille : porte la teinte et positionne le stop par-dessus le pad.
+     Pas de ratio forcé : la case épouse sa piste de grille (full adaptatif). */
+  .cell {
+    position: relative;
+    min-height: 0;
+    min-width: 0;
+  }
+
   .pad {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 0.25rem;
-    aspect-ratio: 1;
+    width: 100%;
+    height: 100%;
     padding: 0.4rem;
-    border: 2px solid var(--muted);
+    /* Couleur du pad : contour PLEIN + fond teinté en TRANSPARENCE (décision M6). */
+    border: 2px solid var(--tint, var(--border));
     border-radius: 12px;
-    background: transparent;
+    background: color-mix(in oklab, var(--tint, transparent) 16%, transparent);
     color: inherit;
     font: inherit;
     cursor: pointer;
@@ -76,8 +109,9 @@
     transition: transform 0.05s ease, background 0.08s ease, border-color 0.08s ease;
   }
 
+  /* Nom au-dessus du Mode de lecture, toujours plus opaque que lui (décision M6). */
   .name {
-    font-weight: 600;
+    font-weight: 400;
     font-size: 0.9rem;
     text-align: center;
     overflow: hidden;
@@ -88,18 +122,34 @@
   .mode {
     font-size: 0.7rem;
     color: var(--muted);
+    opacity: 0.75;
   }
 
+  /* Sample affecté : nom en GRAS. */
+  .pad.idle .name,
+  .pad.active .name,
+  .pad.missing .name {
+    font-weight: 700;
+  }
+
+  /* Vide : nom en italique semi-transparent. */
+  .pad.empty .name {
+    font-style: italic;
+    opacity: 0.55;
+  }
+
+  /* Un sample est assigné : fond un cran plus présent. */
   .pad.idle {
-    border-color: var(--tint, var(--accent));
+    background: color-mix(in oklab, var(--tint, var(--accent)) 26%, transparent);
   }
 
+  /* Vide : visible et coloré (board complet), simplement en retrait. */
   .pad.empty {
-    opacity: 0.4;
+    opacity: 0.7;
   }
 
   .pad.missing {
-    border-color: #e0574f;
+    border-color: var(--danger);
     border-style: dashed;
   }
 
@@ -118,5 +168,24 @@
     outline: 3px solid var(--tint, var(--accent));
     outline-offset: 2px;
     opacity: 1;
+  }
+
+  /* Stop du pad EN ÉVIDENCE en bas à droite pendant la lecture (One-Shot/Loop). */
+  .pad-stop {
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 30px;
+    min-height: 30px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--accent-contrast);
+    color: var(--fg);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 45%);
   }
 </style>

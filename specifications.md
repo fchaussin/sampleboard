@@ -468,6 +468,14 @@ Le ré-encodage se fait **côté frontend** (règle « pas de logique métier en
 - **Agencement UI v1** (2026-07-02) : **Topbar** (infos page → tiroir page) + **Bottombar**
   (Jeu/Édition, Stop général, pages, Import rapide, Bibliothèque, Réglages) + **Drawer** droit
   (pad — Édition seulement —, page, réglages) + **Bibliothèque en panneau plein écran**. Voir §11.
+- **Board complet à la création** (2026-07-02) : une page naît avec sa **grille remplie de
+  pads** (une case = un pad) et **chaque pad et chaque page a une couleur dès l'init**
+  (palette **OKLCH**, cycle par position/rang — `BankFactory`). Jamais de page vierge ni de
+  pad sans couleur. Style pad : **contour plein + fond teinté en transparence**.
+- **Style de code** (2026-07-02) : **orienté objet** pour services et fabriques à état
+  (classes + injection par constructeur) ; **DRY / SOLID / SoC impératifs** ; une seule
+  représentation de l'absence (`T | null`, jamais optionnel + nullable) ; typage strict via
+  les unions nommées du domaine.
 - **Ordre de validation : web d'abord, Android ensuite.** Chaque jalon est d'abord développé et validé sur **web** (dev Vite http://localhost:1420 + fenêtre `tauri dev` bureau) ; la validation sur **appareil Android réel** est un **second temps**, jamais un prérequis pour avancer. La cible finale reste F-Droid/Android (§15) — c'est l'ordre de travail qui est fixé, pas la cible.
 
 ## 17. Évolutions futures (hors v1)

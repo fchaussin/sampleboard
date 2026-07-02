@@ -3,6 +3,7 @@
 // bibliothèque, Stop général. Store & moteur factices.
 import { describe, it, expect, vi } from 'vitest';
 import { createCommands } from '../../src/app/commands';
+import { BankFactory } from '../../src/app/bank-factory';
 import type { AppStore } from '../../src/app/store.svelte';
 import type { AudioEngine } from '../../src/engine/audio-engine';
 import type { Bank } from '../../src/domain/types';
@@ -12,9 +13,9 @@ function makeBank(): Bank {
   return {
     id: 'b',
     name: 'b',
-    pages: [{ id: 'pg', name: 'P', voiceMode: 'poly', rows: 4, cols: 4, position: 0 }],
+    pages: [{ id: 'pg', name: 'P', voiceMode: 'poly', rows: 4, cols: 4, position: 0, color: null }],
     pads: [
-      { id: 'pad', pageId: 'pg', name: '', sampleId: null, playMode: 'oneShot', gainDb: 0, position: 0 },
+      { id: 'pad', pageId: 'pg', name: '', sampleId: null, playMode: 'oneShot', gainDb: 0, position: 0, color: null },
     ],
   };
 }
@@ -143,7 +144,7 @@ describe('couleurs de palette (M6)', () => {
   it('setPadColor refuse un token hors palette', () => {
     const { store, commands } = setup();
     commands.setPadColor('pad', 'fuchsia-disco' as never);
-    expect(store.bank!.pads[0]!.color).toBeUndefined();
+    expect(store.bank!.pads[0]!.color).toBeNull(); // inchangé
   });
 
   it('setPageColor pose un token sur la page', () => {
@@ -153,20 +154,52 @@ describe('couleurs de palette (M6)', () => {
   });
 });
 
-describe('noms par défaut (M6)', () => {
-  it('addPage nomme « Page N » via le générateur injecté', () => {
+describe('création par la fabrique (M6 — board complet, coloré, nommé)', () => {
+  function setupWithFactory() {
     const store = fakeStore();
     const engine = fakeEngine();
+    let n = 0;
+    const ids = (): string => `id-${n++}`;
     const commands = createCommands({
       store,
       engine: engine as unknown as AudioEngine,
       encode: async () => new Uint8Array(),
       sampleRepository: fakeSampleRepository(),
-      ids: () => 'p-new',
-      newPageName: (n) => `Page ${n}`,
+      ids,
+      factory: new BankFactory({ ids, pageName: (rank) => `Page ${rank}` }),
     });
+    return { store, commands };
+  }
+
+  it('addPage crée une page nommée, colorée, à la grille COMPLÈTE — et ouvre son tiroir', () => {
+    const { store, commands } = setupWithFactory();
     commands.addPage();
-    expect(store.bank!.pages.find((p) => p.id === 'p-new')?.name).toBe('Page 2');
+    const page = store.bank!.pages.find((p) => p.id === 'id-0')!;
+    expect(page.name).toBe('Page 2');
+    expect(page.color).not.toBeNull();
+    expect(store.activePageId).toBe(page.id);
+    expect(store.drawer).toBe('page'); // création → configuration dans la foulée
+    const pads = store.bank!.pads.filter((p) => p.pageId === page.id);
+    expect(pads).toHaveLength(16); // 4×4 : une case = un pad
+    expect(pads.every((p) => p.color !== null)).toBe(true);
+    expect(pads.map((p) => p.position).sort((a, b) => a - b)).toEqual(
+      Array.from({ length: 16 }, (_, i) => i),
+    );
+  });
+
+  it('setPageGrid en agrandissement remplit les nouvelles cases de pads colorés', () => {
+    const { store, commands } = setupWithFactory();
+    commands.setPageGrid('pg', 4, 5); // 16 → 20 cases, 1 pad existant en 0
+    const pads = store.bank!.pads.filter((p) => p.pageId === 'pg');
+    expect(pads).toHaveLength(20);
+    expect(pads.every((p) => p.color !== null || p.id === 'pad')).toBe(true);
+  });
+
+  it('addPad crée un pad coloré par sa position', () => {
+    const { store, commands } = setupWithFactory();
+    commands.addPad('pg', 3);
+    const pad = store.bank!.pads.find((p) => p.position === 3)!;
+    expect(pad.color).not.toBeNull();
   });
 
   it('assignSample nomme un pad SANS nom d’après le label du sample (rogné)', () => {

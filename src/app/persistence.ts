@@ -113,7 +113,7 @@ export function snapshotBank(bank: Bank): Bank {
       rows: p.rows,
       cols: p.cols,
       position: p.position,
-      color: p.color ?? null,
+      color: p.color,
     })),
     pads: bank.pads.map((p) => ({
       id: p.id,
@@ -123,7 +123,7 @@ export function snapshotBank(bank: Bank): Bank {
       playMode: p.playMode,
       gainDb: p.gainDb,
       position: p.position,
-      color: p.color ?? null,
+      color: p.color,
     })),
   };
 }

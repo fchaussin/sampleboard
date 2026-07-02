@@ -176,6 +176,19 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
   backlog #7.
 - [x] **Grille 1×1** : bornes élargies (`rows [1,12]`, `cols [1,6]`) — **migration 3**
   (reconstruction de `pages`, procédure SQLite, cascade FK vérifiée) ; spec §2/§6/§8/§16 à jour.
+- [x] **Board complet dès l'init** (3ᵉ passe, décision §16) : `BankFactory` (classe injectée,
+  style OO) — page « Principal » colorée et grille REMPLIE au premier lancement, pages
+  ajoutées complètes, agrandissement de grille comblé, chaque pad coloré (cycle de palette
+  par position). Style pad : contour plein + fond teinté transparent ; nom au-dessus du mode
+  (gras si affecté, italique semi-transparent si vide ; substituts distincts « (vide) » /
+  « (sans nom) »). `color` requis (`Color | null`, une seule représentation de l'absence),
+  `PadStatus` typé.
+- [x] **Grille full adaptatif** : les pads occupent TOUT l'espace disponible (pistes 1fr,
+  plus de ratio carré ni de largeur plafonnée).
+- [x] **Stop par pad** : bouton en évidence en bas à droite du pad pendant la lecture
+  (One-Shot/Loop — Gate se stoppe au relâchement), couvert en e2e.
+- [x] **Création enchaînée** : ajouter une page (bouton « + » bottombar, Édition) ouvre le
+  tiroir des propriétés de la nouvelle page (comme la création de pad).
 - [x] **Tests** : 156 unitaires + 4 e2e adaptés (modale, tiroir, Stop général), verts en Docker.
 - [x] **Validation web (1er temps)** : parcours complet couvert en e2e (import → tiroir →
   modale → jeu → stop) + captures 390×844 revues. Android/captures fastlane ensuite (M7).
@@ -238,6 +251,7 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 | 6 | **Titre ID3 à l'import** : lire les tags (ID3 & co) du fichier source pour initialiser `label` (sinon nom de fichier). Améliore aussi le nom par défaut des pads. | 2026-07-02 | — | À trier |
 | 7 | **Niveau LUFS des samples** : mesurer la sonie intégrée (ITU-R BS.1770) sur le PCM à l'import, la persister (migration : colonne `loudness_lufs`) et l'afficher en bibliothèque. (Nom/taille/durée : déjà affichés depuis M6.) | 2026-07-02 | — | À trier |
 | 8 | **Normalisation de sonie** : ramener les samples à un niveau LUFS cible (réglage global ?) — offset de gain dérivé de la mesure #7, appliqué au GainNode (non destructif) ou au PCM avant encodage. Dépend de #7. | 2026-07-02 | avec #7 | À trier |
+| 9 | **Visualiseur audio en topbar (Jeu)** : **une onde par voix active, colorée par la couleur du pad** — `AnalyserNode` par voix (moteur) + rendu canvas compact dans la barre du haut. | 2026-07-02 | — | À trier |
 
 ---
 

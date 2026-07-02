@@ -13,7 +13,7 @@ import { createStore, type AppStore } from './store.svelte';
 import { createCommands, type Commands } from './commands';
 import { createPersistence, type Persistence } from './persistence';
 import { createRunesWatch } from './watch.svelte';
-import { createDefaultBank } from './default-bank';
+import { BankFactory } from './bank-factory';
 
 export interface App {
   store: AppStore;
@@ -28,10 +28,8 @@ export interface App {
  * pages sont des DONNÉES utilisateur localisées à la création.
  */
 export interface CreateAppOptions {
-  /** Nom de la page de la banque par défaut (premier lancement) — « Principal ». */
-  defaultPageName?: string;
-  /** Nom de la n-ième page ajoutée — « Page N ». */
-  newPageName?: (n: number) => string;
+  /** Nom localisé de la page de rang n (1-based) : « Principal », « Page 2 »… */
+  pageName?: (rank: number) => string;
 }
 
 /**
@@ -63,12 +61,13 @@ export async function createApp(options: CreateAppOptions = {}): Promise<App> {
 
   const { bankRepository, sampleRepository, settingsRepository } = await createRepositories();
 
+  const factory = new BankFactory({ pageName: options.pageName });
   const commands = createCommands({
     store,
     engine,
     encode: createOpusEncoder(),
     sampleRepository,
-    newPageName: options.newPageName,
+    factory,
   });
   const persistence = createPersistence({
     store,
@@ -101,7 +100,7 @@ export async function createApp(options: CreateAppOptions = {}): Promise<App> {
 
   let bank = await bankRepository.load();
   if (!bank) {
-    bank = createDefaultBank(undefined, options.defaultPageName ?? '');
+    bank = factory.createBank(); // board complet : page « Principal », grille remplie, colorée
     await bankRepository.save(bank); // ids stables dès le premier lancement
   }
   commands.hydrateBank(bank);

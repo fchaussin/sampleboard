@@ -69,6 +69,16 @@ snackbar au-dessus (`--z-snackbar`) → **modales** dans le *top-layer* natif du
 toujours au-dessus et empilées dans l'ordre d'ouverture (la future modale de crop — backlog
 #4 — se posera naturellement sur celle d'import).
 
+## Board complet dès l'init (`BankFactory`)
+
+Décision §16 : **jamais de page vierge ni de pad sans couleur**. La classe `BankFactory`
+(app, injectée dans les commandes et la composition root — style OO §16) porte tous les
+défauts de création : banque du premier lancement (page « Principal » colorée, grille 4×4
+**remplie**), `addPage` (page complète), `setPageGrid` (cases exposées comblées), `addPad`.
+Couleurs : cycle de palette par position (pads) et par rang (pages). Style pad : **contour
+plein + fond teinté en transparence** ; nom au-dessus du mode — gras si sample affecté,
+italique semi-transparent si vide.
+
 ## Noms par défaut
 
 Page initiale « Principal », pages ajoutées « Page N » : générateurs **injectés** depuis

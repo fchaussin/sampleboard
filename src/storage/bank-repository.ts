@@ -116,7 +116,7 @@ export function createBankRepository(db: SqlExecutor, lock: WriteLock = NO_LOCK)
            ON CONFLICT(id) DO UPDATE SET bank_id = excluded.bank_id, name = excluded.name,
              voice_mode = excluded.voice_mode, rows = excluded.rows, cols = excluded.cols,
              position = excluded.position, color = excluded.color`,
-          [page.id, bank.id, page.name, page.voiceMode, page.rows, page.cols, page.position, page.color ?? null],
+          [page.id, bank.id, page.name, page.voiceMode, page.rows, page.cols, page.position, page.color],
         );
       }
       await prune('pages', bank.pages.map((p) => p.id));
@@ -130,7 +130,7 @@ export function createBankRepository(db: SqlExecutor, lock: WriteLock = NO_LOCK)
            ON CONFLICT(id) DO UPDATE SET page_id = excluded.page_id, name = excluded.name,
              sample_id = excluded.sample_id, play_mode = excluded.play_mode,
              gain_db = excluded.gain_db, position = excluded.position, color = excluded.color`,
-          [pad.id, pad.pageId, pad.name, pad.sampleId, pad.playMode, pad.gainDb, pad.position, pad.color ?? null],
+          [pad.id, pad.pageId, pad.name, pad.sampleId, pad.playMode, pad.gainDb, pad.position, pad.color],
         );
       }
       await prune('pads', bank.pads.map((p) => p.id));

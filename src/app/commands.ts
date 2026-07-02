@@ -8,9 +8,6 @@ import type { Bank, Pad, Page, Sample, Settings } from '../domain/types';
 import type { BackgroundBehavior, Color, PlayMode, VoiceMode } from '../domain/enums';
 import { findPad, findPage, padsOfPage, pagesSorted, firstFreePosition } from '../domain/selectors';
 import {
-  DEFAULT_COLS,
-  DEFAULT_GAIN_DB,
-  DEFAULT_ROWS,
   GAIN_DB_MAX,
   GAIN_DB_MIN,
   IMPORT_MAX_BYTES,
@@ -22,6 +19,7 @@ import {
   padsFitGrid,
 } from '../domain/invariants';
 import { newId } from '../domain/id';
+import { BankFactory } from './bank-factory';
 import type { AppStore } from './store.svelte';
 
 /** Motif d'échec d'un import (voir §12, §13). */
@@ -39,11 +37,8 @@ export interface CommandDeps {
   ids?: () => string;
   /** Horloge (injectable pour les tests). Défaut : `Date.now`. */
   now?: () => number;
-  /**
-   * Nom par défaut de la n-ième page ajoutée (« Page N ») — injecté depuis le bootstrap
-   * (les libellés vivent en ui/i18n, que cette couche ne peut pas importer, §4).
-   */
-  newPageName?: (n: number) => string;
+  /** Fabrique des entités de la banque (défauts de création, §16). Partage `ids` par défaut. */
+  factory?: BankFactory;
 }
 
 export interface Commands {
@@ -121,7 +116,7 @@ export function createCommands({
   sampleRepository,
   ids = () => newId(),
   now = () => Date.now(),
-  newPageName,
+  factory = new BankFactory({ ids }),
 }: CommandDeps): Commands {
   function resolve(padId: string): { pad: Pad; page: Page } | null {
     const bank = store.bank;
@@ -272,15 +267,7 @@ export function createCommands({
       }
       if (pos === null) return;
 
-      const pad: Pad = {
-        id: ids(),
-        pageId,
-        name: '',
-        sampleId: null,
-        playMode: 'oneShot',
-        gainDb: DEFAULT_GAIN_DB,
-        position: pos,
-      };
+      const pad = factory.createPad(pageId, pos);
       bank.pads.push(pad);
       // Création (Édition) → on enchaîne sur la configuration : tiroir pad ouvert (§11).
       store.selectedPadId = pad.id;
@@ -346,17 +333,13 @@ export function createCommands({
     addPage(): void {
       const bank = store.bank;
       if (!bank) return;
-      const page: Page = {
-        id: ids(),
-        // « Page N » (injecté, i18n) — N = rang de création dans la banque courante.
-        name: newPageName ? newPageName(bank.pages.length + 1) : '',
-        voiceMode: 'poly',
-        rows: DEFAULT_ROWS,
-        cols: DEFAULT_COLS,
-        position: bank.pages.length,
-      };
+      // Une page naît COMPLÈTE (§16) : nom « Page N », couleur de palette, grille remplie.
+      const page = factory.createPage(bank.pages.length + 1);
       bank.pages.push(page);
+      bank.pads.push(...factory.fillPagePads(page, []));
       store.activePageId = page.id;
+      // Création → on enchaîne sur la configuration : tiroir page ouvert (§11).
+      store.drawer = 'page';
     },
     renamePage(pageId: string, name: string): void {
       const page = store.bank ? findPage(store.bank, pageId) : undefined;
@@ -390,6 +373,8 @@ export function createCommands({
       if (!padsFitGrid(padsOfPage(bank, pageId), { rows, cols })) return;
       page.rows = rows;
       page.cols = cols;
+      // Board complet (§16) : toute case exposée par le redimensionnement reçoit son pad.
+      bank.pads.push(...factory.fillPagePads(page, padsOfPage(bank, pageId)));
     },
     reorderPages(pageId: string, toIndex: number): void {
       const bank = store.bank;

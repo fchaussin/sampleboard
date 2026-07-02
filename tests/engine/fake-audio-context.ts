@@ -101,6 +101,7 @@ export const POLY_PAGE: Page = {
   rows: 4,
   cols: 4,
   position: 0,
+  color: null,
 };
 
 export const MONO_PAGE: Page = { ...POLY_PAGE, id: 'mono', voiceMode: 'mono', position: 1 };
@@ -114,6 +115,7 @@ export function pad(overrides: Partial<Pad> = {}): Pad {
     playMode: 'oneShot',
     gainDb: 0,
     position: 0,
+    color: null,
     ...overrides,
   };
 }

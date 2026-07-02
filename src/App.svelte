@@ -33,12 +33,11 @@
     height: 100dvh;
   }
 
+  /* La grille occupe TOUT l'espace disponible (full adaptatif, décision M6). */
   main {
     flex: 1;
-    overflow-y: auto;
+    min-height: 0;
     display: flex;
-    align-items: safe center;
-    justify-content: center;
-    padding: 0.75rem;
+    padding: 0.5rem;
   }
 </style>

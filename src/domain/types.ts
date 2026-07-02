@@ -14,8 +14,8 @@ export interface Pad {
   gainDb: number;
   /** Index dans la grille : 0 .. rows*cols-1. */
   position: number;
-  /** Token de la palette (M6, voir COLORS) ; null/absent = neutre. */
-  color?: Color | null;
+  /** Token de la palette (M6, voir COLORS) ; null = neutre. */
+  color: Color | null;
 }
 
 export interface Page {
@@ -28,8 +28,8 @@ export interface Page {
   /** Défaut : 4 (plage 1..6). */
   cols: number;
   position: number;
-  /** Token de la palette (M6, voir COLORS) ; null/absent = neutre. */
-  color?: Color | null;
+  /** Token de la palette (M6, voir COLORS) ; null = neutre. */
+  color: Color | null;
 }
 
 /**

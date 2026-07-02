@@ -3,6 +3,6 @@
 // Utilitaire unique (Pad, onglets de pages…) — la palette elle-même vit dans app.css (--c-*).
 import type { Color } from '../domain/enums';
 
-export function tintStyle(color: Color | null | undefined): string {
+export function tintStyle(color: Color | null): string {
   return color ? `--tint: var(--c-${color})` : '';
 }

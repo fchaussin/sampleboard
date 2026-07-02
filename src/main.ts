@@ -14,8 +14,7 @@ async function bootstrap(): Promise<void> {
   try {
     // Noms par défaut localisés (données créées, pas des libellés d'UI — voir CreateAppOptions).
     const app = await createApp({
-      defaultPageName: t('page.defaultName'),
-      newPageName: (n) => `${t('page.namePrefix')} ${n}`,
+      pageName: (rank) => (rank === 1 ? t('page.defaultName') : `${t('page.namePrefix')} ${rank}`),
     });
     mount(App, { target, props: { app } });
   } catch (err) {

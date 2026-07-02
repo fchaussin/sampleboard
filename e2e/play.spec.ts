@@ -9,9 +9,9 @@ test('assigner un sample importé à un pad Loop (tiroir), puis le jouer → pad
   await page.goto('/');
   await importWav(page);
 
-  // Édition : créer un pad (case « + ») → son tiroir s'ouvre ; Loop + assignation.
+  // Édition : le board naît COMPLET (M6) — tap sur le premier pad → son tiroir s'ouvre.
   await page.locator('.bottombar .mode-toggle').click();
-  await page.locator('.cell-add').first().click();
+  await page.locator('.grid .pad').first().click();
   const drawer = page.locator('.drawer');
   await expect(drawer).toBeVisible();
   await drawer.getByRole('button', { name: 'Loop' }).click();
@@ -28,10 +28,17 @@ test('assigner un sample importé à un pad Loop (tiroir), puis le jouer → pad
   await expect(pad).toHaveCount(1);
   await pad.click();
 
-  // Loop : la voix persiste → le pad reste « actif » (reflet activePadIds réel).
+  // Loop : la voix persiste → le pad reste « actif » et son bouton stop apparaît.
   await expect(page.locator('.grid .pad.active')).toHaveCount(1, { timeout: 5_000 });
+  await expect(page.locator('.grid .pad-stop')).toHaveCount(1);
 
-  // Stop général (bottombar) : la voix s'arrête, le pad n'est plus actif.
+  // Stop du pad (bouton en bas à droite du pad) : la voix s'arrête.
+  await page.locator('.grid .pad-stop').click();
+  await expect(page.locator('.grid .pad.active')).toHaveCount(0, { timeout: 5_000 });
+
+  // Rejouer, puis Stop général (bottombar) : même résultat.
+  await page.locator('.grid .pad.idle').click();
+  await expect(page.locator('.grid .pad.active')).toHaveCount(1, { timeout: 5_000 });
   await page.locator('.bottombar .stop').click();
   await expect(page.locator('.grid .pad.active')).toHaveCount(0, { timeout: 5_000 });
 });

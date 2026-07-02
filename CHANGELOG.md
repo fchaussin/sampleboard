@@ -47,10 +47,25 @@ versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
   (reconstruction de `pages` selon la procédure SQLite, FK/cascades vérifiées).
 - DRY : helpers partagés `ui/import-file.ts` (chemin d'import unique) et `ui/tint.ts`.
 
+### Ajouté (3ᵉ passe — board complet dès l'init)
+- **`BankFactory`** (classe injectée — décision §16 « style OO ») : responsabilité unique des
+  défauts de création. **Un board naît COMPLET** : page « Principal » colorée + grille
+  **remplie de pads tous colorés** (cycle de palette par position) au premier lancement ;
+  pages ajoutées complètes ; agrandissement de grille comblé automatiquement.
+- **Style pad** : contour **plein** + fond teinté en **transparence** (color-mix oklab) ;
+  nom au-dessus du mode, plus opaque — **gras** si sample affecté, *italique
+  semi-transparent* si vide.
+- Rigueur de types (décision §16) : `color` **requis** (`Color | null` — une seule
+  représentation de l'absence), statut de pad typé `PadStatus`.
+- **Grille full adaptatif** : les pads occupent tout l'espace disponible (pistes `1fr`).
+- **Stop par pad** : bouton en évidence en bas à droite pendant la lecture One-Shot/Loop.
+- Substituts de nom distincts : « (vide) » (sans sample) ≠ « (sans nom) » (sample sans nom).
+- **Créer une page** (bouton « + » bottombar) ouvre le tiroir de la nouvelle page.
+
 ### Tests
-- `commands.ui.test.ts` (drawer/bibliothèque/stop + couleurs + noms), `colors-naming.test.ts`,
-  migrations 2-3 (aller-retour couleur, assainissement, reconstruction 1×1) ; e2e adaptés
-  (modale de sample). Total : **156 unitaires + 4 E2E**.
+- `commands.ui.test.ts` (drawer/bibliothèque/stop + couleurs + noms + fabrique),
+  `bank-factory.test.ts`, `colors-naming.test.ts`, migrations 2-3 ; e2e adaptés (modale de
+  sample, board complet). Total : **162 unitaires + 4 E2E**.
 
 ## [0.6.0] - 2026-07-02 — M5 (Persistance & réglages)
 

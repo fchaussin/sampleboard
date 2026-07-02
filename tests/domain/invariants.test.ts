@@ -18,6 +18,7 @@ const at = (position: number): Pad => ({
   name: 'p',
   sampleId: null,
   playMode: 'oneShot',
+  color: null,
   gainDb: 0,
   position,
 });

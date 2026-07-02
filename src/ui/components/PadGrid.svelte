@@ -37,21 +37,21 @@
 {/if}
 
 <style>
+  /* Full adaptatif (décision M6) : la grille remplit main, les cases se partagent 1fr. */
   .grid {
     display: grid;
     grid-template-columns: repeat(var(--cols), 1fr);
     grid-template-rows: repeat(var(--rows), 1fr);
     gap: 0.5rem;
     width: 100%;
-    max-width: 520px;
-    margin: 0 auto;
+    height: 100%;
+    min-height: 0;
   }
 
   .cell-empty {
     border: 1px dashed var(--muted);
     border-radius: 12px;
     opacity: 0.2;
-    aspect-ratio: 1;
   }
 
   .cell-add {
@@ -60,7 +60,6 @@
     background: transparent;
     color: var(--accent);
     font-size: 1.4rem;
-    aspect-ratio: 1;
     cursor: pointer;
     opacity: 0.6;
   }

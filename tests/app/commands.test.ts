@@ -13,11 +13,11 @@ function bank(): Bank {
     id: 'b',
     name: 'b',
     pages: [
-      { id: 'p1', name: 'P1', voiceMode: 'poly', rows: 4, cols: 4, position: 1 },
-      { id: 'p0', name: 'P0', voiceMode: 'poly', rows: 4, cols: 4, position: 0 },
+      { id: 'p1', name: 'P1', voiceMode: 'poly', rows: 4, cols: 4, position: 1, color: null },
+      { id: 'p0', name: 'P0', voiceMode: 'poly', rows: 4, cols: 4, position: 0, color: null },
     ],
     pads: [
-      { id: 'pad-x', pageId: 'p0', name: 'x', sampleId: 's', playMode: 'oneShot', gainDb: 0, position: 0 },
+      { id: 'pad-x', pageId: 'p0', name: 'x', sampleId: 's', playMode: 'oneShot', gainDb: 0, position: 0, color: null },
     ],
   };
 }

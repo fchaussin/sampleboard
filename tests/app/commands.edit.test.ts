@@ -18,6 +18,7 @@ function pad(id: string, pageId: string, position: number, extra: Partial<Pad> =
     playMode: 'oneShot',
     gainDb: 0,
     position,
+    color: null,
     ...extra,
   };
 }
@@ -26,7 +27,7 @@ function makeBank(): Bank {
   return {
     id: 'b',
     name: 'b',
-    pages: [{ id: 'pg', name: 'P', voiceMode: 'poly', rows: 4, cols: 4, position: 0 }],
+    pages: [{ id: 'pg', name: 'P', voiceMode: 'poly', rows: 4, cols: 4, position: 0, color: null }],
     pads: [],
   };
 }
@@ -166,7 +167,7 @@ describe('pages — CRUD', () => {
 
   it('deletePage supprime page + pads, stoppe et renumérote', () => {
     const bank = makeBank();
-    bank.pages.push({ id: 'pg2', name: 'P2', voiceMode: 'poly', rows: 4, cols: 4, position: 1 });
+    bank.pages.push({ id: 'pg2', name: 'P2', voiceMode: 'poly', rows: 4, cols: 4, position: 1, color: null });
     bank.pads = [pad('x', 'pg', 0), pad('y', 'pg2', 0)];
     const { store, engine, commands } = setup(bank);
     commands.deletePage('pg');
@@ -179,7 +180,7 @@ describe('pages — CRUD', () => {
 
   it('reorderPages réordonne et renumérote les positions', () => {
     const bank = makeBank();
-    bank.pages.push({ id: 'pg2', name: 'P2', voiceMode: 'poly', rows: 4, cols: 4, position: 1 });
+    bank.pages.push({ id: 'pg2', name: 'P2', voiceMode: 'poly', rows: 4, cols: 4, position: 1, color: null });
     const { store, commands } = setup(bank);
     commands.reorderPages('pg2', 0);
     expect(pagesSorted(store.bank!).map((p) => p.id)).toEqual(['pg2', 'pg']);
