@@ -6,6 +6,28 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) ;
 versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
 `1.0.0` n'est pas planifiée : elle sanctionne la première version **stable et complète**.
 
+## [Unreleased] — M8 (Bibliothèque avancée), candidate `0.9.0`
+
+> Backlog #10-12. Validé sur web : 207 unitaires + 8 E2E. Tag après revue utilisateur.
+
+### Ajouté
+- **Tags de samples** (migration 4 : `tags` + `sample_tags`, cascades) : n-à-n,
+  personnalisables (créer/renommer/supprimer dans la bibliothèque), **semés au premier
+  lancement** (SFX, Répliques, Jingle, Musique, Ambiance, Voix, Réaction, Meme, Alerte —
+  i18n injecté). **« Non classé » = filtre virtuel** (absence d'affectation, jamais stocké).
+- **Bibliothèque** : barre de **filtres en chips** (Tous / tags / Non classé), ligne
+  dépliable par sample — chips de tags à bascule + **assignation directe page→pad**
+  (selects standard + Assigner).
+- **Modale de choix de sample = combobox** : recherche texte + filtre par tags (locaux à la
+  modale) — `app/tag-filter.ts` pur partagé.
+- **Banque d'init multi-pages** : 3 pages aux layouts contrastés (4×4, 2×2, 8×6), toutes
+  complètes et colorées — le concept de page évident sans explication.
+- **Visualiseur global : statut idle** — sinusoïdes basse fréquence défilant doucement
+  quand rien ne joue.
+- Conventions figées (§16) : **CSS sans `px`** hors épaisseurs de trait (tout en rem) ;
+  **éléments UI standard uniquement** ; toggle Jeu/Édition segmenté (curseur glissant,
+  segment inactif grisé).
+
 ## [Unreleased] — M7 (Éditeur audio « Découper »), candidate `0.8.0`
 
 > Backlog #4/#5 rapatriés de v2 (décision §16). Validé sur web : 197 unitaires + 6 E2E

@@ -4,6 +4,8 @@
 <script lang="ts">
   import type { App } from '../../app/create-app';
   import type { ImportError } from '../../app/commands';
+  import type { LibraryFilter } from '../../app/store.svelte';
+  import { filterSamples } from '../../app/tag-filter';
   import { importFile } from '../import-file';
   import { t } from '../i18n';
   import Icon from './Icon.svelte';
@@ -21,7 +23,10 @@
   } = $props();
 
   const locale = $derived(app.store.locale);
-  const samples = $derived(app.store.samples);
+  // Combobox (#12) : recherche texte + filtre par tag, locaux à la modale.
+  let search = $state('');
+  let tagFilter = $state<LibraryFilter>(null);
+  const samples = $derived(filterSamples(app.store.samples, app.store.sampleTags, tagFilter, search));
   const current = $derived(
     app.store.bank?.pads.find((p) => p.id === padId)?.sampleId ?? null,
   );
@@ -73,6 +78,26 @@
   {#if error}
     <p class="error" role="alert">{t(`library.error.${error}`, locale)}</p>
   {/if}
+
+  <input
+    class="search"
+    type="search"
+    placeholder={t('picker.search', locale)}
+    bind:value={search}
+  />
+  <div class="chip-row">
+    <button class="chip" class:active={tagFilter === null} type="button" onclick={() => (tagFilter = null)}>
+      {t('library.filter.all', locale)}
+    </button>
+    {#each app.store.tags as tag (tag.id)}
+      <button class="chip" class:active={tagFilter === tag.id} type="button" onclick={() => (tagFilter = tag.id)}>
+        {tag.label}
+      </button>
+    {/each}
+    <button class="chip" class:active={tagFilter === 'untagged'} type="button" onclick={() => (tagFilter = 'untagged')}>
+      {t('library.filter.untagged', locale)}
+    </button>
+  </div>
 
   <ul class="choices">
     <li>
@@ -161,6 +186,22 @@
     margin: 0 0 0.6rem;
     color: var(--danger);
     font-size: 0.8rem;
+  }
+
+  .search {
+    width: 100%;
+    min-height: 2.5rem;
+    padding: 0.4rem 0.6rem;
+    margin-bottom: 0.5rem;
+    background: var(--bg);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: 0.625rem;
+    font: inherit;
+  }
+
+  .chip-row {
+    margin-bottom: 0.6rem;
   }
 
   .choices {

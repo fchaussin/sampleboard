@@ -167,6 +167,35 @@ body {
   font-size: 0.85rem;
 }
 
+/* --- Chips standard (filtres et tags, M8) — partagées bibliothèque + modale de sample --- */
+
+.chip {
+  min-height: 2rem;
+  padding: 0.2rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 999rem;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.chip.active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
+}
+
+.chip-row {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
 .drawer-form .sample-select {
   flex: 1;
   min-width: 0;

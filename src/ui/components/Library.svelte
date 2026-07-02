@@ -3,18 +3,57 @@
 <script lang="ts">
   import type { App } from '../../app/create-app';
   import type { ImportError } from '../../app/commands';
+  import { filterSamples } from '../../app/tag-filter';
+  import { padsOfPage, pagesSorted } from '../../domain/selectors';
   import { importFile } from '../import-file';
   import { t } from '../i18n';
 
   let { app }: { app: App } = $props();
   const locale = $derived(app.store.locale);
+  const tags = $derived(app.store.tags);
+  const filter = $derived(app.store.libraryFilter);
 
   let busy = $state(false);
   let error = $state<ImportError | null>(null);
   // Sample en attente de confirmation de suppression (impacte des pads).
   let confirming = $state<string | null>(null);
 
-  const samples = $derived(app.store.samples);
+  // Filtre M8 : tag sélectionné ou « Non classé » virtuel (samples sans tag).
+  const samples = $derived(filterSamples(app.store.samples, app.store.sampleTags, filter));
+
+  /** Ligne dépliée (tags + assignation directe), ou null. */
+  let expanded = $state<string | null>(null);
+  let assignPageId = $state<string | null>(null);
+  let assignPadId = $state<string | null>(null);
+  const pages = $derived(app.store.bank ? pagesSorted(app.store.bank) : []);
+  const assignablePads = $derived(
+    assignPageId && app.store.bank ? padsOfPage(app.store.bank, assignPageId) : [],
+  );
+
+  function toggleExpanded(sampleId: string): void {
+    expanded = expanded === sampleId ? null : sampleId;
+    assignPageId = app.store.activePageId;
+    assignPadId = null;
+  }
+
+  function sampleHasTag(sampleId: string, tagId: string): boolean {
+    return app.store.sampleTags.get(sampleId)?.has(tagId) ?? false;
+  }
+
+  function assignExpanded(): void {
+    if (expanded && assignPadId) {
+      app.commands.assignSample(assignPadId, expanded);
+      expanded = null;
+    }
+  }
+
+  let newTagLabel = $state('');
+
+  function addTag(event: SubmitEvent): void {
+    event.preventDefault();
+    app.commands.createTag(newTagLabel);
+    newTagLabel = '';
+  }
 
   function impactedPads(sampleId: string): number {
     return app.store.bank ? app.store.bank.pads.filter((p) => p.sampleId === sampleId).length : 0;
@@ -76,6 +115,20 @@
     {/if}
   </div>
 
+  <div class="chip-row filters">
+    <button class="chip" class:active={filter === null} type="button" onclick={() => app.commands.setLibraryFilter(null)}>
+      {t('library.filter.all', locale)}
+    </button>
+    {#each tags as tag (tag.id)}
+      <button class="chip" class:active={filter === tag.id} type="button" onclick={() => app.commands.setLibraryFilter(tag.id)}>
+        {tag.label}
+      </button>
+    {/each}
+    <button class="chip" class:active={filter === 'untagged'} type="button" onclick={() => app.commands.setLibraryFilter('untagged')}>
+      {t('library.filter.untagged', locale)}
+    </button>
+  </div>
+
   {#if samples.length === 0}
     <p class="empty">{t('library.empty', locale)}</p>
   {:else}
@@ -93,6 +146,15 @@
           </span>
           <button type="button" class="icon" title={t('library.preview', locale)} onclick={() => app.commands.previewSample(s.id)}>▶</button>
           <button type="button" class="icon rework" title={t('library.rework', locale)} aria-label={t('library.rework', locale)} onclick={() => rework(s.id)}>✂</button>
+          <button
+            type="button"
+            class="icon tags-toggle"
+            class:active={expanded === s.id}
+            title={t('library.tags', locale)}
+            aria-label={t('library.tags', locale)}
+            aria-expanded={expanded === s.id}
+            onclick={() => toggleExpanded(s.id)}
+          >🏷</button>
           {#if confirming === s.id}
             <span class="confirm">
               {impactedPads(s.id)}
@@ -104,9 +166,74 @@
             <button type="button" class="icon danger" title={t('library.delete', locale)} onclick={() => requestDelete(s.id)}>🗑</button>
           {/if}
         </li>
+        {#if expanded === s.id}
+          <li class="expansion">
+            <div class="chip-row">
+              {#each tags as tag (tag.id)}
+                <button
+                  class="chip"
+                  class:active={sampleHasTag(s.id, tag.id)}
+                  type="button"
+                  aria-pressed={sampleHasTag(s.id, tag.id)}
+                  onclick={() => app.commands.toggleSampleTag(s.id, tag.id)}
+                >
+                  {tag.label}
+                </button>
+              {/each}
+            </div>
+            <div class="assign">
+              <label>
+                <span>{t('assign.page', locale)}</span>
+                <select bind:value={assignPageId}>
+                  {#each pages as page, i (page.id)}
+                    <option value={page.id}>{page.name || i + 1}</option>
+                  {/each}
+                </select>
+              </label>
+              <label>
+                <span>{t('assign.pad', locale)}</span>
+                <select bind:value={assignPadId}>
+                  <option value={null}>—</option>
+                  {#each assignablePads as pad (pad.id)}
+                    <option value={pad.id}>{pad.position + 1}{pad.name ? ` · ${pad.name}` : ''}</option>
+                  {/each}
+                </select>
+              </label>
+              <button class="apply" type="button" disabled={!assignPadId} onclick={assignExpanded}>
+                {t('assign.apply', locale)}
+              </button>
+            </div>
+          </li>
+        {/if}
       {/each}
     </ul>
   {/if}
+
+  <details class="manage">
+    <summary>{t('library.manageTags', locale)}</summary>
+    <ul class="tag-list">
+      {#each tags as tag (tag.id)}
+        <li>
+          <input
+            type="text"
+            value={tag.label}
+            onchange={(e) => app.commands.renameTag(tag.id, e.currentTarget.value)}
+          />
+          <button
+            type="button"
+            class="icon danger"
+            title={t('tag.delete', locale)}
+            aria-label={t('tag.delete', locale)}
+            onclick={() => app.commands.deleteTag(tag.id)}
+          >🗑</button>
+        </li>
+      {/each}
+    </ul>
+    <form class="add-tag" onsubmit={addTag}>
+      <input type="text" placeholder={t('tag.new', locale)} bind:value={newTagLabel} />
+      <button type="submit" class="icon">{t('tag.add', locale)}</button>
+    </form>
+  </details>
 </section>
 
 <style>
@@ -220,5 +347,102 @@
   .danger {
     border-color: var(--danger);
     color: var(--danger);
+  }
+
+  .filters {
+    justify-content: center;
+  }
+
+  .tags-toggle.active {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .expansion {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--panel);
+  }
+
+  .assign {
+    display: flex;
+    align-items: end;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .assign label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .assign select {
+    min-height: 2.25rem;
+    padding: 0.25rem 0.5rem;
+    background: var(--bg);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: 0.375rem;
+    font: inherit;
+  }
+
+  .assign .apply {
+    min-height: 2.25rem;
+    padding: 0 0.8rem;
+    border: 1px solid var(--accent);
+    border-radius: 0.375rem;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .assign .apply:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .manage summary {
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  .tag-list {
+    list-style: none;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .tag-list li,
+  .add-tag {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+  }
+
+  .tag-list input,
+  .add-tag input {
+    flex: 1;
+    padding: 0.25rem 0.5rem;
+    background: transparent;
+    color: inherit;
+    border: 1px solid var(--border);
+    border-radius: 0.375rem;
+    font: inherit;
+  }
+
+  .add-tag {
+    margin-top: 0.5rem;
   }
 </style>

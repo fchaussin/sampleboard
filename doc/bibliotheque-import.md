@@ -63,3 +63,17 @@ no-op (§12) ; un signalement visuel dédié est au backlog.
 1. **Importer un son** → le sample apparaît (⇒ encodage OGG/Opus + re-décodage OK).
 2. **▶** pour pré-écouter.
 3. **Édition** → « + » d'une case → assigner le **Sample** → **Jeu** → jouer.
+
+## Tags, filtres & assignation directe (jalon M8)
+
+- **Tags** (`Tag`, n-à-n, migration 4) : personnalisables via « Gérer les tags » (créer,
+  renommer, supprimer — la suppression épure affectations et filtre). Neuf tags **semés au
+  premier lancement uniquement** (libellés i18n injectés par le bootstrap).
+- **« Non classé »** : filtre **virtuel** = samples sans affectation (décision §16 — une
+  seule représentation de l'absence ; un ensemble vidé disparaît de `sampleTags`).
+- **Filtres** : chips (Tous / tags / Non classé) au-dessus de la liste ; logique pure
+  partagée `app/tag-filter.ts` (`matchesFilter`, `filterSamples` avec recherche texte).
+- **Ligne dépliable** (🏷) par sample : chips de tags à bascule + **assignation directe
+  page→pad** (#11 — selects Page/Pad + Assigner, `assignSample` existant).
+- **Modale de choix de sample** (#12) : combobox — champ de recherche + chips de tags,
+  filtres locaux à la modale.

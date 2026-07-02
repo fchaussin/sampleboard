@@ -1,0 +1,56 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// E2E M8 : tags (semis par défaut, affectation), filtres (dont « Non classé » virtuel),
+// assignation page→pad depuis la bibliothèque, recherche dans la modale de sample.
+import { test, expect } from '@playwright/test';
+import { importWav, openLibrary } from './helpers';
+
+test('taguer, filtrer (tag et Non classé), assigner un pad depuis la bibliothèque', async ({ page }) => {
+  await page.goto('/');
+  await importWav(page, 'explosion.wav');
+  await openLibrary(page);
+
+  // Les tags par défaut sont semés au premier lancement.
+  const filters = page.locator('.library .filters');
+  await expect(filters.locator('.chip', { hasText: 'SFX' })).toBeVisible();
+
+  // Sans tag → visible sous « Non classé », pas sous « SFX ».
+  await filters.locator('.chip', { hasText: 'Non classé' }).click();
+  await expect(page.locator('.library .list li')).toHaveCount(1);
+  await filters.locator('.chip', { hasText: 'SFX' }).click();
+  await expect(page.locator('.library .list')).toHaveCount(0);
+
+  // Affecter « SFX » : déplier la ligne, cocher la chip.
+  await filters.locator('.chip', { hasText: 'Tous' }).click();
+  await page.locator('.library .tags-toggle').click();
+  await page.locator('.library .expansion .chip', { hasText: 'SFX' }).click();
+  await filters.locator('.chip', { hasText: 'SFX' }).click();
+  await expect(page.locator('.library .list li').first()).toBeVisible();
+  await filters.locator('.chip', { hasText: 'Non classé' }).click();
+  await expect(page.locator('.library .list')).toHaveCount(0);
+
+  // Assignation directe page→pad (#11) : page Principal, pad 1.
+  // (Le dépliage est resté ouvert : l'état survit au filtrage.)
+  await filters.locator('.chip', { hasText: 'Tous' }).click();
+  const expansion = page.locator('.library .expansion');
+  await expect(expansion).toBeVisible();
+  await expansion.locator('select').last().selectOption({ index: 1 }); // pad 1
+  await expansion.locator('.apply').click();
+  await page.locator('.close-library').click();
+  await expect(page.locator('.grid .pad.idle')).toHaveCount(1); // le pad porte le sample
+});
+
+test('modale de choix de sample : la recherche filtre la liste (#12)', async ({ page }) => {
+  await page.goto('/');
+  await importWav(page, 'kick.wav');
+  await importWav(page, 'nappe.wav');
+
+  await page.locator('.bottombar .mode-toggle').click();
+  await page.locator('.grid .pad').first().click();
+  await page.locator('.drawer .sample-select').click();
+
+  const picker = page.locator('.picker');
+  await expect(picker.locator('.choice')).toHaveCount(3); // « aucun » + 2 samples
+  await picker.locator('.search').fill('kick');
+  await expect(picker.locator('.choice')).toHaveCount(2); // « aucun » + kick
+  await expect(picker.locator('.choice', { hasText: 'kick.wav' })).toBeVisible();
+});

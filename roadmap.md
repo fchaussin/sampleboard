@@ -234,18 +234,23 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 > libellés i18n injectés, puis entièrement personnalisables) ; **« Non classé » = filtre
 > VIRTUEL** (samples sans tag, jamais stocké — une seule représentation de l'absence).
 
-- [ ] Domaine `Tag` + migration 4 (`tags`, `sample_tags`, cascades) ; `TagRepository`
-  (CRUD tags + affectations) SQL/mémoire ; semis des 9 tags par défaut au premier lancement.
-- [ ] Store (`tags`, affectations, filtre bibliothèque) + commandes (CRUD tag,
-  bascule tag↔sample, filtre — dont « Non classé » virtuel).
-- [ ] Bibliothèque : barre de filtres (tags + Non classé), chips de tags par sample
-  (affecter/retirer), gestion des tags (créer/renommer/supprimer).
-- [ ] #11 : **assignation page→pad directement depuis la bibliothèque** (choix page + pad).
-- [ ] #12 : **combobox de samples dans le tiroir pad** — recherche texte + filtre par tags
-  dans la modale de choix de sample.
-- [ ] i18n + tests (unitaires repo/commandes, e2e filtre + assignation directe).
-- [ ] **Validation web (1er temps)** : taguer, filtrer, assigner depuis la bibliothèque,
-  chercher depuis le tiroir pad.
+- [x] Domaine `Tag` + migration 4 (`tags`, `sample_tags`, cascades) ; `TagRepository`
+  (CRUD tags + affectations, idempotence) SQL/mémoire/factice ; semis des 9 tags par défaut
+  au premier lancement UNIQUEMENT.
+- [x] Store (`tags`, `sampleTags`, `libraryFilter`) + commandes (CRUD tag — suppression épure
+  affectations et filtre —, bascule tag↔sample avec « Non classé » = absence d'entrée,
+  filtre) ; `app/tag-filter.ts` pur partagé.
+- [x] Bibliothèque : barre de filtres en chips (Tous + tags + Non classé), ligne dépliable par
+  sample (chips de tags à bascule), gestion des tags en `<details>` (créer/renommer/supprimer).
+- [x] #11 : assignation page→pad depuis la ligne dépliée (selects standard Page/Pad + Assigner).
+- [x] #12 : modale de choix de sample = combobox (recherche texte + filtre par tags, locaux).
+- [x] Bonus : banque d'init MULTI-PAGES à layouts contrastés (4×4, 2×2, 8×6) ; visualiseur
+  global avec animation IDLE (sinusoïdes lentes) ; conventions figées (CSS sans px hors
+  bordures, éléments UI standard).
+- [x] i18n + **tests** : 207 unitaires + **8 e2e** (tags/filtres/Non classé/assignation
+  directe/recherche), verts en Docker.
+- [x] **Validation web (1er temps)** : parcours e2e complets + captures revues. Verdict
+  visuel utilisateur avant tag.
 
 ### M9 — Empaquetage · `0.10.0` · Phase E
 
