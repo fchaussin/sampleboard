@@ -8,6 +8,7 @@
   import { t } from '../i18n';
   import { tintStyle } from '../tint';
   import Icon from './Icon.svelte';
+  import PadWaveform from './PadWaveform.svelte';
 
   let { app, pad }: { app: App; pad: Pad } = $props();
 
@@ -61,6 +62,9 @@
     </button>
   {:else}
     <button class="pad {status}" data-mode={pad.playMode} type="button" use:padInput>
+      {#if playing}
+        <PadWaveform {app} padId={pad.id} />
+      {/if}
       <span class="name">{displayName}</span>
       <span class="mode">{t(`mode.${pad.playMode}`, locale)}</span>
     </button>
@@ -88,6 +92,7 @@
   }
 
   .pad {
+    position: relative; /* ancre l'onde (canvas absolu) derrière le texte */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -106,7 +111,14 @@
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
-    transition: transform 0.05s ease, background 0.08s ease, border-color 0.08s ease;
+    /* L'opacité/intensité REFLÈTE l'état de lecture : montée instantanée au déclenchement,
+       retombée douce à l'arrêt (feel de relâchement). */
+    transition:
+      transform 0.05s ease,
+      background 0.25s ease-out,
+      border-color 0.25s ease-out,
+      box-shadow 0.25s ease-out,
+      opacity 0.25s ease-out;
   }
 
   /* Nom au-dessus du Mode de lecture, toujours plus opaque que lui (décision M6). */
@@ -117,12 +129,14 @@
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
+    position: relative; /* au-dessus de l'onde */
   }
 
   .mode {
     font-size: 0.7rem;
     color: var(--muted);
     opacity: 0.75;
+    position: relative; /* au-dessus de l'onde */
   }
 
   /* Sample affecté : nom en GRAS. */
@@ -153,11 +167,14 @@
     border-style: dashed;
   }
 
+  /* EN LECTURE : intensité maximale — fond plein, halo, montée sans transition. */
   .pad.active {
     background: var(--tint, var(--accent));
     border-color: var(--tint, var(--accent));
     color: var(--accent-contrast);
     transform: scale(0.97);
+    box-shadow: 0 0 18px color-mix(in oklab, var(--tint, var(--accent)) 55%, transparent);
+    transition-duration: 0.03s;
   }
 
   .pad.active .mode {

@@ -4,6 +4,7 @@
   import type { App } from '../../app/create-app';
   import { pagesSorted } from '../../domain/selectors';
   import { t } from '../i18n';
+  import TopbarWaveform from './TopbarWaveform.svelte';
 
   let { app }: { app: App } = $props();
 
@@ -23,6 +24,7 @@
     onclick={() => app.commands.openPageDrawer()}
   >
     <span class="name">{page.name || pageNumber}</span>
+    <TopbarWaveform {app} />
     <span class="badges">
       {#if editMode}
         <span class="badge edit">{t('nav.edit', locale)}</span>

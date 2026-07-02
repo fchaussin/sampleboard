@@ -8,6 +8,8 @@ export interface Voice {
   pageId: string;
   source: AudioBufferSourceNode;
   gain: GainNode;
+  /** Point d'écoute de la voix pour les visualiseurs (forme d'onde temps réel, M6). */
+  analyser: AnalyserNode;
   /** AudioContext.currentTime au démarrage (sert au FIFO du plafond de voix). */
   startedAt: number;
   /** Voix entretenue (Gate tenu, Loop) — ciblée par Arrière-plan 'stopSustained' (§12). */

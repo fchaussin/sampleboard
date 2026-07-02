@@ -11,6 +11,9 @@ import type { DecodedAudio, EngineState, PlayingChangedCallback } from './types'
 /** Rampe de gain courte à l'arrêt d'une voix (anti-clic, voir §7). */
 const ANTI_CLICK_FADE_S = 0.008;
 
+/** Taille de fenêtre des analyseurs : les visualiseurs lisent `WAVEFORM_SIZE` échantillons. */
+export const WAVEFORM_SIZE = 512;
+
 export interface AudioEngineOptions {
   /** Fabrique d'AudioContext. Injectable pour les tests ; défaut : `new AudioContext()`. */
   createContext?: () => AudioContext;
@@ -174,6 +177,38 @@ export class AudioEngine {
     this.#onPlayingChanged = cb;
   }
 
+  /**
+   * Forme d'onde temps réel de la voix d'un pad (visualiseurs M6). Remplit `out`
+   * (longueur ≤ WAVEFORM_SIZE) et renvoie true, ou false si le pad ne joue pas.
+   * Un pad n'a jamais deux voix simultanées (re-déclenchement self, §7).
+   */
+  waveform(padId: string, out: Float32Array<ArrayBuffer>): boolean {
+    for (const voice of this.#voices) {
+      if (voice.padId === padId) {
+        voice.analyser.getFloatTimeDomainData(out);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Avancement de lecture [0, 1] de la voix d'un pad (barre de progression M6), ou null
+   * si le pad ne joue pas. Loop : position dans le cycle courant ; One-Shot/Gate : borné à 1.
+   */
+  progress(padId: string): number | null {
+    const ctx = this.#ctx;
+    if (!ctx) return null;
+    for (const voice of this.#voices) {
+      if (voice.padId !== padId) continue;
+      const duration = voice.source.buffer?.duration ?? 0;
+      if (duration <= 0) return 0;
+      const elapsed = ctx.currentTime - voice.startedAt;
+      return voice.source.loop ? (elapsed % duration) / duration : Math.min(1, elapsed / duration);
+    }
+    return null;
+  }
+
   // --- Interne -----------------------------------------------------------------------------
 
   /**
@@ -200,13 +235,18 @@ export class AudioEngine {
     const gain = ctx.createGain();
     gain.gain.value = gainDbToAmplitude(pad.gainDb);
 
-    source.connect(gain).connect(ctx.destination);
+    // Analyseur par voix (visualiseurs M6) : transparent pour l'audio, lu à la demande.
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = WAVEFORM_SIZE;
+
+    source.connect(gain).connect(analyser).connect(ctx.destination);
 
     const voice: Voice = {
       padId: pad.id,
       pageId: page.id,
       source,
       gain,
+      analyser,
       startedAt: ctx.currentTime,
       sustained,
     };
@@ -286,6 +326,7 @@ export class AudioEngine {
     try {
       voice.source.disconnect();
       voice.gain.disconnect();
+      voice.analyser.disconnect();
     } catch {
       // Nœuds déjà déconnectés : sans conséquence.
     }

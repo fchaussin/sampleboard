@@ -28,9 +28,12 @@ test('assigner un sample importé à un pad Loop (tiroir), puis le jouer → pad
   await expect(pad).toHaveCount(1);
   await pad.click();
 
-  // Loop : la voix persiste → le pad reste « actif » et son bouton stop apparaît.
+  // Loop : la voix persiste → pad « actif », bouton stop, et les visualiseurs tracent
+  // (onde dans le pad + visualiseur global de la topbar).
   await expect(page.locator('.grid .pad.active')).toHaveCount(1, { timeout: 5_000 });
   await expect(page.locator('.grid .pad-stop')).toHaveCount(1);
+  await expect(page.locator('.grid .pad.active canvas')).toHaveCount(1);
+  await expect(page.locator('.topbar canvas')).toBeVisible();
 
   // Stop du pad (bouton en bas à droite du pad) : la voix s'arrête.
   await page.locator('.grid .pad-stop').click();

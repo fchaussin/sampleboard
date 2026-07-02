@@ -190,6 +190,11 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
   (One-Shot/Loop — Gate se stoppe au relâchement), couvert en e2e.
 - [x] **Création enchaînée** : ajouter une page (bouton « + » bottombar, Édition) ouvre le
   tiroir des propriétés de la nouvelle page (comme la création de pad).
+- [x] **État de lecture reflété par l'intensité** : pad en lecture = fond plein + halo,
+  montée instantanée / retombée douce ; affectés 45 % ; vides en retrait.
+- [x] **Visualiseurs** (backlog #9 intégré) : `AnalyserNode` par voix (moteur `waveform()` +
+  `progress()`) — onde + **barre d'avancement** dans le pad en lecture, **visualiseur global
+  multi-voix dans la topbar** (une onde par voix, à la couleur du pad).
 - [x] **Tests** : 156 unitaires + 4 e2e adaptés (modale, tiroir, Stop général), verts en Docker.
 - [x] **Validation web (1er temps)** : parcours complet couvert en e2e (import → tiroir →
   modale → jeu → stop) + captures 390×844 revues. Android/captures fastlane ensuite (M7).
@@ -269,7 +274,7 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 | 6 | **Titre ID3 à l'import** : lire les tags (ID3 & co) du fichier source pour initialiser `label` (sinon nom de fichier). Améliore aussi le nom par défaut des pads. | 2026-07-02 | — | À trier |
 | 7 | **Niveau LUFS des samples** : mesurer la sonie intégrée (ITU-R BS.1770) sur le PCM à l'import, la persister (migration : colonne `loudness_lufs`) et l'afficher en bibliothèque. (Nom/taille/durée : déjà affichés depuis M6.) | 2026-07-02 | — | À trier |
 | 8 | **Normalisation de sonie** : ramener les samples à un niveau LUFS cible (réglage global ?) — offset de gain dérivé de la mesure #7, appliqué au GainNode (non destructif) ou au PCM avant encodage. Dépend de #7. | 2026-07-02 | avec #7 | À trier |
-| 9 | **Visualiseur audio en topbar (Jeu)** : **une onde par voix active, colorée par la couleur du pad** — `AnalyserNode` par voix (moteur) + rendu canvas compact dans la barre du haut. | 2026-07-02 | — | À trier |
+| 9 | **Visualiseur audio en topbar (Jeu)** : **une onde par voix active, colorée par la couleur du pad** — `AnalyserNode` par voix (moteur) + rendu canvas compact dans la barre du haut. | 2026-07-02 | `0.7.0` | **Intégrée → M6** |
 
 ---
 

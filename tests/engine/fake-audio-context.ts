@@ -20,6 +20,18 @@ export class FakeGainNode {
   disconnect(): void {}
 }
 
+export class FakeAnalyserNode {
+  fftSize = 2048;
+  connect(dest: unknown): unknown {
+    return dest;
+  }
+  disconnect(): void {}
+  /** Onde factice reconnaissable : une rampe de -1 à +1. */
+  getFloatTimeDomainData(out: Float32Array): void {
+    for (let i = 0; i < out.length; i++) out[i] = (i / out.length) * 2 - 1;
+  }
+}
+
 export class FakeSourceNode {
   buffer: unknown = null;
   loop = false;
@@ -50,6 +62,7 @@ export class FakeAudioContext {
   decodeCalls = 0;
   sources: FakeSourceNode[] = [];
   gains: FakeGainNode[] = [];
+  analysers: FakeAnalyserNode[] = [];
 
   async resume(): Promise<void> {
     this.resumeCalls++;
@@ -69,6 +82,11 @@ export class FakeAudioContext {
     const s = new FakeSourceNode();
     this.sources.push(s);
     return s;
+  }
+  createAnalyser(): FakeAnalyserNode {
+    const a = new FakeAnalyserNode();
+    this.analysers.push(a);
+    return a;
   }
   async decodeAudioData(_data: ArrayBuffer): Promise<AudioBuffer> {
     this.decodeCalls++;
