@@ -138,9 +138,9 @@
     opacity: 0.55;
   }
 
-  /* Un sample est assigné : fond un cran plus présent. */
+  /* Un sample est assigné : fond nettement plus opaque que les pads vides. */
   .pad.idle {
-    background: color-mix(in oklab, var(--tint, var(--accent)) 26%, transparent);
+    background: color-mix(in oklab, var(--tint, var(--accent)) 45%, transparent);
   }
 
   /* Vide : visible et coloré (board complet), simplement en retrait. */
