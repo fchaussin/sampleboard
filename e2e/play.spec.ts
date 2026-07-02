@@ -34,6 +34,7 @@ test('assigner un sample importé à un pad Loop (tiroir), puis le jouer → pad
   await expect(page.locator('.grid .pad-stop')).toHaveCount(1);
   await expect(page.locator('.grid .pad.active canvas')).toHaveCount(1);
   await expect(page.locator('.topbar canvas')).toBeVisible();
+  await expect(page.locator('.topbar .stop')).toBeVisible(); // Stop contextuel près du visualiseur
 
   // Stop du pad (bouton en bas à droite du pad) : la voix s'arrête.
   await page.locator('.grid .pad-stop').click();

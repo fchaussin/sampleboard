@@ -64,14 +64,16 @@ versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
 - **État de lecture = intensité** : pad en lecture à fond plein + halo (montée instantanée,
   retombée douce) ; pads affectés nettement plus opaques (45 %) que les vides.
 - **Visualiseurs temps réel** : `AnalyserNode` par voix (moteur : `waveform()`, `progress()`,
-  `WAVEFORM_SIZE`) — onde + barre d'avancement dans le pad en lecture ; **visualiseur global
-  multi-voix dans la topbar**, une onde par voix à la couleur de son pad (`ui/waveform.ts`
-  partagé : résolution des couleurs CSS en cache + tracé unique).
+  `peaks()` — pics statiques du sample, calcul paresseux en cache) — dans le pad en lecture,
+  **progression en forme d'onde du fichier** (partie jouée pleine, reste estompé) ;
+  **visualiseur global multi-voix dans la topbar** (une onde temps réel par voix, à la
+  couleur de son pad) avec **Stop général contextuel** à côté des ondes (`ui/waveform.ts`
+  partagé : résolution des couleurs CSS en cache + utilitaires de tracé).
 
 ### Tests
 - `commands.ui.test.ts` (drawer/bibliothèque/stop + couleurs + noms + fabrique),
   `bank-factory.test.ts`, `colors-naming.test.ts`, migrations 2-3 ; e2e adaptés (modale de
-  sample, board complet). Total : **169 unitaires + 4 E2E**.
+  sample, board complet). Total : **172 unitaires + 4 E2E**.
 
 ## [0.6.0] - 2026-07-02 — M5 (Persistance & réglages)
 

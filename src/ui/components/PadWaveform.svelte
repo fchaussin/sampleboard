@@ -1,16 +1,14 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- Visualiseur du pad (M6) : forme d'onde de SA voix + barre d'avancement en bas, tracées
-     pendant la lecture. Monté uniquement quand le pad joue (Pad.svelte) — une seule boucle
-     rAF par pad pour les deux rendus. -->
+<!-- Progression du pad EN FORME D'ONDE DU FICHIER (M6) : les pics statiques du sample
+     remplissent le pad ; la partie déjà jouée est pleine, le reste estompé. Monté uniquement
+     pendant la lecture (Pad.svelte) — une seule boucle rAF par pad. -->
 <script lang="ts">
   import type { App } from '../../app/create-app';
-  import { WAVEFORM_SIZE } from '../../engine/audio-engine';
-  import { drawWave, fitCanvas, themeColor } from '../waveform';
+  import { fitCanvas, themeColor } from '../waveform';
 
-  let { app, padId }: { app: App; padId: string } = $props();
+  let { app, padId, sampleId }: { app: App; padId: string; sampleId: string } = $props();
 
   let canvas: HTMLCanvasElement;
-  const samples = new Float32Array(WAVEFORM_SIZE);
 
   $effect(() => {
     const ctx = canvas.getContext('2d');
@@ -18,17 +16,26 @@
     let raf = requestAnimationFrame(function render() {
       const { width, height } = fitCanvas(canvas);
       const dpr = window.devicePixelRatio || 1;
-      // Sur le fond plein du pad actif, tout se trace en couleur de contraste.
+      const barWidth = 2 * dpr;
+      const gap = 1 * dpr;
+      const buckets = Math.max(8, Math.floor(width / (barWidth + gap)));
+      // Sur le fond plein du pad actif, tout se dessine en couleur de contraste.
       const color = themeColor('--accent-contrast');
-      ctx.clearRect(0, 0, width, height);
-      if (app.engine.waveform(padId, samples)) {
-        drawWave(ctx, samples, color, width, height, 2 * dpr);
-      }
+      const peaks = app.engine.peaks(sampleId, buckets);
       const progress = app.engine.progress(padId);
-      if (progress !== null) {
-        const barHeight = 3 * dpr;
+
+      ctx.clearRect(0, 0, width, height);
+      if (peaks && progress !== null) {
+        const mid = height / 2;
+        const playedX = progress * width;
         ctx.fillStyle = color;
-        ctx.fillRect(0, height - barHeight, width * progress, barHeight);
+        for (let i = 0; i < peaks.length; i++) {
+          const x = i * (barWidth + gap);
+          const barHeight = Math.max(1 * dpr, peaks[i]! * height * 0.86);
+          ctx.globalAlpha = x <= playedX ? 0.95 : 0.3;
+          ctx.fillRect(x, mid - barHeight / 2, barWidth, barHeight);
+        }
+        ctx.globalAlpha = 1;
       }
       raf = requestAnimationFrame(render);
     });
@@ -45,6 +52,5 @@
     width: calc(100% - 8px);
     height: calc(100% - 8px);
     pointer-events: none;
-    opacity: 0.8;
   }
 </style>

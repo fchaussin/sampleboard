@@ -90,7 +90,14 @@ export class FakeAudioContext {
   }
   async decodeAudioData(_data: ArrayBuffer): Promise<AudioBuffer> {
     this.decodeCalls++;
-    return { duration: 1 } as AudioBuffer;
+    // Buffer factice d'une seconde, 8 échantillons connus (sert aussi aux pics/peaks).
+    const samples = new Float32Array([0, 0.5, -1, 0.25, 0.75, -0.5, 0.1, -0.9]);
+    return {
+      duration: 1,
+      length: samples.length,
+      numberOfChannels: 1,
+      getChannelData: () => samples,
+    } as unknown as AudioBuffer;
   }
 }
 

@@ -192,9 +192,11 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
   tiroir des propriétés de la nouvelle page (comme la création de pad).
 - [x] **État de lecture reflété par l'intensité** : pad en lecture = fond plein + halo,
   montée instantanée / retombée douce ; affectés 45 % ; vides en retrait.
-- [x] **Visualiseurs** (backlog #9 intégré) : `AnalyserNode` par voix (moteur `waveform()` +
-  `progress()`) — onde + **barre d'avancement** dans le pad en lecture, **visualiseur global
-  multi-voix dans la topbar** (une onde par voix, à la couleur du pad).
+- [x] **Visualiseurs** (backlog #9 intégré) : `AnalyserNode` par voix (moteur `waveform()`,
+  `progress()`, `peaks()` en cache) — dans le pad en lecture, **progression en forme d'onde
+  du fichier** (pics statiques, partie jouée pleine / reste estompé) ; **visualiseur global
+  multi-voix dans la topbar** (une onde temps réel par voix, à la couleur du pad) avec
+  **Stop général contextuel** à côté des ondes.
 - [x] **Tests** : 156 unitaires + 4 e2e adaptés (modale, tiroir, Stop général), verts en Docker.
 - [x] **Validation web (1er temps)** : parcours complet couvert en e2e (import → tiroir →
   modale → jeu → stop) + captures 390×844 revues. Android/captures fastlane ensuite (M7).

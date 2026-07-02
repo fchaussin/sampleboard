@@ -62,8 +62,8 @@
     </button>
   {:else}
     <button class="pad {status}" data-mode={pad.playMode} type="button" use:padInput>
-      {#if playing}
-        <PadWaveform {app} padId={pad.id} />
+      {#if playing && pad.sampleId !== null}
+        <PadWaveform {app} padId={pad.id} sampleId={pad.sampleId} />
       {/if}
       <span class="name">{displayName}</span>
       <span class="mode">{t(`mode.${pad.playMode}`, locale)}</span>

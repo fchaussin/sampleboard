@@ -41,6 +41,35 @@ describe('waveform (visualiseurs)', () => {
   });
 });
 
+describe('peaks (forme d’onde statique du sample)', () => {
+  it('pic |max| par tranche (buffer factice de 8 échantillons connus)', async () => {
+    const { engine } = await playingEngine();
+    const peaks = engine.peaks('sample-1', 4);
+    // Échantillons [0, .5, -1, .25, .75, -.5, .1, -.9] → pics par paires : .5, 1, .75, .9
+    expect(peaks).not.toBeNull();
+    const expected = [0.5, 1, 0.75, 0.9];
+    expect(peaks!).toHaveLength(expected.length);
+    for (const [i, value] of expected.entries()) {
+      expect(peaks![i]).toBeCloseTo(value, 5); // float32 : 0.9 n'est pas exact
+    }
+  });
+
+  it('mis en cache : le second appel renvoie le même tableau', async () => {
+    const { engine } = await playingEngine();
+    expect(engine.peaks('sample-1', 4)).toBe(engine.peaks('sample-1', 4));
+  });
+
+  it('null si le buffer n’est pas chargé ; cache purgé à unload', async () => {
+    const { engine } = await playingEngine();
+    expect(engine.peaks('inconnu', 4)).toBeNull();
+    const before = engine.peaks('sample-1', 4);
+    engine.unload('sample-1');
+    expect(engine.peaks('sample-1', 4)).toBeNull();
+    await engine.load('sample-1', bytes());
+    expect(engine.peaks('sample-1', 4)).not.toBe(before); // recalculé, pas l'ancien cache
+  });
+});
+
 describe('progress (barre d’avancement)', () => {
   it('One-Shot : avancement borné à 1 (buffer factice d’une seconde)', async () => {
     const { engine, ctx } = await playingEngine();

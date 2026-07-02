@@ -28,6 +28,8 @@ export class AudioEngine {
 
   /** Buffers décodés, mis en cache par sampleId (voir §7). */
   readonly #buffers = new Map<string, AudioBuffer>();
+  /** Pics de forme d'onde par `${sampleId}:${buckets}` (visualiseurs M6, calcul paresseux). */
+  readonly #peaks = new Map<string, Float32Array>();
   /** Voix actives (une par lecture en cours), dans l'ordre d'insertion (FIFO). */
   readonly #voices = new Set<Voice>();
 
@@ -70,6 +72,9 @@ export class AudioEngine {
 
   unload(sampleId: string): void {
     this.#buffers.delete(sampleId);
+    for (const key of this.#peaks.keys()) {
+      if (key.startsWith(`${sampleId}:`)) this.#peaks.delete(key);
+    }
   }
 
   /** Vrai si le buffer d'un sample est déjà décodé/en cache. */
@@ -190,6 +195,37 @@ export class AudioEngine {
       }
     }
     return false;
+  }
+
+  /**
+   * Forme d'onde STATIQUE d'un sample : pic (|amplitude| max, [0,1]) par tranche, sur
+   * `buckets` tranches. Calculée au premier appel puis mise en cache ; null si le buffer
+   * n'est pas chargé. Sert de fond de barre de progression aux pads (M6).
+   */
+  peaks(sampleId: string, buckets: number): Float32Array | null {
+    const buffer = this.#buffers.get(sampleId);
+    if (!buffer || buckets < 1) return null;
+    const key = `${sampleId}:${buckets}`;
+    const cached = this.#peaks.get(key);
+    if (cached) return cached;
+
+    const out = new Float32Array(buckets);
+    const bucketSize = buffer.length / buckets;
+    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+      const data = buffer.getChannelData(channel);
+      for (let b = 0; b < buckets; b++) {
+        const start = Math.floor(b * bucketSize);
+        const end = Math.min(buffer.length, Math.ceil((b + 1) * bucketSize));
+        let peak = out[b]!;
+        for (let i = start; i < end; i++) {
+          const v = Math.abs(data[i]!);
+          if (v > peak) peak = v;
+        }
+        out[b] = peak;
+      }
+    }
+    this.#peaks.set(key, out);
+    return out;
   }
 
   /**
