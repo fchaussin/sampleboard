@@ -34,14 +34,23 @@ export async function openLibrary(page: Page): Promise<void> {
   await page.locator('.bottombar .open-library').click();
 }
 
+/** Valide l'éditeur audio (M7 : tout import l'ouvre) sans toucher à la sélection. */
+export async function applyAudioEditor(page: Page): Promise<void> {
+  const editor = page.locator('.audio-editor');
+  await editor.waitFor({ timeout: 20_000 });
+  await editor.locator('.apply').click();
+  await editor.waitFor({ state: 'hidden', timeout: 20_000 });
+}
+
 /**
- * Importe un WAV via l'« Import rapide » de la bottombar, vérifie son apparition dans le
- * panneau Bibliothèque, puis referme le panneau (retour à la grille).
+ * Importe un WAV via l'« Import rapide » de la bottombar (éditeur audio validé plage
+ * complète), vérifie son apparition dans le panneau Bibliothèque, puis referme le panneau.
  */
-export async function importWav(page: Page, name = 'tone.wav'): Promise<void> {
+export async function importWav(page: Page, name = 'tone.wav', seconds = 0.25): Promise<void> {
   await page
     .locator('.bottombar .import input[type=file]')
-    .setInputFiles({ name, mimeType: 'audio/wav', buffer: makeWav() });
+    .setInputFiles({ name, mimeType: 'audio/wav', buffer: makeWav(seconds) });
+  await applyAudioEditor(page);
   await openLibrary(page);
   await page.locator('.library .list li').first().waitFor({ timeout: 20_000 });
   await page.locator('.close-library').click();

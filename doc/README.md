@@ -30,5 +30,6 @@ les règles projet :
 - [Bibliothèque & import (M4)](./bibliotheque-import.md)
 - [Persistance & réglages (M5)](./persistance-reglages.md)
 - [Interface (M6)](./interface.md)
+- [Éditeur audio « Découper » (M7)](./editeur-audio.md)
 - [Audit FOSS des dépendances (M7)](./audit-foss.md)
 - [Tests](./tests.md)

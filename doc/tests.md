@@ -46,7 +46,7 @@ suffisent pas).
 Complète le hook `doc-sync` (rappel de mise à jour de `doc/`). Les deux sont déclarés dans
 `.claude/settings.json`.
 
-## Couverture actuelle (M1 → M6) — 141 unitaires + 4 E2E
+## Couverture actuelle (M1 → M7) — 197 unitaires + 6 E2E
 
 - `tests/engine/voice.test.ts` — conversion gain dB → amplitude (bornes, plancher -60 dB,
   monotonie).
@@ -72,6 +72,9 @@ Complète le hook `doc-sync` (rappel de mise à jour de `doc/`). Les deux sont d
 - `tests/app/commands.ui.test.ts` — interface M6 (§11) : tiroir contextuel (pad Édition
   seulement, page, réglages, fermetures), panneau bibliothèque (une surcouche à la fois),
   Stop général.
+- `tests/engine/pcm.test.ts`, `tests/app/selection-history.test.ts`,
+  `tests/app/commands.audio-editor.test.ts` — M7 : rognage/pics/bornes purs, historique
+  undo/redo, flux éditeur complet (import/retravail, échecs, restauration).
 - `tests/storage/db.test.ts`, `bank-repository.test.ts`, `sample-settings-repository.test.ts`,
   `write-lock.test.ts` — couche storage contre un **vrai SQLite en mémoire** (`node:sqlite`) :
   migrations, aller-retour banque (upsert/élagage, cascades, `ON DELETE SET NULL`), bibliothèque,
@@ -85,7 +88,9 @@ Complète le hook `doc-sync` (rappel de mise à jour de `doc/`). Les deux sont d
   bibliothèque.
 - `e2e/play.spec.ts` — import → assignation à un pad Loop → lecture → pad *actif* (moteur Web Audio
   + reflet `activePadIds` réels).
-- `e2e/helpers.ts` — génération de WAV + helper d'import (utilitaire, pas un test).
+- `e2e/audio-editor.spec.ts` — M7 : rognage à la poignée (drag réel), undo, durée persistée
+  réduite, retravail d'un sample existant.
+- `e2e/helpers.ts` — génération de WAV + helpers d'import/éditeur (utilitaire, pas un test).
 
 > Au navigateur nu, la persistance passe par les dépôts **mémoire** (voir doc M5) : l'E2E couvre
 > le boot asynchrone et la banque par défaut, pas SQLite — celui-ci est couvert par les tests

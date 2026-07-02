@@ -6,6 +6,26 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) ;
 versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
 `1.0.0` n'est pas planifiée : elle sanctionne la première version **stable et complète**.
 
+## [Unreleased] — M7 (Éditeur audio « Découper »), candidate `0.8.0`
+
+> Backlog #4/#5 rapatriés de v2 (décision §16). Validé sur web : 197 unitaires + 6 E2E
+> (drag réel, undo, durée persistée réduite, retravail). Tag après revue utilisateur.
+
+### Ajouté
+- **Éditeur audio plein écran** (`AudioEditor`, `<dialog>` top-layer) : waveform du PCM
+  décodé (pics en cache), **poignées start/end** au pointeur, sélection pleine vs estompée,
+  temps `start – end · durée`, **pré-écoute de la sélection** (`previewPcm`), **undo/redo**
+  (`SelectionHistory`), Annuler/Valider (échec → éditeur ouvert + message).
+- **Tout import ouvre l'éditeur** (Import rapide, Bibliothèque, modale de choix de sample —
+  le pad à assigner est mémorisé et assigné à la validation). Le fichier stocké est **déjà
+  rogné** (trim du PCM avant encodage Opus).
+- **Retravail** : « ✂ Découper » sur chaque sample de la bibliothèque — re-décode l'OGG,
+  ré-encode la sélection, **id et fichier conservés** (`SampleRepository.replace`),
+  restauration meilleur-effort du buffer en cas d'échec.
+- `engine/pcm.ts` pur : `trimPcm`, `clampSelection` (durée min 10 ms), `computePeaks`
+  (partagé avec `engine.peaks`, DRY), `pcmDuration` — `durationMs` persistée désormais
+  dérivée du PCM réel.
+
 ## [0.7.0] - 2026-07-02 — M6 (Interface)
 
 > Refonte complète de l'agencement (tri backlog #2, décisions §11/§16) + trois passes de

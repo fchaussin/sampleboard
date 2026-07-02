@@ -8,6 +8,7 @@
   import Bottombar from './ui/components/Bottombar.svelte';
   import Drawer from './ui/components/Drawer.svelte';
   import LibraryPanel from './ui/components/LibraryPanel.svelte';
+  import AudioEditor from './ui/components/AudioEditor.svelte';
 
   let { app }: { app: App } = $props();
 </script>
@@ -24,6 +25,12 @@
 
 {#if app.store.libraryOpen}
   <LibraryPanel {app} />
+{/if}
+
+{#if app.store.audioEditor}
+  {#key app.store.audioEditor}
+    <AudioEditor {app} editor={app.store.audioEditor} />
+  {/key}
 {/if}
 
 <style>

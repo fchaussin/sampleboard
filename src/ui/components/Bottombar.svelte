@@ -6,7 +6,7 @@
   import type { ImportError } from '../../app/commands';
   import { pagesSorted } from '../../domain/selectors';
   import { tintStyle } from '../tint';
-  import { importFileError } from '../import-file';
+  import { importFile } from '../import-file';
   import { t } from '../i18n';
   import Icon from './Icon.svelte';
 
@@ -27,7 +27,7 @@
     if (!file) return;
     importing = true;
     importError = null;
-    importError = await importFileError(app, file);
+    importError = await importFile(app, file);
     importing = false;
   }
 </script>

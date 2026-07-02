@@ -207,16 +207,23 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 > Vue dédiée plein écran, ouverte à l'import (depuis la modale/bibliothèque) et depuis un
 > sample existant de la bibliothèque (retravail → ré-encodage).
 
-- [ ] `engine` : rognage du PCM décodé (start/end, échantillons) AVANT encodage Opus.
-- [ ] Rendu **waveform** (canvas, min/max par tranche) du PCM décodé.
-- [ ] Vue `AudioEditor` plein écran (empilement niveau 2) : waveform + **poignées start/end**
-  (tactiles), pré-écoute de la sélection, valider/annuler.
-- [ ] **Undo/redo** : historique des positions start/end dans l'éditeur.
-- [ ] Branchement : pipeline d'import (étape optionnelle avant encodage) + entrée
-  « retravailler » sur un sample de la bibliothèque (re-décode l'OGG → éditeur → ré-encode).
-- [ ] i18n + tests (unitaires rognage/historique, e2e parcours import → crop → pad).
-- [ ] **Validation web (1er temps)** : importer, rogner, jouer ; rouvrir et re-rogner un
-  sample existant.
+- [x] `engine` : rognage du PCM décodé AVANT encodage Opus (`engine/pcm.ts` pur : `trimPcm`,
+  `clampSelection` — durée min 10 ms, `computePeaks` partagé avec `engine.peaks`, DRY) ;
+  pré-écoute de PCM (`previewPcm`/`stopPcmPreview`).
+- [x] Rendu **waveform** (canvas, pics par tranche en cache) du PCM décodé.
+- [x] Vue `AudioEditor` plein écran (`<dialog>` top-layer, au-dessus de la modale de sample) :
+  waveform + **poignées start/end** (pointeur, poignée la plus proche), sélection pleine vs
+  estompée, temps affichés, pré-écoute, valider/annuler (échec → éditeur ouvert + message).
+- [x] **Undo/redo** : `SelectionHistory` (classe OO §16), un cran par relâchement de poignée.
+- [x] Branchement : **tout import ouvre l'éditeur** (Import rapide, Bibliothèque, modale de
+  sample — pad à assigner mémorisé) + entrée « ✂ Découper » sur chaque sample
+  (`beginSampleRework` : re-décode l'OGG → éditeur → ré-encode, id/fichier conservés,
+  `SampleRepository.replace`, restauration meilleur-effort en cas d'échec). `durationMs`
+  désormais dérivée du PCM.
+- [x] i18n + **tests** : 197 unitaires (pcm, historique, flux éditeur, replace) + **6 e2e**
+  (drag réel de poignée, undo, durée persistée réduite, retravail), verts en Docker.
+- [x] **Validation web (1er temps)** : parcours e2e complets (importer → rogner → jouer ;
+  rouvrir et re-rogner) + capture revue. Verdict visuel utilisateur avant tag.
 
 ### M8 — Empaquetage · `0.9.0` · Phase E
 

@@ -3,7 +3,7 @@
 <script lang="ts">
   import type { App } from '../../app/create-app';
   import type { ImportError } from '../../app/commands';
-  import { importFileError } from '../import-file';
+  import { importFile } from '../import-file';
   import { t } from '../i18n';
 
   let { app }: { app: App } = $props();
@@ -35,7 +35,7 @@
     if (!file) return;
     busy = true;
     error = null;
-    error = await importFileError(app, file);
+    error = await importFile(app, file);
     busy = false;
   }
 
@@ -50,6 +50,12 @@
   function confirmDelete(sampleId: string): void {
     app.commands.deleteSample(sampleId);
     confirming = null;
+  }
+
+  /** Retravail (M7) : rouvre le sample dans l'éditeur audio (« découper »). */
+  async function rework(sampleId: string): Promise<void> {
+    error = null;
+    error = await app.commands.beginSampleRework(sampleId);
   }
 </script>
 
@@ -80,6 +86,7 @@
             <span class="meta">{meta(s.sizeBytes, s.durationMs)}</span>
           </span>
           <button type="button" class="icon" title={t('library.preview', locale)} onclick={() => app.commands.previewSample(s.id)}>▶</button>
+          <button type="button" class="icon rework" title={t('library.rework', locale)} aria-label={t('library.rework', locale)} onclick={() => rework(s.id)}>✂</button>
           {#if confirming === s.id}
             <span class="confirm">
               {impactedPads(s.id)}

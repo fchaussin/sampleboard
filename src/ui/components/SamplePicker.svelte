@@ -47,13 +47,14 @@
     if (!file) return;
     busy = true;
     error = null;
-    const result = await importFile(app, file);
+    // M7 : l'import ouvre l'ÉDITEUR AUDIO (rognage) ; le pad sera assigné à la validation.
+    const failure = await importFile(app, file, padId);
     busy = false;
-    if (!result.ok) {
-      error = result.reason;
+    if (failure) {
+      error = failure;
       return;
     }
-    choose(result.sampleId); // importé → assigné dans la foulée
+    onclose(); // l'éditeur (top-layer) prend le relais
   }
 </script>
 
