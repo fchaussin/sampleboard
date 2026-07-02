@@ -22,7 +22,7 @@ Départ : **`0.1.0`**.
 - Une version = un **tag git** `vX.Y.Z` une fois le jalon validé.
 
 ### Critères d'éligibilité à `1.0.0`
-- [ ] Tous les jalons M0→M8 livrés et validés.
+- [ ] Tous les jalons M0→M9 livrés et validés.
 - [ ] Testée sur ≥ 2 appareils Android réels (latence, autoplay, arrière-plan).
 - [ ] Chaîne import→encodage Opus fiable sur appareil réel.
 - [ ] Persistance robuste (rechargement fidèle, migrations testées).
@@ -42,7 +42,8 @@ Départ : **`0.1.0`**.
 | **D — Durabilité** | M5 | `0.6.0` | Tout est persisté et rechargé. |
 | **D' — Interface** | M6 | `0.7.0` | L'UI/UX refondue : topbar, bottombar, drawer. |
 | **D'' — Éditeur audio** | M7 | `0.8.0` | « Découper » : waveform + rognage + undo/redo. |
-| **E — Livraison** | M8 | `0.9.0` | Empaqueté pour F-Droid. |
+| **D''' — Bibliothèque avancée** | M8 | `0.9.0` | Tags + filtres, assignation directe, combobox. |
+| **E — Livraison** | M9 | `0.10.0` | Empaqueté pour F-Droid. |
 | **F — Stabilisation** | — | → `1.0.0` | Durcissement, tests réels, complétude. |
 
 Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
@@ -225,7 +226,28 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 - [x] **Validation web (1er temps)** : parcours e2e complets (importer → rogner → jouer ;
   rouvrir et re-rogner) + capture revue. Verdict visuel utilisateur avant tag.
 
-### M8 — Empaquetage · `0.9.0` · Phase E
+### M8 — Bibliothèque avancée · `0.9.0` · Phase D'''
+
+> Tri du 2026-07-02 : backlog #10+#11+#12. Décisions figées : tags = DONNÉES n-à-n
+> (table `tags` + jointure `sample_tags`, migration 4), liste par défaut SEMÉE au premier
+> lancement (SFX, Répliques, Jingle, Musique, Ambiance, Voix, Réaction, Meme, Alerte —
+> libellés i18n injectés, puis entièrement personnalisables) ; **« Non classé » = filtre
+> VIRTUEL** (samples sans tag, jamais stocké — une seule représentation de l'absence).
+
+- [ ] Domaine `Tag` + migration 4 (`tags`, `sample_tags`, cascades) ; `TagRepository`
+  (CRUD tags + affectations) SQL/mémoire ; semis des 9 tags par défaut au premier lancement.
+- [ ] Store (`tags`, affectations, filtre bibliothèque) + commandes (CRUD tag,
+  bascule tag↔sample, filtre — dont « Non classé » virtuel).
+- [ ] Bibliothèque : barre de filtres (tags + Non classé), chips de tags par sample
+  (affecter/retirer), gestion des tags (créer/renommer/supprimer).
+- [ ] #11 : **assignation page→pad directement depuis la bibliothèque** (choix page + pad).
+- [ ] #12 : **combobox de samples dans le tiroir pad** — recherche texte + filtre par tags
+  dans la modale de choix de sample.
+- [ ] i18n + tests (unitaires repo/commandes, e2e filtre + assignation directe).
+- [ ] **Validation web (1er temps)** : taguer, filtrer, assigner depuis la bibliothèque,
+  chercher depuis le tiroir pad.
+
+### M9 — Empaquetage · `0.10.0` · Phase E
 
 > Entamé en avance (2026-07-02) puis suspendu au profit de M6/M7 : les captures fastlane
 > dépendent de l'UI finale.
@@ -284,9 +306,9 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 | 7 | **Niveau LUFS des samples** : mesurer la sonie intégrée (ITU-R BS.1770) sur le PCM à l'import, la persister (migration : colonne `loudness_lufs`) et l'afficher en bibliothèque. (Nom/taille/durée : déjà affichés depuis M6.) | 2026-07-02 | — | À trier |
 | 8 | **Normalisation de sonie** : ramener les samples à un niveau LUFS cible (réglage global ?) — offset de gain dérivé de la mesure #7, appliqué au GainNode (non destructif) ou au PCM avant encodage. Dépend de #7. | 2026-07-02 | avec #7 | À trier |
 | 9 | **Visualiseur audio en topbar (Jeu)** : **une onde par voix active, colorée par la couleur du pad** — `AnalyserNode` par voix (moteur) + rendu canvas compact dans la barre du haut. | 2026-07-02 | `0.7.0` | **Intégrée → M6** |
-| 10 | **Tags de samples** : affecter des tags libres aux samples (schéma : table `tags` + jointure → migration) et **filtrer la bibliothèque** par tags. | 2026-07-02 | jalon « Bibliothèque avancée » ? | À trier |
-| 11 | **Assignation page→pad depuis la bibliothèque** : depuis un sample, choisir directement une page et un pad cibles (sans passer par le tiroir du pad). | 2026-07-02 | avec #10 | À trier |
-| 12 | **Combobox de samples dans le tiroir pad** : parcourir/filtrer les samples (recherche + tags #10) depuis les paramètres du pad, en complément/remplacement de la modale actuelle. | 2026-07-02 | avec #10 | À trier |
+| 10 | **Tags de samples** : affecter des tags libres aux samples (schéma : table `tags` + jointure → migration) et **filtrer la bibliothèque** par tags. | 2026-07-02 | `0.9.0` | **Planifiée → M8** |
+| 11 | **Assignation page→pad depuis la bibliothèque** : depuis un sample, choisir directement une page et un pad cibles (sans passer par le tiroir du pad). | 2026-07-02 | `0.9.0` | **Planifiée → M8** |
+| 12 | **Combobox de samples dans le tiroir pad** : parcourir/filtrer les samples (recherche + tags #10) depuis les paramètres du pad, en complément/remplacement de la modale actuelle. | 2026-07-02 | `0.9.0` | **Planifiée → M8** |
 
 ---
 

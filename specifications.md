@@ -55,6 +55,8 @@ Les termes de comportement empruntent la **terminologie des contrôleurs MIDI / 
 | Barre d'actions | `Bottombar` | barre d'actions | Actions principales + pages + accès Réglages (bas d'écran). |
 | Tiroir | `Drawer` | tiroir | Panneau contextuel à droite : réglages du pad, de la page ou généraux. |
 | Stop général | `stopAllVoices` | Stop général | Arrête toutes les voix d'un tap (bouton panique de la barre d'actions). |
+| Tag | `Tag` | tag | Étiquette libre affectée aux samples (n-à-n) ; filtre la bibliothèque. |
+| → Non classé | `'untagged'` | Non classé | **Filtre virtuel** : les samples sans aucun tag (jamais stocké). |
 
 ---
 
@@ -479,6 +481,12 @@ Le ré-encodage se fait **côté frontend** (règle « pas de logique métier en
   (classes + injection par constructeur) ; **DRY / SOLID / SoC impératifs** ; une seule
   représentation de l'absence (`T | null`, jamais optionnel + nullable) ; typage strict via
   les unions nommées du domaine.
+- **Tags de samples** (2026-07-02, tri backlog #10-12) : étiquettes **n-à-n** (`tags` +
+  `sample_tags`, migration 4), personnalisables (CRUD) ; liste par défaut semée au premier
+  lancement (SFX, Répliques, Jingle, Musique, Ambiance, Voix, Réaction, Meme, Alerte —
+  libellés i18n injectés à la création). **« Non classé » = filtre virtuel** (samples sans
+  tag), jamais stocké. Filtre en bibliothèque + recherche/filtre dans la modale de choix de
+  sample ; assignation page→pad directe depuis la bibliothèque.
 - **« Découper » rapatrié en v1** (2026-07-02, tri backlog #4/#5) : **éditeur audio** en vue
   dédiée plein écran — waveform + rognage **start/end** avant encodage (à l'import et depuis
   la bibliothèque), **undo/redo**, pré-écoute de la sélection. Le rognage s'applique au PCM
