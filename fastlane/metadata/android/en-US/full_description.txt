@@ -1,0 +1,15 @@
+Sampleboard is a board of sound-triggering pads (soundboard style), deliberately simple: no DSP, no complex audio editing.
+
+Features:
+
+* Multiple pages of pads, resizable grid per page (2×2 up to 12×6)
+* Three play modes per pad, using MIDI controller terminology: One-Shot, Gate, Loop
+* Per-page polyphony: Mono (one voice at a time) or Poly (layered voices)
+* Sample library: import your own audio files (wav, mp3, ogg, flac…), re-encoded to OGG/Opus
+* Per-pad gain (in dB), preview, renaming
+* Configurable background behavior: stop everything, stop sustained sounds, or keep playing
+* Configuration fully persisted and reloaded on startup
+
+The app ships empty: no sounds are bundled, you import your own.
+
+Fully offline: no network permission, no account, no trackers, no ads.

@@ -1,0 +1,48 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Empaquetage ANDROID (M6) — toolchain SDK/NDK/JDK en conteneur, rootless, hôte propre.
+#
+#   docker compose -f docker-compose.android.yml build
+#   # 1er passage : générer le projet Android (src-tauri/gen/android, committé ensuite)
+#   docker compose -f docker-compose.android.yml run --rm android npm run tauri android init
+#   # Build APK (debug d'abord ; release/signature → suite du M6)
+#   docker compose -f docker-compose.android.yml run --rm android npm run tauri android build -- --apk --debug
+#   docker compose -f docker-compose.android.yml run --rm android bash
+#
+# Gradle (wrapper) télécharge dans ~/.gradle → volume dédié, comme cargo/npm.
+
+services:
+  android:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: android
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    image: sampleboard-android
+    working_dir: /app
+    command: ["bash"]
+    init: true
+    stdin_open: true
+    tty: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+      - cargo-target:/app/src-tauri/target
+      - cargo-registry:/usr/local/cargo/registry
+      - npm-cache:/home/app/.npm
+      # Gradle résout ~ via /etc/passwd (uid 0 → /root), pas via $HOME.
+      - gradle-cache:/root/.gradle
+
+volumes:
+  node_modules:
+  cargo-target:
+  cargo-registry:
+  npm-cache:
+  gradle-cache:

@@ -68,7 +68,55 @@ CMD ["npm", "run", "dev"]
 ############################################
 # prod — build de production reproductible (coquille Tauri en release)
 # Source montée en LECTURE SEULE au runtime (voir docker-compose.prod.yml).
-# Le bundling F-Droid/APK complet est branché au jalon M6.
 ############################################
 FROM base AS prod
 CMD ["npm", "run", "tauri", "build", "--", "--no-bundle"]
+
+############################################
+# android — toolchain d'empaquetage APK (M6). Versions ÉPINGLÉES (build reproductible §15).
+# JDK 17 + Android SDK (cmdline-tools/platform/build-tools) + NDK + cibles Rust Android.
+# Tout vit dans l'image / les volumes ; l'hôte reste propre.
+############################################
+FROM base AS android
+
+# Versions épinglées — les faire évoluer explicitement, jamais de « latest » implicite.
+ARG ANDROID_CMDLINE_TOOLS=11076708
+ARG ANDROID_PLATFORM=34
+ARG ANDROID_BUILD_TOOLS=34.0.0
+ARG ANDROID_NDK=26.1.10909125
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      openjdk-17-jdk-headless \
+      unzip \
+      zip \
+    && rm -rf /var/lib/apt/lists/* \
+    && ln -s /usr/lib/jvm/java-17-openjdk-* /opt/java
+
+ENV JAVA_HOME=/opt/java \
+    ANDROID_HOME=/opt/android-sdk \
+    PATH=/opt/android-sdk/cmdline-tools/latest/bin:/opt/android-sdk/platform-tools:$PATH
+
+# SDK : cmdline-tools puis paquets épinglés (licences acceptées dans l'image de build).
+RUN mkdir -p "$ANDROID_HOME/cmdline-tools" \
+    && curl -fsSL -o /tmp/clt.zip \
+       "https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_CMDLINE_TOOLS}_latest.zip" \
+    && unzip -q /tmp/clt.zip -d "$ANDROID_HOME/cmdline-tools" \
+    && mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest" \
+    && rm /tmp/clt.zip \
+    && yes | sdkmanager --licenses > /dev/null \
+    && sdkmanager \
+         "platform-tools" \
+         "platforms;android-${ANDROID_PLATFORM}" \
+         "build-tools;${ANDROID_BUILD_TOOLS}" \
+         "ndk;${ANDROID_NDK}"
+
+ENV NDK_HOME=$ANDROID_HOME/ndk/${ANDROID_NDK}
+
+# Cibles Rust Android (arm64 = cible F-Droid principale ; les 4 pour couverture émulateur).
+RUN rustup target add \
+      aarch64-linux-android \
+      armv7-linux-androideabi \
+      i686-linux-android \
+      x86_64-linux-android
+
+CMD ["bash"]

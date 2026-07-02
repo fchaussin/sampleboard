@@ -136,11 +136,16 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
   recorriger avant/pendant M6 ; audio sur appareil Android = 2ᵉ temps (§16).
 
 ### M6 — Empaquetage · `0.7.0` · Phase E
-- [ ] Build Android (APK).
-- [ ] Audit FOSS de **toutes** les dépendances (plugins Tauri, WASM libopus) : zéro transitive propriétaire.
-- [ ] Build reproductible (toolchain épinglée, déterministe).
-- [ ] En-têtes SPDX complets + conformité licence.
-- [ ] Métadonnées F-Droid (fastlane : descriptions, captures, changelog).
+- [~] Build Android (APK) : toolchain Docker épinglée (`docker-compose.android.yml`),
+  `tauri android init` (projet `gen/android` committé), **APK debug produit** (aarch64) ;
+  release non signé en cours de vérification (permissions, versionCode). Permission
+  `INTERNET` reléguée aux builds debug (release sans permission, §16).
+- [x] Audit FOSS de **toutes** les dépendances (npm 5 paquets runtime, 467 crates Rust,
+  Gradle AndroidX/Material) : zéro propriétaire, zéro Play Services — voir `doc/audit-foss.md`.
+- [ ] Build reproductible (toolchain épinglée ✓ ; déterminisme APK + WASM opus build-from-source à traiter).
+- [x] En-têtes SPDX complets + conformité licence (audit : 1 manquant corrigé, 100 % couvert).
+- [~] Métadonnées F-Droid (fastlane) : descriptions FR/EN ✓ ; captures + changelogs (par
+  versionCode) restants.
 - [ ] Soumission F-Droid (RFP / merge request metadata).
 - [ ] **Validation** : APK installable, app fonctionnelle hors Play Services.
 

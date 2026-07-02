@@ -26,6 +26,7 @@ des **volumes Docker**. Deux environnements séparés : **dev** et **prod**.
 | `docker/entrypoint.sh` | Installe les deps npm (`npm ci`) dans le volume au 1er lancement. |
 | `docker-compose.dev.yml` | Service **dev** (Vite HMR, `tauri dev`). |
 | `docker-compose.prod.yml` | Service **prod** (build release → `./artifacts`). |
+| `docker-compose.android.yml` | Service **android** (M6) : SDK/NDK/JDK épinglés, init + build APK. |
 | `docker-compose.gui.yml` | Overlay X11 pour ouvrir la fenêtre `tauri dev`. |
 | `.env.example` | UID/GID (portabilité) — `cp .env.example .env`. |
 
@@ -67,7 +68,29 @@ docker compose -f docker-compose.prod.yml run --rm prod
 # -> front prod dans ./artifacts/ ; binaire release dans le volume prod-target.
 ```
 
-Le bundling complet F-Droid/APK (Android SDK/NDK) sera branché au jalon **M6**.
+## Android (M6)
+
+Étage d'image `android` : JDK 17 + Android SDK/NDK **épinglés** (cmdline-tools 11076708,
+platform 34, build-tools 34.0.0, NDK 26.1.10909125) + cibles Rust Android. Le projet Android
+généré (`src-tauri/gen/android/`) est **committé** ; `build/`, `.gradle`, `.tauri` sont ignorés.
+
+```bash
+docker compose -f docker-compose.android.yml build
+# (déjà fait, une fois) docker compose -f docker-compose.android.yml run --rm android npm run tauri android init
+docker compose -f docker-compose.android.yml run --rm android npm run tauri android build -- --apk --debug --target aarch64
+docker compose -f docker-compose.android.yml run --rm android npm run tauri android build -- --apk --target aarch64   # release (non signé)
+# -> src-tauri/gen/android/app/build/outputs/apk/universal/{debug,release}/
+```
+
+Particularités :
+
+- Cache Gradle dans le volume `gradle-cache` monté sur **`/root/.gradle`** (Gradle résout
+  `~` via /etc/passwd, pas via `$HOME`).
+- **Permission `INTERNET` : builds debug uniquement** (overlay
+  `app/src/debug/AndroidManifest.xml`, requis par `tauri android dev`) ; l'APK **release n'a
+  aucune permission** (spec §16, v1 hors-ligne).
+- `versionCode` Android dérivé de `version` dans `tauri.conf.json` — **à aligner à chaque
+  release** (fait partie du rituel de fin de jalon).
 
 ## Prérequis (une fois, hôte)
 

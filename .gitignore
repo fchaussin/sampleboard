@@ -18,7 +18,9 @@ blob-report/
 
 # Tauri / Rust
 src-tauri/target/
-src-tauri/gen/
+# Schémas ACL régénérés à chaque build ; le projet Android (gen/android), lui, est
+# committé — édité à la main (manifests) et requis par le build F-Droid (M6).
+src-tauri/gen/schemas/
 
 # Env & secrets
 .env

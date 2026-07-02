@@ -1,0 +1,15 @@
+Sampleboard est un tableau de pads déclencheurs de sons (façon soundboard), pensé pour être simple : pas de DSP, pas d'édition audio complexe.
+
+Fonctionnalités :
+
+* Pages multiples de pads, grille redimensionnable par page (2×2 à 12×6)
+* Trois modes de lecture par pad, en terminologie contrôleur MIDI : One-Shot, Gate, Loop
+* Polyphonie par page : Mono (une voix à la fois) ou Poly (superposition)
+* Bibliothèque de samples : importez vos propres fichiers audio (wav, mp3, ogg, flac…), ré-encodés en OGG/Opus
+* Gain par pad (en dB), pré-écoute, renommage
+* Comportement en arrière-plan réglable : tout stopper, stopper les sons entretenus, ou laisser jouer
+* Configuration entièrement persistée et rechargée au démarrage
+
+L'application est livrée vide : aucun son n'est embarqué, vous importez les vôtres.
+
+100 % hors-ligne : aucune permission réseau, aucun compte, aucun tracker, aucune publicité.
