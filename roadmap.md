@@ -284,6 +284,9 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 | 7 | **Niveau LUFS des samples** : mesurer la sonie intégrée (ITU-R BS.1770) sur le PCM à l'import, la persister (migration : colonne `loudness_lufs`) et l'afficher en bibliothèque. (Nom/taille/durée : déjà affichés depuis M6.) | 2026-07-02 | — | À trier |
 | 8 | **Normalisation de sonie** : ramener les samples à un niveau LUFS cible (réglage global ?) — offset de gain dérivé de la mesure #7, appliqué au GainNode (non destructif) ou au PCM avant encodage. Dépend de #7. | 2026-07-02 | avec #7 | À trier |
 | 9 | **Visualiseur audio en topbar (Jeu)** : **une onde par voix active, colorée par la couleur du pad** — `AnalyserNode` par voix (moteur) + rendu canvas compact dans la barre du haut. | 2026-07-02 | `0.7.0` | **Intégrée → M6** |
+| 10 | **Tags de samples** : affecter des tags libres aux samples (schéma : table `tags` + jointure → migration) et **filtrer la bibliothèque** par tags. | 2026-07-02 | jalon « Bibliothèque avancée » ? | À trier |
+| 11 | **Assignation page→pad depuis la bibliothèque** : depuis un sample, choisir directement une page et un pad cibles (sans passer par le tiroir du pad). | 2026-07-02 | avec #10 | À trier |
+| 12 | **Combobox de samples dans le tiroir pad** : parcourir/filtrer les samples (recherche + tags #10) depuis les paramètres du pad, en complément/remplacement de la modale actuelle. | 2026-07-02 | avec #10 | À trier |
 
 ---
 

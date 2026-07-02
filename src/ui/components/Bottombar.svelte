@@ -42,6 +42,7 @@
 {/if}
 
 <nav class="bottombar">
+  <!-- Toggle explicite : l'icône montre le mode VERS LEQUEL on bascule (pen ↔ play). -->
   <button
     class="action mode-toggle"
     class:on={editMode}
@@ -50,7 +51,7 @@
     aria-label={editMode ? t('nav.play', locale) : t('nav.edit', locale)}
     onclick={() => app.commands.toggleEditMode()}
   >
-    <Icon name="edit" />
+    <Icon name={editMode ? 'play' : 'edit'} />
   </button>
 
   <button
