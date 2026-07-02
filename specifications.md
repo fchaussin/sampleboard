@@ -79,7 +79,10 @@ C'est un **sampleboard** (façon soundboard), **pas un sampler** : pas de DSP, p
 - Persistance locale fiable (config + bibliothèque de fichiers audio), rechargée au démarrage.
 
 ### Hors périmètre (v1) — voir §17
-Découpe/rognage de sample, multi-banques, raccourcis clavier, enregistrement, effets/DSP, waveform, MIDI, synchro cloud, **accès réseau / import par URL** (v1 hors-ligne, voir §16), iOS.
+Multi-banques, raccourcis clavier, enregistrement, effets/DSP, MIDI, synchro cloud,
+**accès réseau / import par URL** (v1 hors-ligne, voir §16), iOS.
+_(« Découper » — rognage start/end — et waveform : **rapatriés en v1** le 2026-07-02,
+jalon dédié « Éditeur audio », voir §16 et roadmap.)_
 
 ### Contenu
 L'application est livrée **vide** : aucun extrait audio n'est embarqué. Les répliques et bruitages sont fournis par l'utilisateur via import. Aucun contenu sous droit d'auteur n'est distribué avec l'app (contrainte produit **et** contrainte F-Droid).
@@ -476,6 +479,12 @@ Le ré-encodage se fait **côté frontend** (règle « pas de logique métier en
   (classes + injection par constructeur) ; **DRY / SOLID / SoC impératifs** ; une seule
   représentation de l'absence (`T | null`, jamais optionnel + nullable) ; typage strict via
   les unions nommées du domaine.
+- **« Découper » rapatrié en v1** (2026-07-02, tri backlog #4/#5) : **éditeur audio** en vue
+  dédiée plein écran — waveform + rognage **start/end** avant encodage (à l'import et depuis
+  la bibliothèque), **undo/redo**, pré-écoute de la sélection. Le rognage s'applique au PCM
+  décodé AVANT l'encodage Opus (le fichier stocké est déjà rogné). Empilement : modale/vue de
+  niveau 2 (au-dessus de la modale d'import, top-layer natif). Le mot « couper » reste banni
+  du reste de l'UI (« stopper »).
 - **Ordre de validation : web d'abord, Android ensuite.** Chaque jalon est d'abord développé et validé sur **web** (dev Vite http://localhost:1420 + fenêtre `tauri dev` bureau) ; la validation sur **appareil Android réel** est un **second temps**, jamais un prérequis pour avancer. La cible finale reste F-Droid/Android (§15) — c'est l'ordre de travail qui est fixé, pas la cible.
 
 ## 17. Évolutions futures (hors v1)
