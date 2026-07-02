@@ -28,12 +28,10 @@ test('taguer, filtrer (tag et Non classé), assigner un pad depuis la bibliothè
   await filters.locator('.chip', { hasText: 'Non classé' }).click();
   await expect(page.locator('.library .list')).toHaveCount(0);
 
-  // Assignation À LA VOLÉE (#11) : armer le sample → le panneau se ferme → chaque pad
-  // touché reçoit le sample → Terminer.
+  // Assignation À LA VOLÉE (#11) : bouton DIRECT sur la ligne → le panneau se ferme →
+  // chaque pad touché reçoit le sample → Terminer.
   await filters.locator('.chip', { hasText: 'Tous' }).click();
-  const expansion = page.locator('.library .expansion');
-  await expect(expansion).toBeVisible();
-  await expansion.locator('.assign-start').click();
+  await page.locator('.library .assign-start').click();
   await expect(page.locator('.banner')).toBeVisible(); // bannière du mode
   await page.locator('.grid .pad').nth(0).click();
   await page.locator('.grid .pad').nth(5).click();
@@ -65,10 +63,8 @@ test('pool : stocker deux samples, armer depuis le tiroir gauche, assigner à la
 
   // Ajouter les deux samples au pool depuis la bibliothèque.
   await openLibrary(page);
-  await page.locator('.library .tags-toggle').nth(0).click();
-  await page.locator('.library .pool-add').click();
-  await page.locator('.library .tags-toggle').nth(1).click();
-  await page.locator('.library .pool-add').click();
+  await page.locator('.library .pool-add').nth(0).click(); // boutons directs par ligne
+  await page.locator('.library .pool-add').nth(1).click();
   await page.locator('.close-library').click();
 
   // Tiroir gauche : armer le premier, assigner deux pads ; armer le second, un pad.

@@ -6,6 +6,7 @@
   import { filterSamples } from '../../app/tag-filter';
   import { importFile } from '../import-file';
   import { t } from '../i18n';
+  import Icon from './Icon.svelte';
 
   let { app }: { app: App } = $props();
   const locale = $derived(app.store.locale);
@@ -125,6 +126,21 @@
           <button type="button" class="icon rework" title={t('library.rework', locale)} aria-label={t('library.rework', locale)} onclick={() => rework(s.id)}>✂</button>
           <button
             type="button"
+            class="icon assign-start"
+            title={t('assign.start', locale)}
+            aria-label={t('assign.start', locale)}
+            onclick={() => app.commands.startAssigning(s.id)}
+          ><Icon name="assign" size={16} /></button>
+          <button
+            type="button"
+            class="icon pool-add"
+            title={t('pool.add', locale)}
+            aria-label={t('pool.add', locale)}
+            disabled={app.store.poolSampleIds.includes(s.id)}
+            onclick={() => app.commands.addToPool(s.id)}
+          ><Icon name="pool" size={16} /></button>
+          <button
+            type="button"
             class="icon tags-toggle"
             class:active={expanded === s.id}
             title={t('library.tags', locale)}
@@ -158,19 +174,7 @@
                 </button>
               {/each}
             </div>
-            <div class="actions">
-              <button class="assign-start" type="button" onclick={() => app.commands.startAssigning(s.id)}>
-                {t('assign.start', locale)}
-              </button>
-              <button
-                class="pool-add"
-                type="button"
-                disabled={app.store.poolSampleIds.includes(s.id)}
-                onclick={() => app.commands.addToPool(s.id)}
-              >
-                {t('pool.add', locale)}
-              </button>
-            </div>
+
           </li>
         {/if}
       {/each}
@@ -311,37 +315,17 @@
     background: var(--panel);
   }
 
-  .actions {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-
   .assign-start {
-    align-self: start;
-    min-height: 2.25rem;
-    padding: 0 0.8rem;
-    border: 1px solid var(--accent);
-    border-radius: 0.375rem;
-    background: var(--accent);
-    color: var(--accent-contrast);
-    font: inherit;
-    cursor: pointer;
+    border-color: var(--accent);
+    color: var(--accent);
   }
 
-  .pool-add {
-    min-height: 2.25rem;
-    padding: 0 0.8rem;
-    border: 1px solid var(--border);
-    border-radius: 0.375rem;
-    background: transparent;
-    color: inherit;
-    font: inherit;
-    cursor: pointer;
-  }
-
-  .pool-add:disabled {
-    opacity: 0.4;
+  .icon:disabled {
+    opacity: 0.35;
     cursor: not-allowed;
+  }
+
+  .icon :global(svg) {
+    display: block;
   }
 </style>
