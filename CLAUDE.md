@@ -1,9 +1,9 @@
-# CLAUDE.md — Sampleboard
+# CLAUDE.md — Audio Sample Board
 
 Contexte projet chargé à chaque session. **Lire aussi** [`specifications.md`](./specifications.md) (spec technique + glossaire) et [`roadmap.md`](./roadmap.md) (jalons, tâches, versionnage) avant de coder.
 
 ## Le produit
-**Sampleboard** : application de **pads** déclencheurs de sons (façon soundboard), organisés en **pages**. L'utilisateur importe ses fichiers audio (→ **bibliothèque**) et configure ses pads. Cible : **F-Droid** (Android). C'est un *sampleboard*, **pas un sampler** : volontairement simple (pas de DSP, pas d'édition audio poussée).
+**Audio Sample Board** : application de **pads** déclencheurs de sons (façon soundboard), organisés en **pages**. L'utilisateur importe ses fichiers audio (→ **bibliothèque**) et configure ses pads. Cible : **F-Droid** (Android). C'est un *audio-sample-board*, **pas un sampler** : volontairement simple (pas de DSP, pas d'édition audio poussée).
 
 ## État actuel
 - **M0 → M5 livrés** (`v0.6.0`). **M6 — Interface** (`0.7.0`, agencement topbar/bottombar/

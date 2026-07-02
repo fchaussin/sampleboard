@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # syntax=docker/dockerfile:1
 #
-# Image Sampleboard multi-étages, pensée pour Docker ROOTLESS.
+# Image Audio Sample Board multi-étages, pensée pour Docker ROOTLESS.
 # Toolchain (Node + Rust + deps système Tauri v2) dans l'image ; les dossiers lourds
 # (node_modules, src-tauri/target, caches cargo/npm) vivent dans des volumes Docker.
 # L'hôte n'est jamais pollué ; le non-privilège vient du moteur rootless (voir docker-compose.yml).

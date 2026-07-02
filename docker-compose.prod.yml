@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Environnement de PRODUCTION — build release reproductible, puis le conteneur s'arrête.
-# Ce n'est pas un serveur : Sampleboard est une app cliente ; « prod » = produire l'artefact.
+# Ce n'est pas un serveur : Audio Sample Board est une app cliente ; « prod » = produire l'artefact.
 #
 #   mkdir -p artifacts
 #   docker compose -f docker-compose.prod.yml build
@@ -21,7 +21,7 @@ services:
       args:
         UID: ${UID:-1000}
         GID: ${GID:-1000}
-    image: sampleboard-prod
+    image: audio-sample-board-prod
     working_dir: /app
     command: ["npm", "run", "tauri", "build", "--", "--no-bundle"]
     init: true

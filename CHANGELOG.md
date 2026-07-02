@@ -1,6 +1,6 @@
 # Changelog
 
-Toutes les évolutions notables de **Sampleboard** sont consignées ici.
+Toutes les évolutions notables de **Audio Sample Board** sont consignées ici.
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) ;
 versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
@@ -69,6 +69,14 @@ versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
   **visualiseur global multi-voix dans la topbar** (une onde temps réel par voix, à la
   couleur de son pad) avec **Stop général contextuel** à côté des ondes (`ui/waveform.ts`
   partagé : résolution des couleurs CSS en cache + utilitaires de tracé).
+
+### Renommé
+- **Le projet devient `audio-sample-board`** (affichage : « Audio Sample Board ») —
+  paquet npm/crate Rust, `productName`, **identifiant Android `org.audiosampleboard.app`**
+  (figé avant toute publication F-Droid), base `audio-sample-board.db`, images Docker,
+  fastlane, docs. Projet Android régénéré sous le nouveau namespace (overlay INTERNET
+  debug ré-appliqué). Données dev de l'ancien identifiant orphelines (pré-release, assumé).
+  Le répertoire local reste `ambianceur` (historique Claude).
 
 ### Tests
 - `commands.ui.test.ts` (drawer/bibliothèque/stop + couleurs + noms + fabrique),
@@ -291,7 +299,7 @@ versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
 ### Validé
 - `svelte-check` 0 erreur, `vite build` OK, texte `t()` présent dans le bundle.
 - Compilation complète de la coquille Tauri (Rust + plugins + front embarqué) en Docker rootless :
-  binaire `target/debug/sampleboard` produit.
+  binaire `target/debug/audio-sample-board` produit.
 
 ### Documentation
 - Spécification technique figée — `specifications.md` (vocabulaire, architecture, décisions).

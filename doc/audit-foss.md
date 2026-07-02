@@ -34,7 +34,7 @@ reconstruction from-source de ce WASM est une tâche de reproductibilité M6 (vo
 Distribution : MIT / Apache-2.0 (majorité écrasante), BSD-2/3-Clause, Zlib, ISC,
 Unicode-3.0, Unlicense/CC0/0BSD, **MPL-2.0** (5 crates — copyleft *par fichier*, compatible
 GPL et accepté F-Droid). Aucune licence non déclarée. L'unique `GPL-3.0-or-later` du graphe
-est **sampleboard lui-même**.
+est **audio-sample-board lui-même**.
 
 ### Gradle — AndroidX + Material, tous Apache-2.0
 

@@ -19,7 +19,7 @@ services:
       args:
         UID: ${UID:-1000}
         GID: ${GID:-1000}
-    image: sampleboard-android
+    image: audio-sample-board-android
     working_dir: /app
     command: ["bash"]
     init: true

@@ -1,16 +1,16 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 [package]
-name = "sampleboard"
+name = "audio-sample-board"
 version = "0.1.0"
-description = "Sampleboard — application de pads déclencheurs de sons (soundboard)."
-authors = ["Sampleboard contributors"]
+description = "Audio Sample Board — application de pads déclencheurs de sons (soundboard)."
+authors = ["Audio Sample Board contributors"]
 license = "GPL-3.0-or-later"
 edition = "2021"
 rust-version = "1.77.2"
 
 [lib]
 # Le nom du crate lib ; `_lib` évite un conflit avec le binaire sur Windows.
-name = "sampleboard_lib"
+name = "audio_sample_board_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

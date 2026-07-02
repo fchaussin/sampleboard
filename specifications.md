@@ -1,4 +1,4 @@
-# Sampleboard — Spécification technique
+# Audio Sample Board — Spécification technique
 
 > Document de référence pour l'implémentation. Destiné à être repris dans Claude Code pour la gestion de projet et le découpage en tâches.
 > Statut : spec figée sur l'architecture et le vocabulaire ; toutes les décisions structurantes sont tranchées (voir §16).
@@ -20,7 +20,7 @@ Les termes de comportement empruntent la **terminologie des contrôleurs MIDI / 
 
 | Concept | Code / clé i18n | Libellé FR | Définition |
 |---|---|---|---|
-| Le produit | `Sampleboard` | Sampleboard | Application de pads déclencheurs de sons (façon soundboard). **Pas un sampler** : volontairement simple. |
+| Le produit | `audio-sample-board` | Audio Sample Board | Application de pads déclencheurs de sons (façon soundboard). **Pas un sampler** : volontairement simple. |
 | Banque | `Bank` | banque | La configuration complète (toutes les pages + pads). **Une seule en v1** ; multi-banques en v2. |
 | Page | `Page` | page | Un écran contenant une grille de pads. |
 | Pad | `Pad` | pad | La case cliquable qui déclenche un sample. |
@@ -60,9 +60,9 @@ Les termes de comportement empruntent la **terminologie des contrôleurs MIDI / 
 
 ## 1. Objectif
 
-**Sampleboard** : une grille de **pads** déclenche des bruitages et répliques audio, organisés en **pages**. L'utilisateur **importe ses propres fichiers audio** (qui alimentent la **bibliothèque**) et configure ses pads. Cible de distribution : **F-Droid** (Android).
+**Audio Sample Board** : une grille de **pads** déclenche des bruitages et répliques audio, organisés en **pages**. L'utilisateur **importe ses propres fichiers audio** (qui alimentent la **bibliothèque**) et configure ses pads. Cible de distribution : **F-Droid** (Android).
 
-C'est un **sampleboard** (façon soundboard), **pas un sampler** : pas de DSP, pas d'édition audio poussée, gestion des voix volontairement minimale.
+C'est un **board de samples** (façon soundboard), **pas un sampler** : pas de DSP, pas d'édition audio poussée, gestion des voix volontairement minimale.
 
 ## 2. Portée
 
@@ -124,7 +124,7 @@ Règles transverses :
 ## 5. Arborescence
 
 ```
-sampleboard/
+audio-sample-board/
 ├─ src/
 │  ├─ domain/            # TS pur, zéro dépendance
 │  │  ├─ types.ts        # Bank, Page, Pad, Sample, Settings

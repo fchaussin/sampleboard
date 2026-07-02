@@ -1,4 +1,4 @@
-# Sampleboard — Roadmap & gestion de projet
+# Audio Sample Board — Roadmap & gestion de projet
 
 > Pilotage du projet : phases, jalons, tâches, versionnage, backlog.
 > La **spécification technique** est dans [`specifications.md`](./specifications.md) (vocabulaire, archi, décisions).
