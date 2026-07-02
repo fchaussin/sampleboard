@@ -31,13 +31,6 @@
     return app.store.sampleTags.get(sampleId)?.has(tagId) ?? false;
   }
 
-  let newTagLabel = $state('');
-
-  function addTag(event: SubmitEvent): void {
-    event.preventDefault();
-    app.commands.createTag(newTagLabel);
-    newTagLabel = '';
-  }
 
   function impactedPads(sampleId: string): number {
     return app.store.bank ? app.store.bank.pads.filter((p) => p.sampleId === sampleId).length : 0;
@@ -165,40 +158,25 @@
                 </button>
               {/each}
             </div>
-            <button class="assign-start" type="button" onclick={() => app.commands.startAssigning(s.id)}>
-              {t('assign.start', locale)}
-            </button>
+            <div class="actions">
+              <button class="assign-start" type="button" onclick={() => app.commands.startAssigning(s.id)}>
+                {t('assign.start', locale)}
+              </button>
+              <button
+                class="pool-add"
+                type="button"
+                disabled={app.store.poolSampleIds.includes(s.id)}
+                onclick={() => app.commands.addToPool(s.id)}
+              >
+                {t('pool.add', locale)}
+              </button>
+            </div>
           </li>
         {/if}
       {/each}
     </ul>
   {/if}
 
-  <details class="manage">
-    <summary>{t('library.manageTags', locale)}</summary>
-    <ul class="tag-list">
-      {#each tags as tag (tag.id)}
-        <li>
-          <input
-            type="text"
-            value={tag.label}
-            onchange={(e) => app.commands.renameTag(tag.id, e.currentTarget.value)}
-          />
-          <button
-            type="button"
-            class="icon danger"
-            title={t('tag.delete', locale)}
-            aria-label={t('tag.delete', locale)}
-            onclick={() => app.commands.deleteTag(tag.id)}
-          >🗑</button>
-        </li>
-      {/each}
-    </ul>
-    <form class="add-tag" onsubmit={addTag}>
-      <input type="text" placeholder={t('tag.new', locale)} bind:value={newTagLabel} />
-      <button type="submit" class="icon">{t('tag.add', locale)}</button>
-    </form>
-  </details>
 </section>
 
 <style>
@@ -333,6 +311,12 @@
     background: var(--panel);
   }
 
+  .actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
   .assign-start {
     align-self: start;
     min-height: 2.25rem;
@@ -345,40 +329,19 @@
     cursor: pointer;
   }
 
-  .manage summary {
-    cursor: pointer;
-    color: var(--muted);
-    font-size: 0.85rem;
-  }
-
-  .tag-list {
-    list-style: none;
-    margin: 0.5rem 0 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-  }
-
-  .tag-list li,
-  .add-tag {
-    display: flex;
-    gap: 0.4rem;
-    align-items: center;
-  }
-
-  .tag-list input,
-  .add-tag input {
-    flex: 1;
-    padding: 0.25rem 0.5rem;
-    background: transparent;
-    color: inherit;
+  .pool-add {
+    min-height: 2.25rem;
+    padding: 0 0.8rem;
     border: 1px solid var(--border);
     border-radius: 0.375rem;
+    background: transparent;
+    color: inherit;
     font: inherit;
+    cursor: pointer;
   }
 
-  .add-tag {
-    margin-top: 0.5rem;
+  .pool-add:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
   }
 </style>

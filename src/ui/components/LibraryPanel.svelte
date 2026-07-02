@@ -5,14 +5,19 @@
   import { t } from '../i18n';
   import Icon from './Icon.svelte';
   import Library from './Library.svelte';
+  import TagManager from './TagManager.svelte';
 
   let { app }: { app: App } = $props();
   const locale = $derived(app.store.locale);
+  let tagsOpen = $state(false);
 </script>
 
 <div class="panel" role="dialog" aria-label={t('library.title', locale)}>
   <header>
     <h2>{t('library.title', locale)}</h2>
+    <button class="manage-tags" type="button" onclick={() => (tagsOpen = true)}>
+      {t('library.manageTags', locale)}
+    </button>
     <button
       class="close close-library"
       type="button"
@@ -25,6 +30,7 @@
   <div class="content">
     <Library {app} />
   </div>
+  <TagManager {app} open={tagsOpen} onclose={() => (tagsOpen = false)} />
 </div>
 
 <style>
@@ -50,6 +56,19 @@
   h2 {
     margin: 0;
     font-size: 1rem;
+    flex: 1;
+  }
+
+  .manage-tags {
+    min-height: 2.25rem;
+    padding: 0 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 999rem;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
   }
 
   .close {

@@ -38,6 +38,8 @@ function fakeStore(samples: Sample[] = [sample('s1')], tags: Tag[] = []): AppSto
     sampleTags: new Map<string, Set<string>>(),
     libraryFilter: null,
     assigningSampleId: null,
+    poolSampleIds: [],
+    poolOpen: false,
     libraryOpen: true,
     drawer: null,
     settings: { backgroundBehavior: 'stopAll', maxVoices: 8, locale: 'fr' },
@@ -163,6 +165,40 @@ describe('assignation à la volée (M8)', () => {
     expect(store.assigningSampleId).toBeNull();
     commands.startAssigning('s1');
     commands.stopAssigning();
+    expect(store.assigningSampleId).toBeNull();
+  });
+});
+
+describe('pool (M8)', () => {
+  it('addToPool déduplique et exige un sample existant ; removeFromPool désarme si besoin', () => {
+    const { store, commands } = setup();
+    commands.addToPool('s1');
+    commands.addToPool('s1'); // dédupliqué
+    commands.addToPool('fantome'); // refusé
+    expect(store.poolSampleIds).toEqual(['s1']);
+
+    commands.startAssigning('s1');
+    commands.removeFromPool('s1');
+    expect(store.poolSampleIds).toEqual([]);
+    expect(store.assigningSampleId).toBeNull(); // l'armé retiré est désarmé
+  });
+
+  it('openPool/closePool pilotent le tiroir gauche ; startAssigning le laisse ouvert', () => {
+    const { store, commands } = setup();
+    commands.openPool();
+    expect(store.poolOpen).toBe(true);
+    commands.startAssigning('s1');
+    expect(store.poolOpen).toBe(true); // le pool sert PENDANT l'assignation
+    commands.closePool();
+    expect(store.poolOpen).toBe(false);
+  });
+
+  it('deleteSample sort le sample du pool et le désarme', () => {
+    const { store, commands } = setup();
+    commands.addToPool('s1');
+    commands.startAssigning('s1');
+    commands.deleteSample('s1');
+    expect(store.poolSampleIds).toEqual([]);
     expect(store.assigningSampleId).toBeNull();
   });
 });

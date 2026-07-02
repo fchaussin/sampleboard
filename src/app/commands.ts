@@ -133,6 +133,12 @@ export interface Commands {
   tapAssign(padId: string): void;
   /** Désarme le mode assignation. */
   stopAssigning(): void;
+
+  // Pool (M8) : liste de travail de samples, assignables à la volée depuis le tiroir gauche.
+  addToPool(sampleId: string): void;
+  removeFromPool(sampleId: string): void;
+  openPool(): void;
+  closePool(): void;
   /** Pré-écoute d'un sample de la bibliothèque. */
   previewSample(sampleId: string): void;
   renameSample(sampleId: string, label: string): void;
@@ -659,6 +665,21 @@ export function createCommands({
     stopAssigning(): void {
       store.assigningSampleId = null;
     },
+    addToPool(sampleId: string): void {
+      if (!store.samples.some((s) => s.id === sampleId)) return;
+      if (store.poolSampleIds.includes(sampleId)) return;
+      store.poolSampleIds = [...store.poolSampleIds, sampleId];
+    },
+    removeFromPool(sampleId: string): void {
+      store.poolSampleIds = store.poolSampleIds.filter((id) => id !== sampleId);
+      if (store.assigningSampleId === sampleId) store.assigningSampleId = null;
+    },
+    openPool(): void {
+      store.poolOpen = true;
+    },
+    closePool(): void {
+      store.poolOpen = false;
+    },
     previewSample(sampleId: string): void {
       void engine.resume();
       engine.previewSample(sampleId);
@@ -681,6 +702,8 @@ export function createCommands({
           if (pad.sampleId === sampleId) pad.sampleId = null;
         }
       }
+      store.poolSampleIds = store.poolSampleIds.filter((id) => id !== sampleId);
+      if (store.assigningSampleId === sampleId) store.assigningSampleId = null;
       // Affectations de tags épurées (miroir du ON DELETE CASCADE).
       if (store.sampleTags.has(sampleId)) {
         const map = new Map(store.sampleTags);

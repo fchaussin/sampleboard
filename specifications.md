@@ -27,7 +27,7 @@ Les termes de comportement empruntent la **terminologie des contrôleurs MIDI / 
 | Grille | `grid` (`rows`×`cols`) | grille | Disposition en lignes × colonnes des pads d'une page. |
 | Sample | `Sample` | sample | Un fichier audio importé (ré-encodé en Opus). |
 | Bibliothèque | `Library` | bibliothèque | La collection de samples, gérée à part (CRUD). |
-| _(pool)_ | — | pool | **Réservé** : éventuel conteneur intermédiaire bibliothèque ↔ banque. Non utilisé en v1. |
+| Pool | `pool` | pool | Liste de travail de samples (tiroir gauche, session) : chaque élément touché s'arme pour l'assignation à la volée. |
 | Mode de lecture | `PlayMode` | Mode de lecture | Le comportement de déclenchement d'un pad. |
 | → One-Shot | `'oneShot'` | One-Shot | Tap → joue le sample **en entier** ; re-tap → relance depuis 0. |
 | → Gate | `'gate'` | Gate | Joue **tant que le pad est maintenu** ; stop au relâchement. |
@@ -484,6 +484,11 @@ Le ré-encodage se fait **côté frontend** (règle « pas de logique métier en
 - **Unités CSS** (2026-07-02) : **jamais de `px`** hors épaisseurs de trait (bordures,
   filets ≤ 3px) — dimensions, espacements, rayons, ombres en **rem** (ou unités
   viewport/%) ; pilules en `999rem`.
+- **Pool** (2026-07-02) : le conteneur intermédiaire réservé est débloqué en v1 — **liste
+  de travail de session** (tiroir GAUCHE, non persistée) alimentée depuis la bibliothèque ;
+  toucher un élément l'ARME (assignation à la volée), le tiroir reste ouvert pendant qu'on
+  touche les pads. La gestion des tags vit dans une modale standard « Gérer les tags »
+  (en-tête du panneau Bibliothèque).
 - **Tags de samples** (2026-07-02, tri backlog #10-12) : étiquettes **n-à-n** (`tags` +
   `sample_tags`, migration 4), personnalisables (CRUD) ; liste par défaut semée au premier
   lancement (SFX, Répliques, Jingle, Musique, Ambiance, Voix, Réaction, Meme, Alerte —

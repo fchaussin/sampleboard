@@ -10,6 +10,7 @@
   import LibraryPanel from './ui/components/LibraryPanel.svelte';
   import AudioEditor from './ui/components/AudioEditor.svelte';
   import AssignBanner from './ui/components/AssignBanner.svelte';
+  import PoolDrawer from './ui/components/PoolDrawer.svelte';
 
   let { app }: { app: App } = $props();
 </script>
@@ -26,6 +27,10 @@
 
 {#if app.store.libraryOpen}
   <LibraryPanel {app} />
+{/if}
+
+{#if app.store.poolOpen}
+  <PoolDrawer {app} />
 {/if}
 
 {#if app.store.assigningSampleId}

@@ -25,8 +25,13 @@ versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
   complètes et colorées — le concept de page évident sans explication.
 - **Visualiseur global : statut idle** — sinusoïdes basse fréquence défilant doucement
   quand rien ne joue.
-- **Mode Édition : livrée violette façon MIDI-map (Ableton)** — tous les pads basculent sur
-  un lavis violet uniforme (contour mêlant leur teinte), le mode est immanquable.
+- **Mode Édition : coloration franche façon MIDI-map (Ableton)** — aplats violets saturés
+  uniformes sur tous les pads, le mode est immanquable.
+- **Pool** (tiroir GAUCHE, session) : liste de travail de samples — « Ajouter au pool »
+  depuis la bibliothèque, toucher un élément l'ARME (assignation à la volée), le tiroir
+  reste ouvert pendant qu'on touche les pads. Le glossaire « pool » réservé est débloqué.
+- **Gestion des tags relocalisée** : modale standard « Gérer les tags » ouverte depuis
+  l'en-tête du panneau Bibliothèque (le `<details>` disparaît).
 - Conventions figées (§16) : **CSS sans `px`** hors épaisseurs de trait (tout en rem) ;
   **éléments UI standard uniquement** ; toggle Jeu/Édition segmenté (curseur glissant,
   segment inactif grisé).

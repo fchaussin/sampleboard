@@ -33,6 +33,9 @@ function fakeStore(bank: Bank | null = makeBank(), editMode = true): AppStore {
     tags: [],
     sampleTags: new Map<string, Set<string>>(),
     libraryFilter: null,
+    assigningSampleId: null,
+    poolSampleIds: [],
+    poolOpen: false,
     activePadIds: new Set<string>(),
     get activePage() {
       return this.bank?.pages.find((p) => p.id === this.activePageId) ?? null;

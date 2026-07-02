@@ -57,3 +57,32 @@ test('modale de choix de sample : la recherche filtre la liste (#12)', async ({ 
   await expect(picker.locator('.choice')).toHaveCount(2); // « aucun » + kick
   await expect(picker.locator('.choice', { hasText: 'kick.wav' })).toBeVisible();
 });
+
+test('pool : stocker deux samples, armer depuis le tiroir gauche, assigner à la volée', async ({ page }) => {
+  await page.goto('/');
+  await importWav(page, 'kick.wav');
+  await importWav(page, 'nappe.wav');
+
+  // Ajouter les deux samples au pool depuis la bibliothèque.
+  await openLibrary(page);
+  await page.locator('.library .tags-toggle').nth(0).click();
+  await page.locator('.library .pool-add').click();
+  await page.locator('.library .tags-toggle').nth(1).click();
+  await page.locator('.library .pool-add').click();
+  await page.locator('.close-library').click();
+
+  // Tiroir gauche : armer le premier, assigner deux pads ; armer le second, un pad.
+  await page.locator('.bottombar .open-pool').click();
+  const pool = page.locator('.pool');
+  await expect(pool.locator('.item')).toHaveCount(2);
+  await pool.locator('.item', { hasText: 'kick.wav' }).click();
+  await expect(page.locator('.banner')).toBeVisible();
+  await page.locator('.grid .pad').nth(1).click();
+  await page.locator('.grid .pad').nth(2).click();
+  await pool.locator('.item', { hasText: 'nappe.wav' }).click(); // ré-arme l'autre
+  await page.locator('.grid .pad').nth(3).click();
+  await expect(page.locator('.grid .pad.idle')).toHaveCount(3);
+  await page.locator('.banner button').click(); // Terminer
+  await pool.locator('.close').click();
+  await expect(page.locator('.pool')).toHaveCount(0);
+});

@@ -246,6 +246,10 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
   rigides) — « Assigner à des pads » arme le sample, le panneau se ferme, CHAQUE pad touché
   le reçoit (toutes pages), bannière + Terminer.
 - [x] #12 : modale de choix de sample = combobox (recherche texte + filtre par tags, locaux).
+- [x] **Pool** (retours utilisateur) : liste de travail de samples en TIROIR GAUCHE
+  (session) — « Ajouter au pool » depuis la bibliothèque, toucher un élément l'arme pour
+  l'assignation à la volée, le tiroir reste ouvert. Gestion des tags DÉPLACÉE dans une
+  modale « Gérer les tags » (en-tête du panneau, exit le <details>).
 - [x] Bonus : banque d'init MULTI-PAGES à layouts contrastés (4×4, 2×2, 8×6) ; visualiseur
   global avec animation IDLE (sinusoïdes lentes) ; **livrée Édition violette façon MIDI-map
   Ableton** (mode immanquable) ; conventions figées (CSS sans px hors bordures, éléments UI

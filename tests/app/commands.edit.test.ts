@@ -43,6 +43,9 @@ function fakeStore(bank: Bank, samples: Sample[] = []): AppStore {
     tags: [],
     sampleTags: new Map<string, Set<string>>(),
     libraryFilter: null,
+    assigningSampleId: null,
+    poolSampleIds: [],
+    poolOpen: false,
     activePadIds: new Set<string>(),
   } as unknown as AppStore;
 }

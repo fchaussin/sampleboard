@@ -101,6 +101,16 @@
   </label>
 
   <button
+    class="action open-pool"
+    type="button"
+    title={t('pool.title', locale)}
+    aria-label={t('pool.title', locale)}
+    onclick={() => (app.store.poolOpen ? app.commands.closePool() : app.commands.openPool())}
+  >
+    <Icon name="pool" />
+  </button>
+
+  <button
     class="action open-library"
     type="button"
     title={t('bottombar.library', locale)}
