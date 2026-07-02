@@ -16,14 +16,17 @@ versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
   lancement** (SFX, Répliques, Jingle, Musique, Ambiance, Voix, Réaction, Meme, Alerte —
   i18n injecté). **« Non classé » = filtre virtuel** (absence d'affectation, jamais stocké).
 - **Bibliothèque** : barre de **filtres en chips** (Tous / tags / Non classé), ligne
-  dépliable par sample — chips de tags à bascule + **assignation directe page→pad**
-  (selects standard + Assigner).
+  dépliable par sample — chips de tags à bascule + **assignation À LA VOLÉE** : « Assigner
+  à des pads » arme le sample, chaque pad touché le reçoit (toutes pages, multi-pads),
+  bannière + Terminer.
 - **Modale de choix de sample = combobox** : recherche texte + filtre par tags (locaux à la
   modale) — `app/tag-filter.ts` pur partagé.
 - **Banque d'init multi-pages** : 3 pages aux layouts contrastés (4×4, 2×2, 8×6), toutes
   complètes et colorées — le concept de page évident sans explication.
 - **Visualiseur global : statut idle** — sinusoïdes basse fréquence défilant doucement
   quand rien ne joue.
+- **Mode Édition : livrée violette façon MIDI-map (Ableton)** — tous les pads basculent sur
+  un lavis violet uniforme (contour mêlant leur teinte), le mode est immanquable.
 - Conventions figées (§16) : **CSS sans `px`** hors épaisseurs de trait (tout en rem) ;
   **éléments UI standard uniquement** ; toggle Jeu/Édition segmenté (curseur glissant,
   segment inactif grisé).

@@ -242,11 +242,14 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
   filtre) ; `app/tag-filter.ts` pur partagé.
 - [x] Bibliothèque : barre de filtres en chips (Tous + tags + Non classé), ligne dépliable par
   sample (chips de tags à bascule), gestion des tags en `<details>` (créer/renommer/supprimer).
-- [x] #11 : assignation page→pad depuis la ligne dépliée (selects standard Page/Pad + Assigner).
+- [x] #11 : **assignation À LA VOLÉE** (retour utilisateur : les selects étaient trop
+  rigides) — « Assigner à des pads » arme le sample, le panneau se ferme, CHAQUE pad touché
+  le reçoit (toutes pages), bannière + Terminer.
 - [x] #12 : modale de choix de sample = combobox (recherche texte + filtre par tags, locaux).
 - [x] Bonus : banque d'init MULTI-PAGES à layouts contrastés (4×4, 2×2, 8×6) ; visualiseur
-  global avec animation IDLE (sinusoïdes lentes) ; conventions figées (CSS sans px hors
-  bordures, éléments UI standard).
+  global avec animation IDLE (sinusoïdes lentes) ; **livrée Édition violette façon MIDI-map
+  Ableton** (mode immanquable) ; conventions figées (CSS sans px hors bordures, éléments UI
+  standard).
 - [x] i18n + **tests** : 207 unitaires + **8 e2e** (tags/filtres/Non classé/assignation
   directe/recherche), verts en Docker.
 - [x] **Validation web (1er temps)** : parcours e2e complets + captures revues. Verdict

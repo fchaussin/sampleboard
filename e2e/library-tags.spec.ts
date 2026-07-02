@@ -28,15 +28,18 @@ test('taguer, filtrer (tag et Non classé), assigner un pad depuis la bibliothè
   await filters.locator('.chip', { hasText: 'Non classé' }).click();
   await expect(page.locator('.library .list')).toHaveCount(0);
 
-  // Assignation directe page→pad (#11) : page Principal, pad 1.
-  // (Le dépliage est resté ouvert : l'état survit au filtrage.)
+  // Assignation À LA VOLÉE (#11) : armer le sample → le panneau se ferme → chaque pad
+  // touché reçoit le sample → Terminer.
   await filters.locator('.chip', { hasText: 'Tous' }).click();
   const expansion = page.locator('.library .expansion');
   await expect(expansion).toBeVisible();
-  await expansion.locator('select').last().selectOption({ index: 1 }); // pad 1
-  await expansion.locator('.apply').click();
-  await page.locator('.close-library').click();
-  await expect(page.locator('.grid .pad.idle')).toHaveCount(1); // le pad porte le sample
+  await expansion.locator('.assign-start').click();
+  await expect(page.locator('.banner')).toBeVisible(); // bannière du mode
+  await page.locator('.grid .pad').nth(0).click();
+  await page.locator('.grid .pad').nth(5).click();
+  await expect(page.locator('.grid .pad.idle')).toHaveCount(2); // multi-pads, à la volée
+  await page.locator('.banner button').click(); // Terminer
+  await expect(page.locator('.banner')).toHaveCount(0);
 });
 
 test('modale de choix de sample : la recherche filtre la liste (#12)', async ({ page }) => {

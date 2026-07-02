@@ -42,6 +42,9 @@
   // relâchement : pas de bouton.
   const stoppable = $derived(!editMode && playing && pad.playMode !== 'gate');
 
+  // Mode assignation à la volée (M8) : un tap assigne le sample armé, sans jouer.
+  const assigning = $derived(app.store.assigningSampleId !== null);
+
   // Substitut de nom : un pad VIDE (sans sample) n'est pas un pad « sans nom ».
   const displayName = $derived(
     pad.name || (status === 'empty' ? t('pad.empty', locale) : t('pad.untitled', locale)),
@@ -49,9 +52,14 @@
 </script>
 
 <div class="cell" style={tint}>
-  {#if editMode}
+  {#if assigning}
+    <button class="pad {status}" data-mode={pad.playMode} type="button" onclick={() => app.commands.tapAssign(pad.id)}>
+      <span class="name">{displayName}</span>
+      <span class="mode">{t(`mode.${pad.playMode}`, locale)}</span>
+    </button>
+  {:else if editMode}
     <button
-      class="pad {status}"
+      class="pad {status} editing"
       class:selected
       data-mode={pad.playMode}
       type="button"
@@ -185,6 +193,17 @@
     outline: 3px solid var(--tint, var(--accent));
     outline-offset: 2px;
     opacity: 1;
+  }
+
+  /* ÉDITION : livrée violette uniforme façon mode MIDI-map (Ableton) — le mode est
+     immanquable ; la teinte du pad reste lisible dans le contour. */
+  .pad.editing {
+    background: color-mix(in oklab, var(--c-violet) 24%, transparent);
+    border-color: color-mix(in oklab, var(--tint, var(--border)) 45%, var(--c-violet));
+  }
+
+  .pad.editing.empty {
+    opacity: 0.85; /* en édition, les cases vides sont des cibles de travail : bien visibles */
   }
 
   /* Stop du pad EN ÉVIDENCE en bas à droite pendant la lecture (One-Shot/Loop). */

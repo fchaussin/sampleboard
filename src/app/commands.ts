@@ -127,6 +127,12 @@ export interface Commands {
   /** Affecte/retire un tag à un sample. */
   toggleSampleTag(sampleId: string, tagId: string): void;
   setLibraryFilter(filter: LibraryFilter): void;
+  /** Arme un sample : les surcouches se ferment, chaque pad touché le reçoit (à la volée). */
+  startAssigning(sampleId: string): void;
+  /** Assigne le sample armé au pad touché (no-op hors mode assignation). */
+  tapAssign(padId: string): void;
+  /** Désarme le mode assignation. */
+  stopAssigning(): void;
   /** Pré-écoute d'un sample de la bibliothèque. */
   previewSample(sampleId: string): void;
   renameSample(sampleId: string, label: string): void;
@@ -638,6 +644,20 @@ export function createCommands({
     },
     setLibraryFilter(filter: LibraryFilter): void {
       store.libraryFilter = filter;
+    },
+    startAssigning(sampleId: string): void {
+      if (!store.samples.some((s) => s.id === sampleId)) return;
+      store.assigningSampleId = sampleId;
+      // Le board doit être visible : toutes les surcouches se ferment.
+      store.libraryOpen = false;
+      store.drawer = null;
+    },
+    tapAssign(padId: string): void {
+      if (store.assigningSampleId === null) return;
+      assignSampleToPad(padId, store.assigningSampleId);
+    },
+    stopAssigning(): void {
+      store.assigningSampleId = null;
     },
     previewSample(sampleId: string): void {
       void engine.resume();

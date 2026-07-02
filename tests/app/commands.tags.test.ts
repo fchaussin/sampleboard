@@ -24,11 +24,22 @@ function sample(id: string): Sample {
 
 function fakeStore(samples: Sample[] = [sample('s1')], tags: Tag[] = []): AppStore {
   return {
-    bank: null,
+    bank: {
+      id: 'b',
+      name: 'b',
+      pages: [{ id: 'pg', name: 'P', voiceMode: 'poly', rows: 4, cols: 4, position: 0, color: null }],
+      pads: [
+        { id: 'p1', pageId: 'pg', name: '', sampleId: null, playMode: 'oneShot', gainDb: 0, position: 0, color: null },
+        { id: 'p2', pageId: 'pg', name: '', sampleId: null, playMode: 'oneShot', gainDb: 0, position: 1, color: null },
+      ],
+    },
     samples,
     tags,
     sampleTags: new Map<string, Set<string>>(),
     libraryFilter: null,
+    assigningSampleId: null,
+    libraryOpen: true,
+    drawer: null,
     settings: { backgroundBehavior: 'stopAll', maxVoices: 8, locale: 'fr' },
     activePageId: null,
     editMode: false,
@@ -122,5 +133,36 @@ describe('filtre (matchesFilter + commandes)', () => {
     expect(store.libraryFilter).toBe('untagged');
     commands.deleteSample('s1');
     expect(store.sampleTags.has('s1')).toBe(false);
+  });
+});
+
+describe('assignation à la volée (M8)', () => {
+  it('startAssigning arme le sample et ferme les surcouches', () => {
+    const { store, commands } = setup();
+    commands.startAssigning('s1');
+    expect(store.assigningSampleId).toBe('s1');
+    expect(store.libraryOpen).toBe(false);
+    expect(store.drawer).toBeNull();
+  });
+
+  it('tapAssign assigne le sample armé à CHAQUE pad touché (multi-pads)', () => {
+    const { store, commands } = setup();
+    commands.startAssigning('s1');
+    commands.tapAssign('p1');
+    commands.tapAssign('p2');
+    expect(store.bank!.pads[0]!.sampleId).toBe('s1');
+    expect(store.bank!.pads[1]!.sampleId).toBe('s1');
+    expect(store.bank!.pads[0]!.name).toBe('s1'); // nom par défaut depuis le label
+  });
+
+  it('tapAssign hors mode : no-op ; stopAssigning désarme ; sample inconnu refusé', () => {
+    const { store, commands } = setup();
+    commands.tapAssign('p1');
+    expect(store.bank!.pads[0]!.sampleId).toBeNull();
+    commands.startAssigning('fantome');
+    expect(store.assigningSampleId).toBeNull();
+    commands.startAssigning('s1');
+    commands.stopAssigning();
+    expect(store.assigningSampleId).toBeNull();
   });
 });

@@ -4,7 +4,6 @@
   import type { App } from '../../app/create-app';
   import type { ImportError } from '../../app/commands';
   import { filterSamples } from '../../app/tag-filter';
-  import { padsOfPage, pagesSorted } from '../../domain/selectors';
   import { importFile } from '../import-file';
   import { t } from '../i18n';
 
@@ -21,30 +20,15 @@
   // Filtre M8 : tag sélectionné ou « Non classé » virtuel (samples sans tag).
   const samples = $derived(filterSamples(app.store.samples, app.store.sampleTags, filter));
 
-  /** Ligne dépliée (tags + assignation directe), ou null. */
+  /** Ligne dépliée (tags + assignation à la volée), ou null. */
   let expanded = $state<string | null>(null);
-  let assignPageId = $state<string | null>(null);
-  let assignPadId = $state<string | null>(null);
-  const pages = $derived(app.store.bank ? pagesSorted(app.store.bank) : []);
-  const assignablePads = $derived(
-    assignPageId && app.store.bank ? padsOfPage(app.store.bank, assignPageId) : [],
-  );
 
   function toggleExpanded(sampleId: string): void {
     expanded = expanded === sampleId ? null : sampleId;
-    assignPageId = app.store.activePageId;
-    assignPadId = null;
   }
 
   function sampleHasTag(sampleId: string, tagId: string): boolean {
     return app.store.sampleTags.get(sampleId)?.has(tagId) ?? false;
-  }
-
-  function assignExpanded(): void {
-    if (expanded && assignPadId) {
-      app.commands.assignSample(assignPadId, expanded);
-      expanded = null;
-    }
   }
 
   let newTagLabel = $state('');
@@ -181,28 +165,9 @@
                 </button>
               {/each}
             </div>
-            <div class="assign">
-              <label>
-                <span>{t('assign.page', locale)}</span>
-                <select bind:value={assignPageId}>
-                  {#each pages as page, i (page.id)}
-                    <option value={page.id}>{page.name || i + 1}</option>
-                  {/each}
-                </select>
-              </label>
-              <label>
-                <span>{t('assign.pad', locale)}</span>
-                <select bind:value={assignPadId}>
-                  <option value={null}>—</option>
-                  {#each assignablePads as pad (pad.id)}
-                    <option value={pad.id}>{pad.position + 1}{pad.name ? ` · ${pad.name}` : ''}</option>
-                  {/each}
-                </select>
-              </label>
-              <button class="apply" type="button" disabled={!assignPadId} onclick={assignExpanded}>
-                {t('assign.apply', locale)}
-              </button>
-            </div>
+            <button class="assign-start" type="button" onclick={() => app.commands.startAssigning(s.id)}>
+              {t('assign.start', locale)}
+            </button>
           </li>
         {/if}
       {/each}
@@ -368,32 +333,8 @@
     background: var(--panel);
   }
 
-  .assign {
-    display: flex;
-    align-items: end;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-
-  .assign label {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    font-size: 0.75rem;
-    color: var(--muted);
-  }
-
-  .assign select {
-    min-height: 2.25rem;
-    padding: 0.25rem 0.5rem;
-    background: var(--bg);
-    color: var(--fg);
-    border: 1px solid var(--border);
-    border-radius: 0.375rem;
-    font: inherit;
-  }
-
-  .assign .apply {
+  .assign-start {
+    align-self: start;
     min-height: 2.25rem;
     padding: 0 0.8rem;
     border: 1px solid var(--accent);
@@ -402,11 +343,6 @@
     color: var(--accent-contrast);
     font: inherit;
     cursor: pointer;
-  }
-
-  .assign .apply:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
   }
 
   .manage summary {

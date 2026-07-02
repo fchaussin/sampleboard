@@ -50,6 +50,8 @@ export class AppStore {
   sampleTags = $state<Map<string, Set<string>>>(new Map());
   /** Filtre courant de la bibliothèque (M8). */
   libraryFilter = $state<LibraryFilter>(null);
+  /** Sample ARMÉ pour l'assignation à la volée (M8) : chaque pad touché le reçoit. */
+  assigningSampleId = $state<string | null>(null);
   /** Reflet minimal des voix actives émis par l'engine (jamais calculé ici). */
   activePadIds = $state<Set<string>>(new Set());
 
