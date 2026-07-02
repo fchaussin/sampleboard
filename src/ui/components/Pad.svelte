@@ -195,15 +195,23 @@
     opacity: 1;
   }
 
-  /* ÉDITION : livrée violette uniforme façon mode MIDI-map (Ableton) — le mode est
-     immanquable ; la teinte du pad reste lisible dans le contour. */
+  /* ÉDITION : coloration franche et UNIFORME façon mode MIDI-map (Ableton) — aplats
+     violets saturés identiques pour tous les pads, le mode est immanquable. */
   .pad.editing {
-    background: color-mix(in oklab, var(--c-violet) 24%, transparent);
-    border-color: color-mix(in oklab, var(--tint, var(--border)) 45%, var(--c-violet));
+    background: color-mix(in oklab, var(--c-violet) 60%, var(--bg));
+    border-color: var(--c-violet);
+    color: var(--fg);
+    opacity: 1;
   }
 
-  .pad.editing.empty {
-    opacity: 0.85; /* en édition, les cases vides sont des cibles de travail : bien visibles */
+  .pad.editing .name {
+    opacity: 1;
+    font-style: normal;
+  }
+
+  .pad.editing .mode {
+    color: color-mix(in oklab, var(--fg) 70%, var(--c-violet));
+    opacity: 1;
   }
 
   /* Stop du pad EN ÉVIDENCE en bas à droite pendant la lecture (One-Shot/Loop). */

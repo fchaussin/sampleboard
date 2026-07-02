@@ -12,14 +12,19 @@
   let canvas: HTMLCanvasElement;
   const samples = new Float32Array(WAVEFORM_SIZE);
 
+  // Phase ACCUMULÉE en delta plafonné : l'animation est continue — jamais de saut, même
+  // après un gel d'onglet (le rattrapage est borné à une frame).
+  let idlePhase = 0;
+  let lastFrame = 0;
+
   /** Statut idle : deux sinusoïdes lentes, décalées, en couleur discrète. */
-  function drawIdle(ctx: CanvasRenderingContext2D, width: number, height: number, time: number, dpr: number): void {
+  function drawIdle(ctx: CanvasRenderingContext2D, width: number, height: number, dpr: number): void {
     const mid = height / 2;
     ctx.strokeStyle = themeColor('--fg');
     ctx.lineWidth = 1 * dpr;
     for (let wave = 0; wave < 2; wave++) {
       const cycles = 2 + wave; // basse fréquence
-      const phase = time * 0.0004 * (wave === 0 ? 1 : -0.7); // défilement tranquille, sens opposés
+      const phase = idlePhase * (wave === 0 ? 1 : -0.7); // sens opposés
       const amplitude = mid * (0.45 - wave * 0.15);
       ctx.globalAlpha = 0.22 - wave * 0.08;
       ctx.beginPath();
@@ -39,13 +44,16 @@
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     let raf = requestAnimationFrame(function render(time) {
+      // Avance de phase continue : delta réel, plafonné (défilement tranquille mais vivant).
+      if (lastFrame > 0) idlePhase += Math.min(time - lastFrame, 64) * 0.0007;
+      lastFrame = time;
       const { width, height } = fitCanvas(canvas);
       const dpr = window.devicePixelRatio || 1;
       ctx.clearRect(0, 0, width, height);
       const bank = app.store.bank;
       const active = app.store.activePadIds;
       if (active.size === 0) {
-        drawIdle(ctx, width, height, time, dpr);
+        drawIdle(ctx, width, height, dpr);
       } else {
         for (const padId of active) {
           if (!app.engine.waveform(padId, samples)) continue;
