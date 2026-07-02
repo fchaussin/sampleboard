@@ -14,13 +14,21 @@ function factory(): BankFactory {
 }
 
 describe('BankFactory', () => {
-  it('createBank : page 1 « Principal », colorée, grille 4×4 complète', () => {
+  it('createBank : PLUSIEURS pages aux layouts contrastés, toutes complètes et colorées', () => {
     const bank = factory().createBank();
-    expect(bank.pages).toHaveLength(1);
-    const page = bank.pages[0]!;
-    expect(page.name).toBe('Principal');
-    expect(page.color).toBe(COLORS[0]);
-    expect(bank.pads).toHaveLength(16);
+    expect(bank.pages.length).toBeGreaterThanOrEqual(2); // le concept de page saute aux yeux
+    const principal = bank.pages[0]!;
+    expect(principal.name).toBe('Principal');
+    expect(principal.color).toBe(COLORS[0]);
+    expect(principal).toMatchObject({ rows: 4, cols: 4 });
+    // Layouts variés : au moins deux dimensions de grille distinctes.
+    const layouts = new Set(bank.pages.map((p) => `${p.rows}x${p.cols}`));
+    expect(layouts.size).toBeGreaterThanOrEqual(2);
+    // Chaque page est COMPLÈTE : une case = un pad.
+    for (const page of bank.pages) {
+      const pads = bank.pads.filter((p) => p.pageId === page.id);
+      expect(pads).toHaveLength(page.rows * page.cols);
+    }
   });
 
   it('chaque pad a une couleur dès l’init : cycle de palette par position', () => {

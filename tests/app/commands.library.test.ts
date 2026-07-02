@@ -6,7 +6,7 @@ import type { AppStore } from '../../src/app/store.svelte';
 import type { AudioEngine } from '../../src/engine/audio-engine';
 import type { Bank, Sample } from '../../src/domain/types';
 import { IMPORT_MAX_BYTES } from '../../src/domain/invariants';
-import { fakeSampleRepository } from './fake-sample-repository';
+import { fakeSampleRepository, fakeTagRepository } from './fake-sample-repository';
 
 function fakeStore(bank: Bank | null = null, samples: Sample[] = []): AppStore {
   return {
@@ -16,6 +16,9 @@ function fakeStore(bank: Bank | null = null, samples: Sample[] = []): AppStore {
     activePageId: null,
     editMode: false,
     selectedPadId: null,
+    tags: [],
+    sampleTags: new Map<string, Set<string>>(),
+    libraryFilter: null,
     activePadIds: new Set<string>(),
   } as unknown as AppStore;
 }
@@ -48,6 +51,7 @@ function setup(opts: { store?: AppStore; encode?: (p: unknown) => Promise<Uint8A
     engine: engine as unknown as AudioEngine,
     encode: encode as never,
     sampleRepository,
+    tagRepository: fakeTagRepository(),
     ids: () => `id-${n++}`,
     now: () => 1_700_000_000_000,
   });

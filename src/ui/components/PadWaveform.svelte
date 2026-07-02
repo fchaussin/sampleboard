@@ -48,9 +48,9 @@
 <style>
   .wave {
     position: absolute;
-    inset: 4px;
-    width: calc(100% - 8px);
-    height: calc(100% - 8px);
+    inset: 0.25rem;
+    width: calc(100% - 0.5rem);
+    height: calc(100% - 0.5rem);
     pointer-events: none;
   }
 </style>

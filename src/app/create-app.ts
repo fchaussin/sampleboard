@@ -8,6 +8,7 @@ import { createWriteLock, openDatabase } from '../storage/db';
 import { createBankRepository } from '../storage/bank-repository';
 import { createSampleRepository } from '../storage/sample-repository';
 import { createSettingsRepository } from '../storage/settings-repository';
+import { createTagRepository } from '../storage/tag-repository';
 import { createMemoryRepositories, type Repositories } from '../storage/memory';
 import { createStore, type AppStore } from './store.svelte';
 import { createCommands, type Commands } from './commands';
@@ -30,6 +31,8 @@ export interface App {
 export interface CreateAppOptions {
   /** Nom localisé de la page de rang n (1-based) : « Principal », « Page 2 »… */
   pageName?: (rank: number) => string;
+  /** Libellés des tags semés au premier lancement (M8) — personnalisables ensuite. */
+  defaultTagLabels?: string[];
 }
 
 /**
@@ -49,6 +52,7 @@ async function createRepositories(): Promise<Repositories> {
     bankRepository: createBankRepository(db, lock),
     sampleRepository: createSampleRepository({ db, files: createTauriAudioFileStore(), lock }),
     settingsRepository: createSettingsRepository(db, lock),
+    tagRepository: createTagRepository(db, lock),
   };
 }
 
@@ -59,7 +63,8 @@ export async function createApp(options: CreateAppOptions = {}): Promise<App> {
   // Plafond de voix lu dynamiquement depuis les réglages (FIFO interne, voir §7).
   const engine = new AudioEngine({ getMaxVoices: () => store.settings.maxVoices });
 
-  const { bankRepository, sampleRepository, settingsRepository } = await createRepositories();
+  const { bankRepository, sampleRepository, settingsRepository, tagRepository } =
+    await createRepositories();
 
   const factory = new BankFactory({ pageName: options.pageName });
   const commands = createCommands({
@@ -67,6 +72,7 @@ export async function createApp(options: CreateAppOptions = {}): Promise<App> {
     engine,
     encode: createOpusEncoder(),
     sampleRepository,
+    tagRepository,
     factory,
   });
   const persistence = createPersistence({
@@ -98,10 +104,15 @@ export async function createApp(options: CreateAppOptions = {}): Promise<App> {
     }),
   );
 
+  commands.hydrateTags(await tagRepository.list(), await tagRepository.assignments());
+
   let bank = await bankRepository.load();
   if (!bank) {
     bank = factory.createBank(); // board complet : page « Principal », grille remplie, colorée
     await bankRepository.save(bank); // ids stables dès le premier lancement
+    // Semis des tags par défaut (M8) — UNIQUEMENT au premier lancement : une liste vidée
+    // par l'utilisateur ne doit jamais repousser.
+    for (const label of options.defaultTagLabels ?? []) commands.createTag(label);
   }
   commands.hydrateBank(bank);
 

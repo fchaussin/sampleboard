@@ -137,11 +137,11 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 44px;
-    min-height: 44px;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
     padding: 0;
     border: none;
-    border-radius: 12px;
+    border-radius: 0.75rem;
     background: transparent;
     color: var(--muted);
     cursor: pointer;
@@ -152,15 +152,17 @@
     background: var(--border);
   }
 
-  /* Toggle segmenté : curseur (knob) glissant sous le segment actif. */
+  /* Toggle segmenté : curseur (knob) glissant sous le segment actif ; le segment INACTIF
+     reste lisible (pastille blanche translucide, effet grisé) ; contour marqué. */
   .mode-toggle {
     position: relative;
     display: inline-flex;
     align-items: stretch;
-    min-height: 44px;
-    padding: 4px;
-    border: 1px solid var(--border);
-    border-radius: 999px;
+    gap: 0.25rem;
+    min-height: 2.75rem;
+    padding: 0.25rem;
+    border: 1px solid var(--muted);
+    border-radius: 999rem;
     background: var(--bg);
     cursor: pointer;
     flex-shrink: 0;
@@ -172,28 +174,31 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
+    width: 2.375rem;
+    border-radius: 999rem;
+    background: rgb(255 255 255 / 10%);
     color: var(--muted);
-    transition: color 0.15s ease;
+    transition: color 0.15s ease, background 0.15s ease;
   }
 
   .mode-toggle .seg.active {
+    background: transparent; /* le knob accentué prend le relais */
     color: var(--accent-contrast);
   }
 
   .mode-toggle .knob {
     position: absolute;
-    top: 4px;
-    bottom: 4px;
-    left: 4px;
-    width: 38px;
-    border-radius: 999px;
+    top: 0.25rem;
+    bottom: 0.25rem;
+    left: 0.25rem;
+    width: 2.375rem;
+    border-radius: 999rem;
     background: var(--accent);
     transition: transform 0.18s ease;
   }
 
   .mode-toggle .knob.right {
-    transform: translateX(38px);
+    transform: translateX(2.625rem); /* largeur du segment + l'écart */
   }
 
   .stop:active {
@@ -215,11 +220,11 @@
   }
 
   .tab {
-    min-width: 40px;
-    min-height: 40px;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
     padding: 0 0.7rem;
     border: 1px solid var(--border);
-    border-radius: 999px;
+    border-radius: 999rem;
     background: transparent;
     color: var(--muted);
     font: inherit;
@@ -263,14 +268,14 @@
   .snackbar {
     position: fixed;
     left: 50%;
-    bottom: calc(76px + env(safe-area-inset-bottom));
+    bottom: calc(4.75rem + env(safe-area-inset-bottom));
     transform: translateX(-50%);
     display: flex;
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 0.9rem;
     border: 1px solid var(--danger);
-    border-radius: 10px;
+    border-radius: 0.625rem;
     background: var(--panel);
     color: var(--danger);
     font-size: 0.85rem;

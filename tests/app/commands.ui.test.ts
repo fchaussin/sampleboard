@@ -7,7 +7,7 @@ import { BankFactory } from '../../src/app/bank-factory';
 import type { AppStore } from '../../src/app/store.svelte';
 import type { AudioEngine } from '../../src/engine/audio-engine';
 import type { Bank } from '../../src/domain/types';
-import { fakeSampleRepository } from './fake-sample-repository';
+import { fakeSampleRepository, fakeTagRepository } from './fake-sample-repository';
 
 function makeBank(): Bank {
   return {
@@ -30,6 +30,9 @@ function fakeStore(bank: Bank | null = makeBank(), editMode = true): AppStore {
     selectedPadId: null as string | null,
     drawer: null as string | null,
     libraryOpen: false,
+    tags: [],
+    sampleTags: new Map<string, Set<string>>(),
+    libraryFilter: null,
     activePadIds: new Set<string>(),
     get activePage() {
       return this.bank?.pages.find((p) => p.id === this.activePageId) ?? null;
@@ -55,6 +58,7 @@ function setup(store = fakeStore()) {
     engine: engine as unknown as AudioEngine,
     encode: async () => new Uint8Array(),
     sampleRepository: fakeSampleRepository(),
+    tagRepository: fakeTagRepository(),
     ids: () => `id-${n++}`,
   });
   return { store, engine, commands };
@@ -165,6 +169,7 @@ describe('création par la fabrique (M6 — board complet, coloré, nommé)', ()
       engine: engine as unknown as AudioEngine,
       encode: async () => new Uint8Array(),
       sampleRepository: fakeSampleRepository(),
+    tagRepository: fakeTagRepository(),
       ids,
       factory: new BankFactory({ ids, pageName: (rank) => `Page ${rank}` }),
     });

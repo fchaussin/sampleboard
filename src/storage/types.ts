@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Contrats de la couche persistance (voir specifications.md §8). TS pur.
 // Tout accès aux données passe par ces dépôts ; aucun composant ne touche sql/fs directement.
-import type { Bank, Sample, Settings } from '../domain/types';
+import type { Bank, Sample, Settings, Tag } from '../domain/types';
 
 export interface BankRepository {
   load(): Promise<Bank | null>;
@@ -22,6 +22,18 @@ export interface SampleRepository {
 export interface SettingsRepository {
   load(): Promise<Settings>;
   save(settings: Settings): Promise<void>;
+}
+
+/** Tags de samples (M8) : CRUD des tags + affectations n-à-n. */
+export interface TagRepository {
+  list(): Promise<Tag[]>;
+  create(tag: Tag): Promise<void>;
+  rename(tagId: string, label: string): Promise<void>;
+  remove(tagId: string): Promise<void>;
+  /** Toutes les affectations : sampleId → ensemble de tagIds. */
+  assignments(): Promise<Map<string, Set<string>>>;
+  assign(sampleId: string, tagId: string): Promise<void>;
+  unassign(sampleId: string, tagId: string): Promise<void>;
 }
 
 /**

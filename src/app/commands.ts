@@ -4,8 +4,8 @@
 import type { AudioEngine } from '../engine/audio-engine';
 import type { Encoder, PcmData } from '../engine/encoder';
 import { pcmDuration, trimPcm } from '../engine/pcm';
-import type { SampleRepository } from '../storage/types';
-import type { Bank, Pad, Page, Sample, Settings } from '../domain/types';
+import type { SampleRepository, TagRepository } from '../storage/types';
+import type { Bank, Pad, Page, Sample, Settings, Tag } from '../domain/types';
 import type { BackgroundBehavior, Color, PlayMode, VoiceMode } from '../domain/enums';
 import { findPad, findPage, padsOfPage, pagesSorted, firstFreePosition } from '../domain/selectors';
 import {
@@ -21,7 +21,7 @@ import {
 } from '../domain/invariants';
 import { newId } from '../domain/id';
 import { BankFactory } from './bank-factory';
-import type { AppStore } from './store.svelte';
+import type { AppStore, LibraryFilter } from './store.svelte';
 
 /** Motif d'échec d'un import ou d'un retravail (voir §12, §13, M7). */
 export type ImportError = 'tooLarge' | 'undecodable' | 'encodeFailed' | 'writeFailed' | 'readFailed';
@@ -34,6 +34,8 @@ export interface CommandDeps {
   encode: Encoder;
   /** Dépôt bibliothèque : écritures immédiates, hors autosave débouncé (voir §9, décision A). */
   sampleRepository: SampleRepository;
+  /** Dépôt des tags (M8) : écritures immédiates également. */
+  tagRepository: TagRepository;
   /** Générateur d'identifiants (injectable pour les tests). Défaut : `newId()`. */
   ids?: () => string;
   /** Horloge (injectable pour les tests). Défaut : `Date.now`. */
@@ -115,6 +117,16 @@ export interface Commands {
   applyAudioEditor(startS: number, endS: number): Promise<ImportResult>;
   /** Referme l'éditeur sans rien appliquer. */
   cancelAudioEditor(): void;
+
+  // Tags (M8, §16)
+  hydrateTags(tags: Tag[], assignments: Map<string, Set<string>>): void;
+  createTag(label: string): void;
+  renameTag(tagId: string, label: string): void;
+  /** Supprime le tag et toutes ses affectations ; réinitialise le filtre s'il le visait. */
+  deleteTag(tagId: string): void;
+  /** Affecte/retire un tag à un sample. */
+  toggleSampleTag(sampleId: string, tagId: string): void;
+  setLibraryFilter(filter: LibraryFilter): void;
   /** Pré-écoute d'un sample de la bibliothèque. */
   previewSample(sampleId: string): void;
   renameSample(sampleId: string, label: string): void;
@@ -127,6 +139,7 @@ export function createCommands({
   engine,
   encode,
   sampleRepository,
+  tagRepository,
   ids = () => newId(),
   now = () => Date.now(),
   factory = new BankFactory({ ids }),
@@ -146,6 +159,11 @@ export function createCommands({
     pagesSorted(bank).forEach((p, i) => {
       p.position = i;
     });
+  }
+
+  /** Tags triés par libellé (ordre stable de l'UI). */
+  function sortedTags(tags: readonly Tag[]): Tag[] {
+    return [...tags].sort((a, b) => a.label.localeCompare(b.label));
   }
 
   /** Rattache un sample (ou vide) à un pad ; nom par défaut si le pad n'en a pas (M6). */
@@ -565,6 +583,62 @@ export function createCommands({
       engine.stopPcmPreview();
       store.audioEditor = null;
     },
+
+    hydrateTags(tags: Tag[], assignments: Map<string, Set<string>>): void {
+      store.tags = sortedTags(tags);
+      store.sampleTags = assignments;
+    },
+    createTag(label: string): void {
+      const trimmed = label.trim();
+      if (trimmed === '') return;
+      const tag: Tag = { id: ids(), label: trimmed };
+      store.tags = sortedTags([...store.tags, tag]);
+      tagRepository.create(tag).catch((err) => {
+        console.error('tags: échec de création', err);
+      });
+    },
+    renameTag(tagId: string, label: string): void {
+      const trimmed = label.trim();
+      if (trimmed === '' || !store.tags.some((t) => t.id === tagId)) return;
+      store.tags = sortedTags(store.tags.map((t) => (t.id === tagId ? { ...t, label: trimmed } : t)));
+      tagRepository.rename(tagId, trimmed).catch((err) => {
+        console.error('tags: échec du renommage', err);
+      });
+    },
+    deleteTag(tagId: string): void {
+      if (!store.tags.some((t) => t.id === tagId)) return;
+      store.tags = store.tags.filter((t) => t.id !== tagId);
+      // Affectations épurées (miroir du ON DELETE CASCADE) ; ensembles vides retirés.
+      const map = new Map<string, Set<string>>();
+      for (const [sampleId, set] of store.sampleTags) {
+        const next = new Set(set);
+        next.delete(tagId);
+        if (next.size > 0) map.set(sampleId, next);
+      }
+      store.sampleTags = map;
+      if (store.libraryFilter === tagId) store.libraryFilter = null;
+      tagRepository.remove(tagId).catch((err) => {
+        console.error('tags: échec de suppression', err);
+      });
+    },
+    toggleSampleTag(sampleId: string, tagId: string): void {
+      if (!store.samples.some((s) => s.id === sampleId)) return;
+      if (!store.tags.some((t) => t.id === tagId)) return;
+      const map = new Map(store.sampleTags);
+      const set = new Set(map.get(sampleId) ?? []);
+      const write = set.has(tagId)
+        ? (set.delete(tagId), tagRepository.unassign(sampleId, tagId))
+        : (set.add(tagId), tagRepository.assign(sampleId, tagId));
+      if (set.size > 0) map.set(sampleId, set);
+      else map.delete(sampleId); // « Non classé » = absence d'entrée (une seule représentation)
+      store.sampleTags = map;
+      write.catch((err) => {
+        console.error('tags: échec d’affectation', err);
+      });
+    },
+    setLibraryFilter(filter: LibraryFilter): void {
+      store.libraryFilter = filter;
+    },
     previewSample(sampleId: string): void {
       void engine.resume();
       engine.previewSample(sampleId);
@@ -586,6 +660,12 @@ export function createCommands({
         for (const pad of store.bank.pads) {
           if (pad.sampleId === sampleId) pad.sampleId = null;
         }
+      }
+      // Affectations de tags épurées (miroir du ON DELETE CASCADE).
+      if (store.sampleTags.has(sampleId)) {
+        const map = new Map(store.sampleTags);
+        map.delete(sampleId);
+        store.sampleTags = map;
       }
       sampleRepository.remove(sampleId).catch((err) => {
         console.error('bibliothèque: échec de la suppression', err);

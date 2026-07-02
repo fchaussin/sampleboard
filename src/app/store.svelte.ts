@@ -2,11 +2,14 @@
 // Store réactif (runes Svelte 5) — source de vérité de la config et de l'état UI (voir §9).
 // N'est muté QUE par la couche de commandes. Ne contient aucune logique de jeu (décision B).
 import { defaultSettings } from '../domain/invariants';
-import type { Bank, Page, Sample, Settings } from '../domain/types';
+import type { Bank, Page, Sample, Settings, Tag } from '../domain/types';
 import type { PcmData } from '../engine/encoder';
 
 /** Contenu du tiroir contextuel (§11) : réglages du pad, de la page, ou généraux. */
 export type DrawerContent = 'pad' | 'page' | 'settings';
+
+/** Filtre de la bibliothèque (M8) : un tagId, 'untagged' (virtuel : sans tag), ou null. */
+export type LibraryFilter = string | 'untagged' | null;
 
 /** Session de l'éditeur audio (M7, « découper ») : PCM décodé en attente de rognage. */
 export interface AudioEditorState {
@@ -41,6 +44,12 @@ export class AppStore {
   libraryOpen = $state(false);
   /** Éditeur audio ouvert (M7) — $state.raw : remplacé en bloc, le PCM n'est pas proxifié. */
   audioEditor = $state.raw<AudioEditorState | null>(null);
+  /** Tags de la bibliothèque (M8), triés par libellé. */
+  tags = $state<Tag[]>([]);
+  /** Affectations sample → tags — remplacée EN BLOC à chaque mutation (Map non proxifiée). */
+  sampleTags = $state<Map<string, Set<string>>>(new Map());
+  /** Filtre courant de la bibliothèque (M8). */
+  libraryFilter = $state<LibraryFilter>(null);
   /** Reflet minimal des voix actives émis par l'engine (jamais calculé ici). */
   activePadIds = $state<Set<string>>(new Set());
 

@@ -6,7 +6,7 @@ import { createCommands } from '../../src/app/commands';
 import type { AppStore } from '../../src/app/store.svelte';
 import type { AudioEngine } from '../../src/engine/audio-engine';
 import type { Settings } from '../../src/domain/types';
-import { fakeSampleRepository } from './fake-sample-repository';
+import { fakeSampleRepository, fakeTagRepository } from './fake-sample-repository';
 
 function fakeStore(settings: Partial<Settings> = {}): AppStore {
   return {
@@ -16,6 +16,9 @@ function fakeStore(settings: Partial<Settings> = {}): AppStore {
     activePageId: null,
     editMode: false,
     selectedPadId: null,
+    tags: [],
+    sampleTags: new Map<string, Set<string>>(),
+    libraryFilter: null,
     activePadIds: new Set<string>(),
   } as unknown as AppStore;
 }
@@ -37,6 +40,7 @@ function setup(settings: Partial<Settings> = {}) {
     engine: engine as unknown as AudioEngine,
     encode: async () => new Uint8Array(),
     sampleRepository: fakeSampleRepository(),
+    tagRepository: fakeTagRepository(),
   });
   return { store, engine, commands };
 }

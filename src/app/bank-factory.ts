@@ -50,13 +50,13 @@ export class BankFactory {
   }
 
   /** Page neuve aux valeurs par défaut (§6) — `rank` (1-based) pilote position, nom, couleur. */
-  createPage(rank: number): Page {
+  createPage(rank: number, grid?: { rows: number; cols: number }): Page {
     return {
       id: this.#ids(),
       name: this.#pageName(rank),
       voiceMode: 'poly',
-      rows: DEFAULT_ROWS,
-      cols: DEFAULT_COLS,
+      rows: grid?.rows ?? DEFAULT_ROWS,
+      cols: grid?.cols ?? DEFAULT_COLS,
       position: rank - 1,
       color: this.pageColor(rank),
     };
@@ -77,9 +77,20 @@ export class BankFactory {
     return pads;
   }
 
-  /** Banque du premier lancement : une page de rang 1, grille complète. */
+  /**
+   * Grilles de la banque du premier lancement : PLUSIEURS pages aux layouts contrastés,
+   * pour rendre le concept de page évident sans explication (décision M8).
+   */
+  static readonly FIRST_RUN_LAYOUTS: ReadonlyArray<{ rows: number; cols: number }> = [
+    { rows: 4, cols: 4 }, // « Principal » — le défaut
+    { rows: 2, cols: 2 }, // gros pads (panique/table de jeu)
+    { rows: 8, cols: 6 }, // dense (banque de bruitages)
+  ];
+
+  /** Banque du premier lancement : pages complètes aux layouts variés, toutes colorées. */
   createBank(): Bank {
-    const page = this.createPage(1);
-    return { id: this.#ids(), name: '', pages: [page], pads: this.fillPagePads(page, []) };
+    const pages = BankFactory.FIRST_RUN_LAYOUTS.map((grid, i) => this.createPage(i + 1, grid));
+    const pads = pages.flatMap((page) => this.fillPagePads(page, []));
+    return { id: this.#ids(), name: '', pages, pads };
   }
 }

@@ -119,6 +119,22 @@ export const MIGRATIONS: Migration[] = [
       'PRAGMA foreign_keys = ON',
     ],
   },
+  // M8 : tags de samples (n-à-n, personnalisables). « Non classé » = absence de ligne
+  // dans sample_tags (filtre virtuel, jamais stocké — décision §16).
+  {
+    version: 4,
+    statements: [
+      `CREATE TABLE tags (
+        id    TEXT PRIMARY KEY,
+        label TEXT NOT NULL
+      )`,
+      `CREATE TABLE sample_tags (
+        sample_id TEXT NOT NULL REFERENCES samples(id) ON DELETE CASCADE,
+        tag_id    TEXT NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+        PRIMARY KEY (sample_id, tag_id)
+      )`,
+    ],
+  },
 ];
 
 /**

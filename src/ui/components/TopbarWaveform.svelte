@@ -44,7 +44,7 @@
   .viz {
     flex: 1;
     min-width: 0;
-    height: 30px;
+    height: 1.875rem;
     align-self: center;
     pointer-events: none;
   }

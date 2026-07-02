@@ -249,12 +249,12 @@
 
   .close {
     display: inline-flex;
-    min-width: 44px;
-    min-height: 44px;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
     align-items: center;
     justify-content: center;
     border: none;
-    border-radius: 10px;
+    border-radius: 0.625rem;
     background: transparent;
     color: var(--muted);
     cursor: pointer;
@@ -265,7 +265,7 @@
     min-height: 0;
     width: 100%;
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: 0.75rem;
     background: var(--panel);
     touch-action: none;
     cursor: ew-resize;
@@ -294,12 +294,12 @@
 
   .tool {
     display: inline-flex;
-    min-width: 44px;
-    min-height: 44px;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
     align-items: center;
     justify-content: center;
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: 0.625rem;
     background: transparent;
     color: inherit;
     cursor: pointer;
@@ -320,9 +320,9 @@
 
   .cancel,
   .apply {
-    min-height: 44px;
+    min-height: 2.75rem;
     padding: 0 1rem;
-    border-radius: 10px;
+    border-radius: 0.625rem;
     font: inherit;
     cursor: pointer;
   }

@@ -50,13 +50,13 @@
 
   .cell-empty {
     border: 1px dashed var(--muted);
-    border-radius: 12px;
+    border-radius: 0.75rem;
     opacity: 0.2;
   }
 
   .cell-add {
     border: 1px dashed var(--accent);
-    border-radius: 12px;
+    border-radius: 0.75rem;
     background: transparent;
     color: var(--accent);
     font-size: 1.4rem;

@@ -54,12 +54,12 @@
 
   .close {
     display: inline-flex;
-    min-width: 44px;
-    min-height: 44px;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
     align-items: center;
     justify-content: center;
     border: none;
-    border-radius: 10px;
+    border-radius: 0.625rem;
     background: transparent;
     color: var(--muted);
     cursor: pointer;

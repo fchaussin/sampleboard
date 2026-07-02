@@ -103,7 +103,7 @@
     padding: 0.4rem;
     /* Couleur du pad : contour PLEIN + fond teinté en TRANSPARENCE (décision M6). */
     border: 2px solid var(--tint, var(--border));
-    border-radius: 12px;
+    border-radius: 0.75rem;
     background: color-mix(in oklab, var(--tint, transparent) 16%, transparent);
     color: inherit;
     font: inherit;
@@ -173,7 +173,7 @@
     border-color: var(--tint, var(--accent));
     color: var(--accent-contrast);
     transform: scale(0.97);
-    box-shadow: 0 0 18px color-mix(in oklab, var(--tint, var(--accent)) 55%, transparent);
+    box-shadow: 0 0 1.125rem color-mix(in oklab, var(--tint, var(--accent)) 55%, transparent);
     transition-duration: 0.03s;
   }
 
@@ -190,19 +190,19 @@
   /* Stop du pad EN ÉVIDENCE en bas à droite pendant la lecture (One-Shot/Loop). */
   .pad-stop {
     position: absolute;
-    right: 6px;
-    bottom: 6px;
+    right: 0.375rem;
+    bottom: 0.375rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 30px;
-    min-height: 30px;
+    min-width: 1.875rem;
+    min-height: 1.875rem;
     padding: 0;
     border: none;
     border-radius: 50%;
     background: var(--accent-contrast);
     color: var(--fg);
     cursor: pointer;
-    box-shadow: 0 2px 8px rgb(0 0 0 / 45%);
+    box-shadow: 0 2px 0.5rem rgb(0 0 0 / 45%);
   }
 </style>

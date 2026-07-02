@@ -114,7 +114,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    max-width: 520px;
+    max-width: 32.5rem;
     margin: 0 auto;
     width: 100%;
   }
@@ -135,7 +135,7 @@
     display: inline-block;
     padding: 0.35rem 0.9rem;
     border: 1px solid var(--accent);
-    border-radius: 8px;
+    border-radius: 0.5rem;
     color: var(--accent);
     font-size: 0.85rem;
   }
@@ -190,7 +190,7 @@
     background: transparent;
     color: inherit;
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 0.375rem;
     font: inherit;
   }
 
@@ -203,7 +203,7 @@
   .icon {
     padding: 0.25rem 0.5rem;
     border: 1px solid var(--muted);
-    border-radius: 6px;
+    border-radius: 0.375rem;
     background: transparent;
     color: inherit;
     cursor: pointer;

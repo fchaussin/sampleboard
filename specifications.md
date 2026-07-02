@@ -481,6 +481,9 @@ Le ré-encodage se fait **côté frontend** (règle « pas de logique métier en
   (classes + injection par constructeur) ; **DRY / SOLID / SoC impératifs** ; une seule
   représentation de l'absence (`T | null`, jamais optionnel + nullable) ; typage strict via
   les unions nommées du domaine.
+- **Unités CSS** (2026-07-02) : **jamais de `px`** hors épaisseurs de trait (bordures,
+  filets ≤ 3px) — dimensions, espacements, rayons, ombres en **rem** (ou unités
+  viewport/%) ; pilules en `999rem`.
 - **Tags de samples** (2026-07-02, tri backlog #10-12) : étiquettes **n-à-n** (`tags` +
   `sample_tags`, migration 4), personnalisables (CRUD) ; liste par défaut semée au premier
   lancement (SFX, Répliques, Jingle, Musique, Ambiance, Voix, Réaction, Meme, Alerte —

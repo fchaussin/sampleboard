@@ -50,8 +50,8 @@
   }
 
   .swatch {
-    width: 26px;
-    height: 26px;
+    width: 1.625rem;
+    height: 1.625rem;
     border-radius: 50%;
     border: 2px solid transparent;
     background: var(--swatch);
@@ -69,7 +69,7 @@
   .swatch.none::after {
     content: '';
     position: absolute;
-    inset: 4px;
+    inset: 0.25rem;
     border-radius: 50%;
     background: linear-gradient(135deg, transparent 44%, var(--muted) 46%, var(--muted) 54%, transparent 56%);
   }

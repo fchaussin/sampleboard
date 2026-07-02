@@ -7,7 +7,7 @@ import type { AppStore } from '../../src/app/store.svelte';
 import type { AudioEngine } from '../../src/engine/audio-engine';
 import type { Bank, Pad, Sample } from '../../src/domain/types';
 import { padsOfPage, findPad, findPage, pagesSorted } from '../../src/domain/selectors';
-import { fakeSampleRepository } from './fake-sample-repository';
+import { fakeSampleRepository, fakeTagRepository } from './fake-sample-repository';
 
 function pad(id: string, pageId: string, position: number, extra: Partial<Pad> = {}): Pad {
   return {
@@ -40,6 +40,9 @@ function fakeStore(bank: Bank, samples: Sample[] = []): AppStore {
     activePageId: bank.pages[0]?.id ?? null,
     editMode: true,
     selectedPadId: null,
+    tags: [],
+    sampleTags: new Map<string, Set<string>>(),
+    libraryFilter: null,
     activePadIds: new Set<string>(),
   } as unknown as AppStore;
 }
@@ -66,6 +69,7 @@ function setup(bank = makeBank(), samples: Sample[] = []) {
     engine: engine as unknown as AudioEngine,
     encode: async () => new Uint8Array(),
     sampleRepository: fakeSampleRepository(),
+    tagRepository: fakeTagRepository(),
     ids: () => `id-${n++}`,
   });
   return { store, engine, commands };

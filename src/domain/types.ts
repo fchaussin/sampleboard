@@ -50,6 +50,12 @@ export interface Sample {
   createdAt: number;
 }
 
+/** Étiquette libre affectée aux samples (n-à-n, M8) ; « Non classé » = absence de tag. */
+export interface Tag {
+  id: string;
+  label: string;
+}
+
 /** Réglages globaux (app-level, hors banque). */
 export interface Settings {
   /** Défaut : 'stopAll'. */

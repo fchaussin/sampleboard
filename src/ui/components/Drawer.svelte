@@ -64,12 +64,12 @@
     top: 0;
     right: 0;
     bottom: 0;
-    width: min(340px, 88vw);
+    width: min(21.25rem, 88vw);
     display: flex;
     flex-direction: column;
     background: var(--panel);
     border-left: 1px solid var(--border);
-    box-shadow: -12px 0 32px rgb(0 0 0 / 35%);
+    box-shadow: -0.75rem 0 2rem rgb(0 0 0 / 35%);
     z-index: calc(var(--z-drawer) + 1);
     animation: slide-in 0.16s ease-out;
   }
@@ -101,12 +101,12 @@
 
   .close {
     display: inline-flex;
-    min-width: 40px;
-    min-height: 40px;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
     align-items: center;
     justify-content: center;
     border: none;
-    border-radius: 10px;
+    border-radius: 0.625rem;
     background: transparent;
     color: var(--muted);
     cursor: pointer;

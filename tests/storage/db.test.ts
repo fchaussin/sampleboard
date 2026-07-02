@@ -36,7 +36,7 @@ describe('openDatabase — migrations', () => {
     const executor = db();
     await openDatabase(executor);
     expect(await userVersion(executor)).toBe(LATEST_VERSION);
-    expect(await tableNames(executor)).toEqual(['bank', 'pads', 'pages', 'samples', 'settings']);
+    expect(await tableNames(executor)).toEqual(['bank', 'pads', 'pages', 'sample_tags', 'samples', 'settings', 'tags']);
   });
 
   it('est idempotent : une réouverture ne rejoue rien', async () => {

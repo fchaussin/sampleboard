@@ -65,7 +65,7 @@
     align-items: center;
     gap: 0.6rem;
     width: 100%;
-    min-height: 52px;
+    min-height: 3.25rem;
     padding: 0.35rem 0.6rem;
     padding-top: calc(0.35rem + env(safe-area-inset-top));
     border-bottom: 1px solid var(--border);
@@ -77,10 +77,10 @@
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    min-height: 44px;
+    min-height: 2.75rem;
     padding: 0.25rem 0.4rem;
     border: none;
-    border-radius: 10px;
+    border-radius: 0.625rem;
     background: transparent;
     color: inherit;
     font: inherit;
@@ -100,7 +100,7 @@
   .badge {
     padding: 0.15rem 0.55rem;
     border: 1px solid var(--border);
-    border-radius: 999px;
+    border-radius: 999rem;
     font-size: 0.75rem;
     color: var(--muted);
   }
@@ -116,8 +116,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 40px;
-    min-height: 40px;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
     padding: 0;
     border: 1px solid var(--border);
     border-radius: 50%;

@@ -101,11 +101,11 @@
 
 <style>
   .picker {
-    width: min(420px, 92vw);
+    width: min(26.25rem, 92vw);
     max-height: 80dvh;
     padding: 1rem;
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: 0.875rem;
     background: var(--panel);
     color: var(--fg);
   }
@@ -130,7 +130,7 @@
     display: inline-flex;
     padding: 0.4rem;
     border: none;
-    border-radius: 8px;
+    border-radius: 0.5rem;
     background: transparent;
     color: var(--muted);
     cursor: pointer;
@@ -141,7 +141,7 @@
     text-align: center;
     padding: 0.5rem;
     border: 1px dashed var(--accent);
-    border-radius: 10px;
+    border-radius: 0.625rem;
     color: var(--accent);
     font-size: 0.85rem;
     cursor: pointer;
@@ -181,11 +181,11 @@
 
   .choice {
     flex: 1;
-    min-height: 42px;
+    min-height: 2.625rem;
     padding: 0.4rem 0.7rem;
     text-align: left;
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: 0.625rem;
     background: transparent;
     color: inherit;
     font: inherit;
@@ -203,12 +203,12 @@
 
   .preview {
     display: inline-flex;
-    min-width: 40px;
-    min-height: 40px;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
     align-items: center;
     justify-content: center;
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: 0.625rem;
     background: transparent;
     color: var(--muted);
     cursor: pointer;
