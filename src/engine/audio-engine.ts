@@ -7,6 +7,7 @@ import type { Pad, Page } from '../domain/types';
 import { DEFAULT_MAX_VOICES } from '../domain/invariants';
 import { gainDbToAmplitude, type Voice } from './voice';
 import { computePeaks, pcmDuration } from './pcm';
+import { parseOggSampleCount } from './ogg';
 import type { PcmData } from './encoder';
 import type { DecodedAudio, EngineState, PlayingChangedCallback } from './types';
 
@@ -69,7 +70,29 @@ export class AudioEngine {
     // decodeAudioData détache l'ArrayBuffer reçu : on décode sur une copie pour
     // laisser l'appelant libre de réutiliser ses octets.
     const buffer = await ctx.decodeAudioData(bytes.slice(0));
-    this.#buffers.set(sampleId, buffer);
+    this.#buffers.set(sampleId, this.#trimToDeclaredLength(ctx, buffer, new Uint8Array(bytes)));
+  }
+
+  /** Durée (s) du buffer chargé d'un sample, ou null s'il n'est pas en cache. */
+  duration(sampleId: string): number | null {
+    return this.#buffers.get(sampleId)?.duration ?? null;
+  }
+
+  /**
+   * Rogne le buffer décodé à la durée ANNONCÉE par le flux Ogg-Opus (granule finale) :
+   * Chromium ignore la fin de flux et restitue le padding de silence de l'encodeur (~100 ms
+   * — gap audible en Loop). No-op pour un flux non-Ogg ou déjà fidèle.
+   */
+  #trimToDeclaredLength(ctx: AudioContext, buffer: AudioBuffer, bytes: Uint8Array): AudioBuffer {
+    const declared48k = parseOggSampleCount(bytes);
+    if (declared48k === null || declared48k <= 0) return buffer;
+    const expected = Math.round((declared48k * buffer.sampleRate) / 48_000);
+    if (buffer.length <= expected) return buffer;
+    const trimmed = ctx.createBuffer(buffer.numberOfChannels, expected, buffer.sampleRate);
+    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+      trimmed.copyToChannel(buffer.getChannelData(channel).slice(0, expected), channel);
+    }
+    return trimmed;
   }
 
   unload(sampleId: string): void {

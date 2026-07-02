@@ -4,6 +4,7 @@
 // Le WASM est inclus dans le worker (aucun asset séparé). Reproductibilité build-from-source
 // prévue au M6. WebCodecs pourra servir de chemin accéléré opportuniste plus tard.
 import encoderWorkerUrl from 'opus-recorder/dist/encoderWorker.min.js?url';
+import { trimOggTail } from './ogg';
 
 /** Débit fixe retenu pour l'encodage Opus (décision verrouillée §16). */
 export const OPUS_BITRATE_BPS = 96_000;
@@ -74,9 +75,15 @@ export function createOpusEncoder(): Encoder {
           case 'page':
             pages.push(data.page instanceof Uint8Array ? data.page : new Uint8Array(data.page));
             break;
-          case 'done':
-            finish(() => resolve(concat(pages)));
+          case 'done': {
+            // Le worker comble son dernier tampon de SILENCE : on borne la durée du flux
+            // aux échantillons réellement fournis (granule de la dernière page, voir ogg.ts).
+            const samples48k = Math.round(
+              ((pcm.channelData[0]?.length ?? 0) * OPUS_ENCODER_SAMPLE_RATE) / pcm.sampleRate,
+            );
+            finish(() => resolve(concat(trimOggTail(pages, samples48k))));
             break;
+          }
         }
       };
 
