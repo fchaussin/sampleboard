@@ -1,0 +1,6 @@
+Première version empaquetée (0.6.0) :
+• Pads One-Shot / Gate / Loop, polyphonie Mono/Poly par page
+• Pages multiples, grille redimensionnable
+• Import de vos fichiers audio (ré-encodés en OGG/Opus)
+• Gain par pad, pré-écoute, comportement en arrière-plan réglable
+• Tout est persisté et rechargé au démarrage

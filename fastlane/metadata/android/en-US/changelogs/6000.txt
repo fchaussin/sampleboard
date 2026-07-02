@@ -1,0 +1,6 @@
+First packaged version (0.6.0):
+• One-Shot / Gate / Loop pads, Mono/Poly polyphony per page
+• Multiple pages, resizable grid
+• Import your own audio files (re-encoded to OGG/Opus)
+• Per-pad gain, preview, configurable background behavior
+• Everything is persisted and reloaded on startup

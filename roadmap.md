@@ -136,10 +136,11 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
   recorriger avant/pendant M6 ; audio sur appareil Android = 2ᵉ temps (§16).
 
 ### M6 — Empaquetage · `0.7.0` · Phase E
-- [~] Build Android (APK) : toolchain Docker épinglée (`docker-compose.android.yml`),
-  `tauri android init` (projet `gen/android` committé), **APK debug produit** (aarch64) ;
-  release non signé en cours de vérification (permissions, versionCode). Permission
-  `INTERNET` reléguée aux builds debug (release sans permission, §16).
+- [x] Build Android (APK) : toolchain Docker épinglée (`docker-compose.android.yml`),
+  `tauri android init` (projet `gen/android` committé), APK **debug** (154 Mo) et **release
+  non signé** (8,7 Mo, aarch64) produits. Vérifié à l'aapt : `versionCode 6000` /
+  `versionName 0.6.0`, **zéro permission** (INTERNET relégué à l'overlay debug, §16),
+  minSdk 24. Signature = F-Droid (ou clé locale à créer pour distribution directe).
 - [x] Audit FOSS de **toutes** les dépendances (npm 5 paquets runtime, 467 crates Rust,
   Gradle AndroidX/Material) : zéro propriétaire, zéro Play Services — voir `doc/audit-foss.md`.
 - [ ] Build reproductible (toolchain épinglée ✓ ; déterminisme APK + WASM opus build-from-source à traiter).
