@@ -50,7 +50,7 @@ un Gate).
 
 ## UI (`src/ui/components`)
 
-- `PageTabs` — navigation entre pages (M2 : sélection ; ajout/renommage/grille au M3).
+- Onglets de pages — navigation entre pages (depuis M6 : intégrés à la `Bottombar`, voir [interface](./interface.md)).
 - `PadGrid` — grille CSS `rows`×`cols` de la page active ; pads placés par `position`, cases vides
   sinon.
 - `Pad` — rend `name` + libellé de mode (i18n `mode.*`), branche `pad-input`, reflète l'état

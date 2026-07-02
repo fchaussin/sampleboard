@@ -29,5 +29,6 @@ les règles projet :
 - [Édition (M3)](./edition.md)
 - [Bibliothèque & import (M4)](./bibliotheque-import.md)
 - [Persistance & réglages (M5)](./persistance-reglages.md)
-- [Audit FOSS des dépendances (M6)](./audit-foss.md)
+- [Interface (M6)](./interface.md)
+- [Audit FOSS des dépendances (M7)](./audit-foss.md)
 - [Tests](./tests.md)

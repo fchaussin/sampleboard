@@ -29,10 +29,20 @@ export function makeWav(seconds = 0.25, sampleRate = 44100, freq = 440, channels
   return Buffer.concat([header, data]);
 }
 
-/** Importe un WAV via la Bibliothèque et attend son apparition dans la liste. */
+/** Ouvre le panneau Bibliothèque depuis la bottombar. */
+export async function openLibrary(page: Page): Promise<void> {
+  await page.locator('.bottombar .open-library').click();
+}
+
+/**
+ * Importe un WAV via l'« Import rapide » de la bottombar, vérifie son apparition dans le
+ * panneau Bibliothèque, puis referme le panneau (retour à la grille).
+ */
 export async function importWav(page: Page, name = 'tone.wav'): Promise<void> {
   await page
-    .locator('.library input[type=file]')
+    .locator('.bottombar .import input[type=file]')
     .setInputFiles({ name, mimeType: 'audio/wav', buffer: makeWav() });
+  await openLibrary(page);
   await page.locator('.library .list li').first().waitFor({ timeout: 20_000 });
+  await page.locator('.close-library').click();
 }

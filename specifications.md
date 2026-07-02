@@ -51,6 +51,10 @@ Les termes de comportement empruntent la **terminologie des contrôleurs MIDI / 
 | assigner | `assign` | assigner | Rattacher un sample à un pad. |
 | importer | `import` | importer | Faire entrer un fichier audio dans la bibliothèque. |
 | pré-écoute | `preview` | pré-écoute | Écouter un sample dans la bibliothèque avant de l'assigner. |
+| Barre du haut | `Topbar` | barre du haut | Infos de la page active (nom, Polyphonie, grille) ; tap → tiroir page. |
+| Barre d'actions | `Bottombar` | barre d'actions | Actions principales + pages + accès Réglages (bas d'écran). |
+| Tiroir | `Drawer` | tiroir | Panneau contextuel à droite : réglages du pad, de la page ou généraux. |
+| Stop général | `stopAllVoices` | Stop général | Arrête toutes les voix d'un tap (bouton panique de la barre d'actions). |
 
 ---
 
@@ -379,12 +383,28 @@ L'engine est autoritatif sur les voix actives ; le store n'en reflète que `acti
 ## 11. UI / composants
 
 Composants **« bêtes »** : ils rendent l'état et émettent des intentions. Aucune logique audio ni DB. Tout texte visible passe par `t(clé)` (i18n, §3).
-- `PageTabs` — navigation + (en Édition) ajout/renommage/suppression de page, bascule Polyphonie (Mono/Poly), réglage de la grille (`rows`×`cols`).
-- `PadGrid` / `Pad` — affichage en grille `rows`×`cols`, état *actif / introuvable / vide*, branchement sur `pad-input`.
-- `Editor` — en Édition : assignation d'un sample **depuis la bibliothèque** (sélecteur), renommage, Mode de lecture, gain (slider **dB**), suppression du pad.
-- `Library` — gestionnaire de la bibliothèque : import (dialog Tauri), renommage (`label`), suppression (avec avertissement des pads impactés), **pré-écoute**.
-- `Settings` — réglages globaux : Arrière-plan, Nombre maximum de voix, langue.
+
+**Agencement (décision 2026-07-02, v1)** — mobile-first, la grille au centre de l'écran :
+- **`Topbar`** (barre du haut) — infos de la page active : nom/numéro, Polyphonie, dimensions
+  de grille. **Tap → tiroir page** (dans les deux modes).
+- **`Bottombar`** (barre d'actions, bas d'écran) — bascule **Jeu ↔ Édition**, **Stop général**
+  (`stopAllVoices`, panique), **pages** (onglets défilables + ajout en Édition), **Import
+  rapide** (sélecteur de fichier direct), **Bibliothèque** (ouvre le panneau), **Réglages**
+  (tiroir réglages généraux).
+- **`Drawer`** (tiroir contextuel, à droite, avec voile) — trois contenus : `PadSettings`
+  (renommage, Mode de lecture, gain **dB**, assignation depuis la bibliothèque, suppression),
+  `PageSettings` (renommage, Polyphonie, grille `rows`×`cols`, ordre, suppression), `Settings`
+  (réglages globaux : Arrière-plan, Nombre maximum de voix, langue). Fermeture : ✕ ou tap hors.
+  **Tiroir pad : Édition seulement** (en Jeu, un tap sur un pad joue — zéro faux geste) ;
+  la création d'un pad (case « + », Édition) ouvre son tiroir.
+- **`LibraryPanel`** — bibliothèque en **panneau plein écran** : import, renommage (`label`),
+  suppression (avec avertissement des pads impactés), **pré-écoute** (contenu `Library`).
+- `PadGrid` / `Pad` — grille `rows`×`cols`, état *actif / introuvable / vide*, branchement sur
+  `pad-input` (Jeu) ; en Édition, tap → tiroir pad.
 - Indicateur visuel **actif** piloté par `activePadIds`.
+
+L'état d'ouverture (`drawer`, `libraryOpen`) vit dans le store (état UI, §9) et n'est muté que
+par les commandes.
 
 ## 12. Cas limites & décisions de robustesse
 
@@ -445,6 +465,9 @@ Le ré-encodage se fait **côté frontend** (règle « pas de logique métier en
 - **Nombre maximum de voix** : défaut **8** ; dépassement géré en **FIFO**, interne, non exposé.
 - **Taille max d'import** : **20 Mo** (sur le fichier source, avant décodage).
 - **Réseau** : **v1 100 % hors-ligne** — aucun accès réseau, aucune permission réseau Android (renforce la contrainte F-Droid §15, cohérent avec le côté offline-first « l'utilisateur importe ses fichiers »). L'import par URL (accès réseau, autorisation à la volée) est renvoyé en **v2**.
+- **Agencement UI v1** (2026-07-02) : **Topbar** (infos page → tiroir page) + **Bottombar**
+  (Jeu/Édition, Stop général, pages, Import rapide, Bibliothèque, Réglages) + **Drawer** droit
+  (pad — Édition seulement —, page, réglages) + **Bibliothèque en panneau plein écran**. Voir §11.
 - **Ordre de validation : web d'abord, Android ensuite.** Chaque jalon est d'abord développé et validé sur **web** (dev Vite http://localhost:1420 + fenêtre `tauri dev` bureau) ; la validation sur **appareil Android réel** est un **second temps**, jamais un prérequis pour avancer. La cible finale reste F-Droid/Android (§15) — c'est l'ordre de travail qui est fixé, pas la cible.
 
 ## 17. Évolutions futures (hors v1)

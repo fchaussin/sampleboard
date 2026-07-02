@@ -6,10 +6,12 @@ Contexte projet chargé à chaque session. **Lire aussi** [`specifications.md`](
 **Sampleboard** : application de **pads** déclencheurs de sons (façon soundboard), organisés en **pages**. L'utilisateur importe ses fichiers audio (→ **bibliothèque**) et configure ses pads. Cible : **F-Droid** (Android). C'est un *sampleboard*, **pas un sampler** : volontairement simple (pas de DSP, pas d'édition audio poussée).
 
 ## État actuel
-- **M0 → M5 livrés** (`v0.6.0` : persistance SQLite + réglages). Voir `roadmap.md` §3 et `doc/`.
-- Prochaine étape : **M6 — Empaquetage** (`0.7.0`) : build Android/APK, audit FOSS,
-  build reproductible, métadonnées F-Droid.
-- Point ouvert : son muet dans la fenêtre `tauri dev` WSLg (env dev uniquement — backlog #3).
+- **M0 → M5 livrés** (`v0.6.0`). **M6 — Interface** (`0.7.0`, agencement topbar/bottombar/
+  drawer) implémenté et testé — tag après revue visuelle utilisateur. Voir `roadmap.md` §3.
+- **M7 — Empaquetage** (`0.8.0`) déjà bien entamé (APK debug+release OK, audit FOSS,
+  fastlane) ; reste : opus WASM from-source, captures (nouvelle UI), soumission F-Droid.
+- Points ouverts : son muet fenêtre `tauri dev` WSLg (env dev — backlog #3) ; hébergement
+  public du dépôt à choisir (pré-requis F-Droid).
 
 ## Stack (voir spec §3)
 Svelte 5 (runes) + Vite en **SPA** (`adapter-static`, SSR off) · TypeScript **strict** · **Tauri v2** · SQLite natif (`tauri-plugin-sql`) · `tauri-plugin-fs` + `tauri-plugin-dialog` · **Web Audio API** · encodage **Opus via WASM libopus** embarqué. Dev via `tauri dev` (jamais navigateur nu). Aucune logique métier en Rust.

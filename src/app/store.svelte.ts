@@ -4,6 +4,9 @@
 import { defaultSettings } from '../domain/invariants';
 import type { Bank, Page, Sample, Settings } from '../domain/types';
 
+/** Contenu du tiroir contextuel (§11) : réglages du pad, de la page, ou généraux. */
+export type DrawerContent = 'pad' | 'page' | 'settings';
+
 export class AppStore {
   /** Arbre banque chargé (null tant que non hydraté — jalon M5). */
   bank = $state<Bank | null>(null);
@@ -16,8 +19,12 @@ export class AppStore {
   activePageId = $state<string | null>(null);
   /** Édition (true) ↔ Jeu (false). */
   editMode = $state(false);
-  /** Pad sélectionné en Édition (cible de l'Editor), ou null. */
+  /** Pad sélectionné en Édition (cible du tiroir pad), ou null. */
   selectedPadId = $state<string | null>(null);
+  /** Tiroir contextuel ouvert (§11), ou null (fermé). */
+  drawer = $state<DrawerContent | null>(null);
+  /** Panneau bibliothèque plein écran ouvert (§11). */
+  libraryOpen = $state(false);
   /** Reflet minimal des voix actives émis par l'engine (jamais calculé ici). */
   activePadIds = $state<Set<string>>(new Set());
 

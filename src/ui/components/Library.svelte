@@ -3,6 +3,7 @@
 <script lang="ts">
   import type { App } from '../../app/create-app';
   import type { ImportError } from '../../app/commands';
+  import { importFile } from '../import-file';
   import { t } from '../i18n';
 
   let { app }: { app: App } = $props();
@@ -26,8 +27,7 @@
     if (!file) return;
     busy = true;
     error = null;
-    const result = await app.commands.importSample(file.name, await file.arrayBuffer());
-    if (!result.ok) error = result.reason;
+    error = await importFile(app, file);
     busy = false;
   }
 

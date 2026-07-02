@@ -46,7 +46,7 @@ suffisent pas).
 Complète le hook `doc-sync` (rappel de mise à jour de `doc/`). Les deux sont déclarés dans
 `.claude/settings.json`.
 
-## Couverture actuelle (M1 → M5) — 128 unitaires + 4 E2E
+## Couverture actuelle (M1 → M6) — 141 unitaires + 4 E2E
 
 - `tests/engine/voice.test.ts` — conversion gain dB → amplitude (bornes, plancher -60 dB,
   monotonie).
@@ -69,6 +69,9 @@ Complète le hook `doc-sync` (rappel de mise à jour de `doc/`). Les deux sont d
   `applyBackgroundBehavior`.
 - `tests/app/persistence.test.ts` — autosave : debounce, rafale → un save, flush, stop,
   résilience aux échecs (réactivité factice, timers simulés).
+- `tests/app/commands.ui.test.ts` — interface M6 (§11) : tiroir contextuel (pad Édition
+  seulement, page, réglages, fermetures), panneau bibliothèque (une surcouche à la fois),
+  Stop général.
 - `tests/storage/db.test.ts`, `bank-repository.test.ts`, `sample-settings-repository.test.ts`,
   `write-lock.test.ts` — couche storage contre un **vrai SQLite en mémoire** (`node:sqlite`) :
   migrations, aller-retour banque (upsert/élagage, cascades, `ON DELETE SET NULL`), bibliothèque,

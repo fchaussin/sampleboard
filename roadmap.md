@@ -22,7 +22,7 @@ Départ : **`0.1.0`**.
 - Une version = un **tag git** `vX.Y.Z` une fois le jalon validé.
 
 ### Critères d'éligibilité à `1.0.0`
-- [ ] Tous les jalons M0→M6 livrés et validés.
+- [ ] Tous les jalons M0→M7 livrés et validés.
 - [ ] Testée sur ≥ 2 appareils Android réels (latence, autoplay, arrière-plan).
 - [ ] Chaîne import→encodage Opus fiable sur appareil réel.
 - [ ] Persistance robuste (rechargement fidèle, migrations testées).
@@ -40,7 +40,8 @@ Départ : **`0.1.0`**.
 | **B — Cœur jouable** | M1, M2 | `0.2.0`, `0.3.0` | On entend du son, on joue la grille. |
 | **C — Configuration** | M3, M4 | `0.4.0`, `0.5.0` | On édite ses pads et on gère la bibliothèque. |
 | **D — Durabilité** | M5 | `0.6.0` | Tout est persisté et rechargé. |
-| **E — Livraison** | M6 | `0.7.0` | Empaqueté pour F-Droid. |
+| **D' — Interface** | M6 | `0.7.0` | L'UI/UX refondue : topbar, bottombar, drawer. |
+| **E — Livraison** | M7 | `0.8.0` | Empaqueté pour F-Droid. |
 | **F — Stabilisation** | — | → `1.0.0` | Durcissement, tests réels, complétude. |
 
 Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
@@ -135,7 +136,41 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
   WSLg toujours muet** (environnement non idéal) → suivi en backlog (Entrantes #3), à
   recorriger avant/pendant M6 ; audio sur appareil Android = 2ᵉ temps (§16).
 
-### M6 — Empaquetage · `0.7.0` · Phase E
+### M6 — Interface · `0.7.0` · Phase D'
+
+> Issu du tri backlog #2 (2026-07-02). Décisions figées : bottombar complète (bascule
+> Jeu ↔ Édition, Stop général, Bibliothèque, Import rapide, pages, accès Réglages) ;
+> bibliothèque en **panneau plein écran** ; drawer pad ouvert **en Édition seulement**
+> (en Jeu, un tap joue) ; drawer page/Réglages accessibles dans les deux modes.
+
+- [x] État UI : `drawer` (`'pad' | 'page' | 'settings' | null`) + `libraryOpen` dans le store ;
+  commandes `openPadDrawer` / `openPageDrawer` / `openSettingsDrawer` / `closeDrawer`,
+  `openLibrary` / `closeLibrary`, `stopAllVoices` (panique bottombar).
+- [x] `Topbar.svelte` : infos de la page active (nom/numéro, chip Édition, Polyphonie, grille)
+  → tap = drawer page.
+- [x] `Bottombar.svelte` : bascule Jeu ↔ Édition, Stop général, pages (défilables + ajout en
+  Édition), Import rapide (erreurs en snackbar), Bibliothèque, Réglages. Icônes SVG inline
+  (`Icon.svelte`, zéro dépendance).
+- [x] `Drawer.svelte` (droite, avec voile) : contenus `PadSettings` / `PageSettings` /
+  `Settings` (réglages généraux) ; fermeture ✕ / tap hors.
+- [x] `LibraryPanel.svelte` : bibliothèque en panneau plein écran (contenu `Library`).
+- [x] Éclatement d'`Editor.svelte` → `PadSettings.svelte` + `PageSettings.svelte` (drawer) ;
+  `PageTabs` absorbé par la bottombar ; aide d'import partagée (`ui/import-file.ts`).
+- [x] Pad en Édition : tap → drawer pad ; case « + » : création + drawer ; suppression du pad
+  sélectionné → fermeture ; changement de mode → fermeture.
+- [x] Passe esthétique globale : palette (`--panel`/`--border`/`--danger`), cibles tactiles
+  ≥ 44 px, grille centrée plein écran `100dvh`, safe-areas Android, formulaire de tiroir
+  mutualisé (`.drawer-form`).
+- [x] i18n : nouvelles clés (bottombar, drawer, panneau bibliothèque).
+- [x] **Tests** : 141 unitaires (dont 13 commandes UI) + 4 e2e adaptés aux nouveaux parcours
+  (import rapide, tiroir, Stop général), verts en Docker.
+- [x] **Validation web (1er temps)** : parcours complet couvert en e2e (import → tiroir →
+  assignation → jeu → stop) + captures 390×844 revues. Android/captures fastlane ensuite (M7).
+
+### M7 — Empaquetage · `0.8.0` · Phase E
+
+> Entamé en avance (2026-07-02) puis suspendu au profit de M6 — Interface : les captures
+> fastlane dépendent de la nouvelle UI.
 - [x] Build Android (APK) : toolchain Docker épinglée (`docker-compose.android.yml`),
   `tauri android init` (projet `gen/android` committé), APK **debug** (154 Mo) et **release
   non signé** (8,7 Mo, aarch64) produits. Vérifié à l'aapt : `versionCode 6000` /
@@ -183,7 +218,7 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 | # | Feature | Décrite le | Cible proposée | Statut |
 |---|---|---|---|---|
 | 1 | Signalement visuel d'un sample dont le **fichier disque a disparu** (aujourd'hui : sample listé, pad muet no-op — voir doc M5) | 2026-07-02 | — | À trier |
-| 2 | **Refonte de l'agencement UI** : *bottombar* (actions principales + pages + accès Réglages généraux) ; *topbar* (infos importantes de la page) ; *drawer* contextuel à droite (réglages page & pad), ouvert au clic sur les infos page, sur un pad ou sur l'accès Réglages. **Spec à affiner avant intégration.** | 2026-07-02 | — | À trier |
+| 2 | **Refonte de l'agencement UI** : *bottombar* (actions principales + pages + accès Réglages généraux) ; *topbar* (infos importantes de la page) ; *drawer* contextuel à droite (réglages page & pad). Spec affinée le 2026-07-02 (voir jalon M6). | 2026-07-02 | `0.7.0` | **Planifiée → M6** |
 | 3 | **Correctif env dev** : son muet dans la fenêtre `tauri dev` sous WSLg malgré `PULSE_SERVER` (diagnostiquer WebKitGTK/GStreamer/Pulse — cookie ? sink ?). N'affecte pas la cible Android. | 2026-07-02 | — | À trier |
 
 ---

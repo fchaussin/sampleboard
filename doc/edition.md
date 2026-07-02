@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 # Édition (jalon M3)
 
+> **Agencement remplacé au M6** : les contrôles décrits ici vivent désormais dans le
+> **tiroir contextuel** (pad/page) et la **bottombar** — voir [interface](./interface.md).
+> Les commandes et invariants restent identiques.
+
 Le **comment** du mode Édition : CRUD pads/pages, réglages, redimensionnement de grille. Le
 **quoi/pourquoi** (modèle, invariants) est dans [`specifications.md` §6, §11–§12](../specifications.md).
 
@@ -24,7 +28,7 @@ stoppe la page puis renumérote), `setPageVoiceMode`, `setPageGrid(rows, cols)`,
 ### Invariant de réduction (§6, §12)
 
 `setPageGrid` **refuse** une réduction qui ferait tomber un pad hors de la nouvelle grille
-(`padsFitGrid`). L'Editor désactive les boutons « − » quand la réduction n'est pas sûre — aucune
+(`padsFitGrid`). L'UI désactive les boutons « − » quand la réduction n'est pas sûre — aucune
 donnée perdue silencieusement.
 
 ## Bibliothèque en M3 (pont dev)
@@ -36,7 +40,7 @@ barre `DevLibrary` :
   buffer (API File).
 - **Charger** sur une entrée existante → `attachSampleBuffer` (remplit le buffer d'un sample seed).
 
-L'`Editor` liste `store.samples` dans son sélecteur ; `assignSample` relie pad → sample. Au M4,
+Le tiroir pad liste `store.samples` dans son sélecteur ; `assignSample` relie pad → sample. Au M4,
 seule la **source** des samples change (import réel) : commandes et UI d'assignation restent.
 
 ## Essayer (dev)

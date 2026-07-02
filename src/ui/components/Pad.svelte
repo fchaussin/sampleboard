@@ -1,5 +1,5 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- Pad « bête ». En Jeu : branche pad-input (matrice §7). En Édition : sélection pour l'Editor. -->
+<!-- Pad « bête ». En Jeu : branche pad-input (matrice §7). En Édition : tap → tiroir pad (§11). -->
 <script lang="ts">
   import type { App } from '../../app/create-app';
   import type { Pad } from '../../domain/types';
@@ -38,7 +38,7 @@
     class:selected
     data-mode={pad.playMode}
     type="button"
-    onclick={() => app.commands.selectPad(pad.id)}
+    onclick={() => app.commands.openPadDrawer(pad.id)}
   >
     <span class="name">{pad.name || t('pad.untitled', locale)}</span>
     <span class="mode">{t(`mode.${pad.playMode}`, locale)}</span>

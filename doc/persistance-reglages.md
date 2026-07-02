@@ -92,8 +92,9 @@ aussi appelé au passage en arrière-plan.
 
 ## UI `Settings.svelte`
 
-`<details>` replié en bas de l'app : Arrière-plan (3 options), Nombre maximum de voix
-(entier ≥ 1, borné par `setMaxVoices`), Langue (`availableLocales()`). Persisté immédiatement.
+Contenu du **tiroir Réglages** (agencement M6, voir [interface](./interface.md)) :
+Arrière-plan (3 options), Nombre maximum de voix (entier ≥ 1, borné par `setMaxVoices`),
+Langue (`availableLocales()`). Persisté immédiatement.
 
 ## Capabilities (src-tauri)
 

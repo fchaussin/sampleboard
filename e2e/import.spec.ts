@@ -2,8 +2,9 @@
 // E2E : le pipeline d'import réel dans un vrai Chromium — décodage Web Audio + encodeur Opus
 // (Worker WASM) + re-décodage de l'OGG produit. C'est LA couverture que les mocks Vitest ne
 // peuvent pas donner (l'encodeur cassé — en-têtes OGG manquantes — passait les tests mockés).
+// Depuis M6 (§11), l'import passe par le panneau Bibliothèque (plein écran, bottombar).
 import { test, expect } from '@playwright/test';
-import { makeWav } from './helpers';
+import { makeWav, openLibrary } from './helpers';
 
 test('import WAV → OGG/Opus : le sample apparaît dans la bibliothèque', async ({ page }) => {
   const logs: string[] = [];
@@ -11,6 +12,7 @@ test('import WAV → OGG/Opus : le sample apparaît dans la bibliothèque', asyn
   page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
 
   await page.goto('/');
+  await openLibrary(page);
   await page.locator('.library input[type=file]').setInputFiles({
     name: 'tone.wav',
     mimeType: 'audio/wav',
@@ -41,6 +43,7 @@ test('import sans crypto.randomUUID (contexte non sécurisé) : ajouté quand m�
   });
 
   await page.goto('/');
+  await openLibrary(page);
   await page.locator('.library input[type=file]').setInputFiles({
     name: 'insecure.wav',
     mimeType: 'audio/wav',
@@ -55,6 +58,7 @@ test('import WAV stéréo & plus long : ajouté à la bibliothèque', async ({ p
   page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
 
   await page.goto('/');
+  await openLibrary(page);
   await page.locator('.library input[type=file]').setInputFiles({
     name: 'stereo.wav',
     mimeType: 'audio/wav',

@@ -1,71 +1,44 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Agencement v1 (§11) : Topbar (infos page) / grille plein écran / Bottombar (actions),
+     tiroir contextuel à droite et bibliothèque en panneau plein écran. -->
 <script lang="ts">
   import type { App } from './app/create-app';
-  import { t } from './ui/i18n';
-  import PageTabs from './ui/components/PageTabs.svelte';
+  import Topbar from './ui/components/Topbar.svelte';
   import PadGrid from './ui/components/PadGrid.svelte';
-  import Editor from './ui/components/Editor.svelte';
-  import Library from './ui/components/Library.svelte';
-  import Settings from './ui/components/Settings.svelte';
+  import Bottombar from './ui/components/Bottombar.svelte';
+  import Drawer from './ui/components/Drawer.svelte';
+  import LibraryPanel from './ui/components/LibraryPanel.svelte';
 
   let { app }: { app: App } = $props();
-
-  const locale = $derived(app.store.locale);
-  const editMode = $derived(app.store.editMode);
 </script>
 
-<main>
-  <header>
-    <h1>{t('app.name', locale)}</h1>
-    <button class="mode-toggle" class:on={editMode} type="button" onclick={() => app.commands.toggleEditMode()}>
-      {editMode ? t('nav.play', locale) : t('nav.edit', locale)}
-    </button>
-  </header>
+<div class="shell">
+  <Topbar {app} />
+  <main>
+    <PadGrid {app} />
+  </main>
+  <Bottombar {app} />
+</div>
 
-  <Library {app} />
-  <PageTabs {app} />
-  {#if editMode}
-    <Editor {app} />
-  {/if}
-  <PadGrid {app} />
-  <Settings {app} />
-</main>
+<Drawer {app} />
+
+{#if app.store.libraryOpen}
+  <LibraryPanel {app} />
+{/if}
 
 <style>
-  main {
+  .shell {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    min-height: 100vh;
-    padding: 1.5rem;
-    box-sizing: border-box;
+    height: 100dvh;
   }
 
-  header {
+  main {
+    flex: 1;
+    overflow-y: auto;
     display: flex;
-    align-items: center;
+    align-items: safe center;
     justify-content: center;
-    gap: 1rem;
-  }
-
-  h1 {
-    margin: 0;
-    font-size: 1.6rem;
-    letter-spacing: 0.02em;
-  }
-
-  .mode-toggle {
-    padding: 0.35rem 0.9rem;
-    border: 1px solid var(--accent);
-    border-radius: 999px;
-    background: transparent;
-    color: var(--accent);
-    font: inherit;
-    cursor: pointer;
-  }
-
-  .mode-toggle.on {
-    background: var(--accent);
-    color: #101014;
+    padding: 0.75rem;
   }
 </style>

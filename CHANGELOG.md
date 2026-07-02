@@ -6,6 +6,36 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) ;
 versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
 `1.0.0` n'est pas planifiée : elle sanctionne la première version **stable et complète**.
 
+## [Unreleased] — M6 (Interface), candidate `0.7.0`
+
+> Refonte complète de l'agencement (tri backlog #2, décisions §11/§16) : validée sur web
+> (141 unitaires + 4 E2E sur les nouveaux parcours, captures 390×844). Tag après revue
+> visuelle utilisateur.
+
+### Ajouté
+- **Topbar** : infos de la page active (nom/numéro, chip Édition, Polyphonie, grille) —
+  tap → tiroir page.
+- **Bottombar** : bascule Jeu ↔ Édition, **Stop général** (`stopAllVoices`, panique),
+  onglets de pages défilables (+ ajout en Édition), **Import rapide** (erreurs en snackbar),
+  Bibliothèque, Réglages. Icônes SVG inline (`Icon.svelte`, zéro dépendance).
+- **Drawer** (tiroir droit + voile) : `PadSettings` / `PageSettings` / `Settings` ;
+  fermeture ✕ ou tap hors ; tiroir **pad en Édition seulement** (en Jeu, un tap joue) ;
+  créer un pad (« + ») ouvre son tiroir.
+- **LibraryPanel** : bibliothèque en panneau plein écran.
+- État UI dans le store (`drawer`, `libraryOpen`), muté par les commandes uniquement
+  (`openPadDrawer`, `openPageDrawer`, `openSettingsDrawer`, `closeDrawer`, `openLibrary`,
+  `closeLibrary`, `stopAllVoices`).
+- Thème retravaillé : palette (`--panel`, `--border`, `--danger`), cibles tactiles ≥ 44 px,
+  grille centrée `100dvh`, safe-areas Android, formulaires de tiroir mutualisés.
+
+### Retiré / remplacé
+- `Editor.svelte` → éclaté en `PadSettings` + `PageSettings` (tiroir) ; `PageTabs.svelte` →
+  onglets intégrés à la bottombar ; `Settings` quitte son `<details>` pour le tiroir.
+
+### Tests
+- `commands.ui.test.ts` (13 tests) ; e2e réécrits sur les nouveaux parcours (import rapide
+  bottombar, panneau bibliothèque, tiroir, Stop général). Total : **141 unitaires + 4 E2E**.
+
 ## [0.6.0] - 2026-07-02 — M5 (Persistance & réglages)
 
 > **Validé** : 128 tests unitaires (storage exercé contre un **vrai SQLite** via `node:sqlite`)

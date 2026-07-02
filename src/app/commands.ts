@@ -43,6 +43,16 @@ export interface Commands {
   // UI globale
   toggleEditMode(): void;
   resumeAudio(): Promise<void>;
+  /** Stop général (panique bottombar) : arrête toutes les voix (§11). */
+  stopAllVoices(): void;
+
+  // Tiroir contextuel & panneau bibliothèque (§11)
+  openPadDrawer(padId: string): void;
+  openPageDrawer(): void;
+  openSettingsDrawer(): void;
+  closeDrawer(): void;
+  openLibrary(): void;
+  closeLibrary(): void;
 
   // Réglages (§9)
   setLocale(locale: string): void;
@@ -123,10 +133,41 @@ export function createCommands({
   return {
     toggleEditMode(): void {
       store.editMode = !store.editMode;
+      // Changer de mode referme le tiroir : son contexte (pad sélectionné…) n'a plus cours.
+      store.drawer = null;
       if (!store.editMode) store.selectedPadId = null;
     },
     resumeAudio(): Promise<void> {
       return engine.resume();
+    },
+    stopAllVoices(): void {
+      engine.stopAll();
+    },
+
+    openPadDrawer(padId: string): void {
+      // Édition seulement (§11) : en Jeu, un tap sur un pad joue.
+      if (!store.editMode) return;
+      if (!store.bank || !findPad(store.bank, padId)) return;
+      store.selectedPadId = padId;
+      store.drawer = 'pad';
+    },
+    openPageDrawer(): void {
+      if (!store.activePage) return;
+      store.drawer = 'page';
+    },
+    openSettingsDrawer(): void {
+      store.drawer = 'settings';
+    },
+    closeDrawer(): void {
+      if (store.drawer === 'pad') store.selectedPadId = null;
+      store.drawer = null;
+    },
+    openLibrary(): void {
+      store.drawer = null; // une seule surcouche à la fois
+      store.libraryOpen = true;
+    },
+    closeLibrary(): void {
+      store.libraryOpen = false;
     },
 
     setLocale(locale: string): void {
@@ -231,7 +272,9 @@ export function createCommands({
         position: pos,
       };
       bank.pads.push(pad);
+      // Création (Édition) → on enchaîne sur la configuration : tiroir pad ouvert (§11).
       store.selectedPadId = pad.id;
+      store.drawer = 'pad';
     },
     renamePad(padId: string, name: string): void {
       const pad = store.bank ? findPad(store.bank, padId) : undefined;
@@ -257,7 +300,10 @@ export function createCommands({
       if (!bank) return;
       engine.stopPad(padId);
       bank.pads = bank.pads.filter((p) => p.id !== padId);
-      if (store.selectedPadId === padId) store.selectedPadId = null;
+      if (store.selectedPadId === padId) {
+        store.selectedPadId = null;
+        if (store.drawer === 'pad') store.drawer = null; // son tiroir n'a plus d'objet
+      }
     },
     reorderPads(padId: string, toPosition: number): void {
       const bank = store.bank;
