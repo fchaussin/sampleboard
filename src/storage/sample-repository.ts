@@ -80,6 +80,18 @@ export function createSampleRepository({ db, files, lock = NO_LOCK }: SampleRepo
       });
     },
 
+    replace(sample: Sample, data: Uint8Array): Promise<void> {
+      return lock(async () => {
+        // Retravail (M7) : même fichier réécrit, métadonnées dépendantes mises à jour.
+        await files.write(sample.fileName, data);
+        await db.execute('UPDATE samples SET size_bytes = ?, duration_ms = ? WHERE id = ?', [
+          sample.sizeBytes,
+          sample.durationMs,
+          sample.id,
+        ]);
+      });
+    },
+
     remove(sampleId: string): Promise<void> {
       return lock(async () => {
         const rows = await db.select<Pick<SampleRow, 'file_name'>>(

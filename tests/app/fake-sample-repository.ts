@@ -9,6 +9,7 @@ export function fakeSampleRepository() {
     add: vi.fn().mockResolvedValue(undefined),
     rename: vi.fn().mockResolvedValue(undefined),
     remove: vi.fn().mockResolvedValue(undefined),
+    replace: vi.fn().mockResolvedValue(undefined),
     readBytes: vi.fn().mockResolvedValue(new Uint8Array()),
   } satisfies SampleRepository;
 }

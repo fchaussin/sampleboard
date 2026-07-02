@@ -14,7 +14,7 @@ const OPUS_APPLICATION_AUDIO = 2049;
 
 /** PCM non entrelacé (un Float32Array par canal) + fréquence source. */
 export interface PcmData {
-  channelData: Float32Array[];
+  channelData: Float32Array<ArrayBuffer>[];
   sampleRate: number;
 }
 

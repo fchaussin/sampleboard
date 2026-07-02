@@ -23,10 +23,11 @@ function fakeStore(bank: Bank | null = null, samples: Sample[] = []): AppStore {
 function fakeEngine() {
   return {
     resume: vi.fn().mockResolvedValue(undefined),
+    // 3 échantillons à 2 Hz = 1,5 s — la durée persistée est dérivée du PCM (M7).
     decode: vi.fn().mockResolvedValue({
       channelData: [new Float32Array([0, 0.5, -0.5])],
-      sampleRate: 44100,
-      durationMs: 1234.6,
+      sampleRate: 2,
+      durationMs: 1500,
     }),
     load: vi.fn().mockResolvedValue(undefined),
     unload: vi.fn(),
@@ -84,7 +85,7 @@ describe('importSample — pipeline', () => {
       label: 'kick.wav',
       mime: 'audio/ogg',
       fileName: 'id-0.ogg',
-      durationMs: 1235, // arrondi
+      durationMs: 1500, // dérivée du PCM (3 échantillons à 2 Hz)
       createdAt: 1_700_000_000_000, // horloge injectée
     });
   });

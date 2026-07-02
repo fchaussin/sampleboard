@@ -2,7 +2,8 @@
 // Couche de commandes — SEUL point de mutation du store (voir specifications.md §9).
 // Coordonne store + engine de façon atomique. L'UI n'émet que des intentions.
 import type { AudioEngine } from '../engine/audio-engine';
-import type { Encoder } from '../engine/encoder';
+import type { Encoder, PcmData } from '../engine/encoder';
+import { pcmDuration, trimPcm } from '../engine/pcm';
 import type { SampleRepository } from '../storage/types';
 import type { Bank, Pad, Page, Sample, Settings } from '../domain/types';
 import type { BackgroundBehavior, Color, PlayMode, VoiceMode } from '../domain/enums';
@@ -22,8 +23,8 @@ import { newId } from '../domain/id';
 import { BankFactory } from './bank-factory';
 import type { AppStore } from './store.svelte';
 
-/** Motif d'échec d'un import (voir §12, §13). */
-export type ImportError = 'tooLarge' | 'undecodable' | 'encodeFailed' | 'writeFailed';
+/** Motif d'échec d'un import ou d'un retravail (voir §12, §13, M7). */
+export type ImportError = 'tooLarge' | 'undecodable' | 'encodeFailed' | 'writeFailed' | 'readFailed';
 export type ImportResult = { ok: true; sampleId: string } | { ok: false; reason: ImportError };
 
 export interface CommandDeps {
@@ -100,8 +101,20 @@ export interface Commands {
   reorderPages(pageId: string, toIndex: number): void;
 
   // Bibliothèque (§8, §13)
-  /** Pipeline d'import : validation taille → décodage → ré-encodage Opus → entrée bibliothèque. */
+  /** Pipeline d'import direct (plage complète) : taille → décodage → Opus → bibliothèque. */
   importSample(fileName: string, bytes: ArrayBuffer): Promise<ImportResult>;
+
+  // Éditeur audio (M7, « découper », §16)
+  /** Décode et ouvre l'éditeur (waveform + rognage). Renvoie le motif d'échec, ou null. */
+  beginImport(fileName: string, bytes: ArrayBuffer, assignPadId?: string | null): Promise<ImportError | null>;
+  /** Re-décode un sample de la bibliothèque et ouvre l'éditeur (retravail). */
+  beginSampleRework(sampleId: string): Promise<ImportError | null>;
+  /** Pré-écoute la sélection courante de l'éditeur. */
+  previewEditorSelection(startS: number, endS: number): void;
+  /** Rogne à la sélection puis encode : import → nouvelle entrée ; retravail → remplacement. */
+  applyAudioEditor(startS: number, endS: number): Promise<ImportResult>;
+  /** Referme l'éditeur sans rien appliquer. */
+  cancelAudioEditor(): void;
   /** Pré-écoute d'un sample de la bibliothèque. */
   previewSample(sampleId: string): void;
   renameSample(sampleId: string, label: string): void;
@@ -133,6 +146,78 @@ export function createCommands({
     pagesSorted(bank).forEach((p, i) => {
       p.position = i;
     });
+  }
+
+  /** Rattache un sample (ou vide) à un pad ; nom par défaut si le pad n'en a pas (M6). */
+  function assignSampleToPad(padId: string, sampleId: string | null): void {
+    const pad = store.bank ? findPad(store.bank, padId) : undefined;
+    if (!pad) return;
+    if (sampleId === null) {
+      pad.sampleId = null;
+      return;
+    }
+    const sample = store.samples.find((s) => s.id === sampleId);
+    if (!sample) return;
+    pad.sampleId = sampleId;
+    if (pad.name === '') pad.name = defaultPadName(sample.label);
+  }
+
+  /** Décode une source (après garde de taille) en PCM ; null si non décodable (§12). */
+  async function decodeSource(bytes: ArrayBuffer): Promise<PcmData | null> {
+    await engine.resume();
+    try {
+      const decoded = await engine.decode(bytes);
+      return { channelData: decoded.channelData, sampleRate: decoded.sampleRate };
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Fin de pipeline d'import commune (§13) : encode le PCM en Opus, garde-fou de
+   * re-décodage, écriture immédiate, entrée en bibliothèque, assignation éventuelle.
+   */
+  async function finishImport(
+    fileName: string,
+    pcm: PcmData,
+    assignPadId: string | null,
+  ): Promise<ImportResult> {
+    let ogg: Uint8Array;
+    try {
+      ogg = await encode(pcm);
+    } catch {
+      return { ok: false, reason: 'encodeFailed' };
+    }
+
+    const id = ids();
+    try {
+      // Charge le RÉ-ENCODÉ : vérifie qu'il est décodable et le rend jouable/pré-écoutable.
+      await engine.load(id, ogg.slice().buffer);
+    } catch {
+      return { ok: false, reason: 'encodeFailed' };
+    }
+
+    const sample: Sample = {
+      id,
+      label: fileName,
+      fileName: `${id}.ogg`,
+      originalName: fileName,
+      mime: 'audio/ogg',
+      sizeBytes: ogg.byteLength,
+      durationMs: Math.round(pcmDuration(pcm) * 1000),
+      createdAt: now(),
+    };
+    // Écriture immédiate, hors autosave débouncé (§9) : fichier {sampleId}.ogg + ligne samples.
+    try {
+      await sampleRepository.add(sample, ogg);
+    } catch (err) {
+      console.error('import: échec de l’écriture du sample', err);
+      engine.unload(id);
+      return { ok: false, reason: 'writeFailed' };
+    }
+    store.samples = [...store.samples, sample];
+    if (assignPadId !== null) assignSampleToPad(assignPadId, id);
+    return { ok: true, sampleId: id };
   }
 
   return {
@@ -292,18 +377,7 @@ export function createCommands({
       if (pad) pad.color = color;
     },
     assignSample(padId: string, sampleId: string | null): void {
-      const pad = store.bank ? findPad(store.bank, padId) : undefined;
-      if (!pad) return;
-      if (sampleId === null) {
-        pad.sampleId = null;
-        return;
-      }
-      const sample = store.samples.find((s) => s.id === sampleId);
-      if (!sample) return;
-      pad.sampleId = sampleId;
-      // Nom par défaut (M6) : un pad SANS nom prend celui du sample (rogné) ; un nom
-      // choisi par l'utilisateur n'est jamais écrasé.
-      if (pad.name === '') pad.name = defaultPadName(sample.label);
+      assignSampleToPad(padId, sampleId);
     },
     deletePad(padId: string): void {
       const bank = store.bank;
@@ -392,50 +466,104 @@ export function createCommands({
 
     async importSample(fileName: string, bytes: ArrayBuffer): Promise<ImportResult> {
       if (bytes.byteLength > IMPORT_MAX_BYTES) return { ok: false, reason: 'tooLarge' };
-      await engine.resume();
+      const pcm = await decodeSource(bytes);
+      if (!pcm) return { ok: false, reason: 'undecodable' }; // format non décodable (§12)
+      return finishImport(fileName, pcm, null);
+    },
 
-      let decoded;
+    async beginImport(
+      fileName: string,
+      bytes: ArrayBuffer,
+      assignPadId: string | null = null,
+    ): Promise<ImportError | null> {
+      if (bytes.byteLength > IMPORT_MAX_BYTES) return 'tooLarge';
+      const pcm = await decodeSource(bytes);
+      if (!pcm) return 'undecodable';
+      store.audioEditor = { mode: 'import', fileName, pcm, sample: null, assignPadId };
+      return null;
+    },
+
+    async beginSampleRework(sampleId: string): Promise<ImportError | null> {
+      const sample = store.samples.find((s) => s.id === sampleId);
+      if (!sample) return 'readFailed';
+      let bytes: Uint8Array;
       try {
-        decoded = await engine.decode(bytes);
+        bytes = await sampleRepository.readBytes(sample.fileName);
       } catch {
-        return { ok: false, reason: 'undecodable' }; // format non décodable (§12)
+        return 'readFailed';
       }
+      const pcm = await decodeSource(bytes.slice().buffer as ArrayBuffer);
+      if (!pcm) return 'undecodable';
+      store.audioEditor = { mode: 'rework', fileName: sample.label, pcm, sample, assignPadId: null };
+      return null;
+    },
+
+    previewEditorSelection(startS: number, endS: number): void {
+      const editor = store.audioEditor;
+      if (!editor) return;
+      void engine.resume();
+      engine.previewPcm(trimPcm(editor.pcm, startS, endS));
+    },
+
+    async applyAudioEditor(startS: number, endS: number): Promise<ImportResult> {
+      const editor = store.audioEditor;
+      if (!editor) return { ok: false, reason: 'readFailed' };
+      engine.stopPcmPreview();
+      const pcm = trimPcm(editor.pcm, startS, endS);
+
+      if (editor.mode === 'import') {
+        const result = await finishImport(editor.fileName, pcm, editor.assignPadId);
+        if (result.ok) store.audioEditor = null; // échec → l'éditeur reste ouvert (message)
+        return result;
+      }
+
+      // Retravail : ré-encode et remplace le sample existant (id et fichier conservés).
+      const sample = editor.sample;
+      if (!sample) return { ok: false, reason: 'readFailed' };
+      // Meilleur effort en cas d'échec : recharge les octets d'origine (encore sur disque).
+      const restore = async (): Promise<void> => {
+        engine.unload(sample.id);
+        try {
+          const original = await sampleRepository.readBytes(sample.fileName);
+          await engine.load(sample.id, original.slice().buffer as ArrayBuffer);
+        } catch {
+          // buffer perdu : le pad jouera un no-op (§12) jusqu'au prochain démarrage
+        }
+      };
 
       let ogg: Uint8Array;
       try {
-        ogg = await encode({ channelData: decoded.channelData, sampleRate: decoded.sampleRate });
+        ogg = await encode(pcm);
       } catch {
         return { ok: false, reason: 'encodeFailed' };
       }
-
-      const id = ids();
+      engine.unload(sample.id); // purge buffer + pics (le retravail change la forme d'onde)
       try {
-        // Charge le RÉ-ENCODÉ : vérifie qu'il est décodable et le rend jouable/pré-écoutable.
-        await engine.load(id, ogg.slice().buffer);
+        await engine.load(sample.id, ogg.slice().buffer); // garde-fou de re-décodage
       } catch {
+        await restore();
         return { ok: false, reason: 'encodeFailed' };
       }
-
-      const sample: Sample = {
-        id,
-        label: fileName,
-        fileName: `${id}.ogg`,
-        originalName: fileName,
-        mime: 'audio/ogg',
+      const updated: Sample = {
+        ...sample,
         sizeBytes: ogg.byteLength,
-        durationMs: Math.round(decoded.durationMs),
-        createdAt: now(),
+        durationMs: Math.round(pcmDuration(pcm) * 1000),
       };
-      // Écriture immédiate, hors autosave débouncé (§9) : fichier {sampleId}.ogg + ligne samples.
       try {
-        await sampleRepository.add(sample, ogg);
+        await sampleRepository.replace(updated, ogg);
       } catch (err) {
-        console.error('import: échec de l’écriture du sample', err);
-        engine.unload(id);
+        console.error('découper: échec de l’écriture du sample retravaillé', err);
+        await restore();
         return { ok: false, reason: 'writeFailed' };
       }
-      store.samples = [...store.samples, sample];
-      return { ok: true, sampleId: id };
+      store.samples = store.samples.map((s) => (s.id === updated.id ? updated : s));
+      store.audioEditor = null;
+      return { ok: true, sampleId: updated.id };
+    },
+
+    cancelAudioEditor(): void {
+      engine.stopPcmPreview();
+      store.audioEditor = null;
     },
     previewSample(sampleId: string): void {
       void engine.resume();

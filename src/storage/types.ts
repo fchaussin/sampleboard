@@ -13,6 +13,8 @@ export interface SampleRepository {
   add(sample: Sample, bytes: Uint8Array): Promise<void>;
   rename(sampleId: string, label: string): Promise<void>;
   remove(sampleId: string): Promise<void>;
+  /** Remplace les octets ET les métadonnées d'un sample existant (retravail, M7). */
+  replace(sample: Sample, bytes: Uint8Array): Promise<void>;
   /** Octets audio lus depuis {appDataDir}/audio/{fileName}. */
   readBytes(fileName: string): Promise<Uint8Array>;
 }

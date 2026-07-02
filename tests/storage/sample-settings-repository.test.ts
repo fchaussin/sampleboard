@@ -103,6 +103,15 @@ describe('SampleRepository', () => {
     expect(await repo.list()).toEqual([]);
   });
 
+  it('replace réécrit le fichier et met à jour taille/durée (M7, retravail)', async () => {
+    const files = memoryFiles();
+    const repo = createSampleRepository({ db: executor, files });
+    await repo.add(sample('s1'), new Uint8Array([1, 2, 3, 4]));
+    await repo.replace({ ...sample('s1'), sizeBytes: 2, durationMs: 500 }, new Uint8Array([7, 8]));
+    expect(Array.from(files.store.get('s1.ogg')!)).toEqual([7, 8]);
+    expect((await repo.list())[0]).toMatchObject({ id: 's1', sizeBytes: 2, durationMs: 500, label: 'Label s1' });
+  });
+
   it('readBytes relit les octets écrits', async () => {
     const repo = createSampleRepository({ db: executor, files: memoryFiles() });
     await repo.add(sample('s1'), new Uint8Array([9, 8, 7]));

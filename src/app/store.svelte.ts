@@ -3,9 +3,23 @@
 // N'est muté QUE par la couche de commandes. Ne contient aucune logique de jeu (décision B).
 import { defaultSettings } from '../domain/invariants';
 import type { Bank, Page, Sample, Settings } from '../domain/types';
+import type { PcmData } from '../engine/encoder';
 
 /** Contenu du tiroir contextuel (§11) : réglages du pad, de la page, ou généraux. */
 export type DrawerContent = 'pad' | 'page' | 'settings';
+
+/** Session de l'éditeur audio (M7, « découper ») : PCM décodé en attente de rognage. */
+export interface AudioEditorState {
+  /** 'import' : nouveau fichier ; 'rework' : sample existant re-décodé. */
+  mode: 'import' | 'rework';
+  /** Nom du fichier source (import) ou label du sample (rework). */
+  fileName: string;
+  pcm: PcmData;
+  /** Sample retravaillé (mode 'rework' uniquement). */
+  sample: Sample | null;
+  /** Pad à assigner après validation (flux modale de choix de sample), ou null. */
+  assignPadId: string | null;
+}
 
 export class AppStore {
   /** Arbre banque chargé (null tant que non hydraté — jalon M5). */
@@ -25,6 +39,8 @@ export class AppStore {
   drawer = $state<DrawerContent | null>(null);
   /** Panneau bibliothèque plein écran ouvert (§11). */
   libraryOpen = $state(false);
+  /** Éditeur audio ouvert (M7) — $state.raw : remplacé en bloc, le PCM n'est pas proxifié. */
+  audioEditor = $state.raw<AudioEditorState | null>(null);
   /** Reflet minimal des voix actives émis par l'engine (jamais calculé ici). */
   activePadIds = $state<Set<string>>(new Set());
 

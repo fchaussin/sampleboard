@@ -6,6 +6,8 @@
 import type { Pad, Page } from '../domain/types';
 import { DEFAULT_MAX_VOICES } from '../domain/invariants';
 import { gainDbToAmplitude, type Voice } from './voice';
+import { computePeaks, pcmDuration } from './pcm';
+import type { PcmData } from './encoder';
 import type { DecodedAudio, EngineState, PlayingChangedCallback } from './types';
 
 /** Rampe de gain courte à l'arrêt d'une voix (anti-clic, voir §7). */
@@ -86,7 +88,7 @@ export class AudioEngine {
   async decode(bytes: ArrayBuffer): Promise<DecodedAudio> {
     const ctx = this.#ensureContext();
     const buffer = await ctx.decodeAudioData(bytes.slice(0));
-    const channelData: Float32Array[] = [];
+    const channelData: Float32Array<ArrayBuffer>[] = [];
     for (let c = 0; c < buffer.numberOfChannels; c++) {
       // Copie : on ne veut pas exposer/détacher le stockage interne de l'AudioBuffer.
       channelData.push(new Float32Array(buffer.getChannelData(c)));
@@ -209,23 +211,55 @@ export class AudioEngine {
     const cached = this.#peaks.get(key);
     if (cached) return cached;
 
-    const out = new Float32Array(buckets);
-    const bucketSize = buffer.length / buckets;
-    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-      const data = buffer.getChannelData(channel);
-      for (let b = 0; b < buckets; b++) {
-        const start = Math.floor(b * bucketSize);
-        const end = Math.min(buffer.length, Math.ceil((b + 1) * bucketSize));
-        let peak = out[b]!;
-        for (let i = start; i < end; i++) {
-          const v = Math.abs(data[i]!);
-          if (v > peak) peak = v;
-        }
-        out[b] = peak;
-      }
-    }
+    const channels: Float32Array[] = [];
+    for (let c = 0; c < buffer.numberOfChannels; c++) channels.push(buffer.getChannelData(c));
+    const out = computePeaks(channels, buckets);
     this.#peaks.set(key, out);
     return out;
+  }
+
+  // --- Pré-écoute d'un PCM en cours d'édition (M7, éditeur audio) ---------------------------
+
+  #pcmPreview: AudioBufferSourceNode | null = null;
+
+  /**
+   * Joue un PCM (une fois, hors pads/reflet) — pré-écoute de la sélection dans l'éditeur
+   * audio. Un nouvel appel remplace la lecture en cours.
+   */
+  previewPcm(pcm: PcmData): void {
+    const ctx = this.#ensureContext();
+    this.stopPcmPreview();
+    const length = pcm.channelData[0]?.length ?? 0;
+    if (length === 0 || pcmDuration(pcm) === 0) return;
+
+    const buffer = ctx.createBuffer(Math.max(1, pcm.channelData.length), length, pcm.sampleRate);
+    pcm.channelData.forEach((data, channel) => buffer.copyToChannel(data, channel));
+
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.onended = () => {
+      if (this.#pcmPreview === source) this.#pcmPreview = null;
+      try {
+        source.disconnect();
+      } catch {
+        // déjà déconnecté
+      }
+    };
+    this.#pcmPreview = source;
+    source.start();
+  }
+
+  /** Arrête la pré-écoute de PCM en cours (no-op sinon). */
+  stopPcmPreview(): void {
+    const source = this.#pcmPreview;
+    this.#pcmPreview = null;
+    if (!source) return;
+    try {
+      source.stop();
+    } catch {
+      // déjà arrêtée
+    }
   }
 
   /**

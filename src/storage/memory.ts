@@ -40,6 +40,11 @@ export function createMemoryRepositories(): Repositories {
         const sample = samples.get(sampleId);
         if (sample) sample.label = label;
       },
+      async replace(sample: Sample, data: Uint8Array): Promise<void> {
+        if (!samples.has(sample.id)) return;
+        samples.set(sample.id, { ...sample });
+        audioBytes.set(sample.fileName, data.slice());
+      },
       async remove(sampleId: string): Promise<void> {
         const sample = samples.get(sampleId);
         if (!sample) return;

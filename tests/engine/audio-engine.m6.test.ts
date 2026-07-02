@@ -70,6 +70,36 @@ describe('peaks (forme d’onde statique du sample)', () => {
   });
 });
 
+describe('previewPcm (pré-écoute de l’éditeur audio, M7)', () => {
+  it('joue le PCM via un buffer construit ; un nouvel appel remplace la lecture', async () => {
+    const { engine, ctx } = makeEngine();
+    await engine.resume();
+    const pcm = { channelData: [new Float32Array([0.1, 0.2])], sampleRate: 2 };
+    engine.previewPcm(pcm);
+    expect(ctx.sources).toHaveLength(1);
+    expect(ctx.sources[0]!.started).toBe(true);
+    engine.previewPcm(pcm);
+    expect(ctx.sources[0]!.stopped).toBe(true); // remplacée
+    expect(ctx.sources[1]!.started).toBe(true);
+  });
+
+  it('stopPcmPreview arrête la lecture en cours (no-op sinon)', async () => {
+    const { engine, ctx } = makeEngine();
+    await engine.resume();
+    engine.stopPcmPreview(); // no-op
+    engine.previewPcm({ channelData: [new Float32Array([0.1])], sampleRate: 1 });
+    engine.stopPcmPreview();
+    expect(ctx.sources[0]!.stopped).toBe(true);
+  });
+
+  it('PCM vide : aucun démarrage', async () => {
+    const { engine, ctx } = makeEngine();
+    await engine.resume();
+    engine.previewPcm({ channelData: [], sampleRate: 44100 });
+    expect(ctx.sources).toHaveLength(0);
+  });
+});
+
 describe('progress (barre d’avancement)', () => {
   it('One-Shot : avancement borné à 1 (buffer factice d’une seconde)', async () => {
     const { engine, ctx } = await playingEngine();

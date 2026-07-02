@@ -7,7 +7,7 @@ export type PlayingChangedCallback = (activePadIds: Set<string>) => void;
 
 /** PCM décodé (canaux non entrelacés) + métadonnées, produit par `AudioEngine.decode`. */
 export interface DecodedAudio {
-  channelData: Float32Array[];
+  channelData: Float32Array<ArrayBuffer>[];
   sampleRate: number;
   durationMs: number;
 }
