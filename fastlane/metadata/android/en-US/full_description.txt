@@ -1,4 +1,4 @@
-Audio Sample Board is a board of sound-triggering pads (soundboard style), deliberately simple: no DSP, no complex audio editing.
+Sampleboard is a board of sound-triggering pads (soundboard style), deliberately simple: no DSP, no complex audio editing.
 
 Features:
 

@@ -1,4 +1,4 @@
-package org.audiosampleboard.app
+package org.sampleboard.app
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge

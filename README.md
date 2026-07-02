@@ -1,9 +1,9 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
-# Audio Sample Board
+# Sampleboard
 
-**Audio Sample Board** : application de **pads** déclencheurs de sons (façon soundboard),
+**Sampleboard** : application de **pads** déclencheurs de sons (façon soundboard),
 organisés en **pages**. Vous importez vos fichiers audio (→ **bibliothèque**) et
-configurez vos pads. C'est un *audio-sample-board*, **pas un sampler** : volontairement simple
+configurez vos pads. C'est un *sampleboard*, **pas un sampler** : volontairement simple
 (pas de DSP, pas d'édition audio poussée). Cible de distribution : **F-Droid** (Android).
 
 ## Stack

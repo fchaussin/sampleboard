@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Capacités par défaut de Audio Sample Board : SQLite, système de fichiers et dialogue d'import.",
+  "description": "Capacités par défaut de Sampleboard : SQLite, système de fichiers et dialogue d'import.",
   "windows": ["main"],
   "permissions": [
     "core:default",

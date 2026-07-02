@@ -1,10 +1,10 @@
 {
-  "name": "audio-sample-board",
+  "name": "sampleboard",
   "version": "0.7.0",
   "private": true,
   "type": "module",
   "license": "GPL-3.0-or-later",
-  "description": "Audio Sample Board — application de pads déclencheurs de sons (soundboard) pour F-Droid.",
+  "description": "Sampleboard — application de pads déclencheurs de sons (soundboard) pour F-Droid.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

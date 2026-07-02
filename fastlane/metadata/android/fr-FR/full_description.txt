@@ -1,4 +1,4 @@
-Audio Sample Board est un tableau de pads déclencheurs de sons (façon soundboard), pensé pour être simple : pas de DSP, pas d'édition audio complexe.
+Sampleboard est un tableau de pads déclencheurs de sons (façon soundboard), pensé pour être simple : pas de DSP, pas d'édition audio complexe.
 
 Fonctionnalités :
 

@@ -8,10 +8,10 @@ Le **comment** de la persistance SQLite, de l'autosave et des réglages. Le **qu
 
 | Donnée | Emplacement |
 |---|---|
-| Base SQLite | `{appConfigDir}/audio-sample-board.db` (résolu par tauri-plugin-sql, créé au besoin) |
+| Base SQLite | `{appConfigDir}/sampleboard.db` (résolu par tauri-plugin-sql, créé au besoin) |
 | Octets audio | `{appDataDir}/audio/{sampleId}.ogg` (jamais de BLOB, §8) |
 
-Sous Linux : `~/.config/org.audiosampleboard.app/` et `~/.local/share/org.audiosampleboard.app/audio/`
+Sous Linux : `~/.config/org.sampleboard.app/` et `~/.local/share/org.sampleboard.app/audio/`
 (selon l'`identifier` de `tauri.conf.json`).
 
 ## Couche `storage`

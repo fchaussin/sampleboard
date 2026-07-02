@@ -4,7 +4,7 @@
 // node:sqlite dans les tests). Jamais de modification destructive silencieuse.
 
 /** Nom du fichier SQLite dans le répertoire de données de l'app. */
-export const DB_URL = 'sqlite:audio-sample-board.db';
+export const DB_URL = 'sqlite:sampleboard.db';
 
 /** Contrat minimal d'exécution SQL (le seul que les dépôts connaissent). */
 export interface SqlExecutor {

@@ -1,5 +1,5 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
-# Documentation Audio Sample Board
+# Documentation Sampleboard
 
 Doc **vivante**, tenue à jour au fil de l'implémentation. Elle est **séparée de la
 spécification** :

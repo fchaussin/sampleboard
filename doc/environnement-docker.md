@@ -48,8 +48,8 @@ docker compose -f docker-compose.dev.yml -f docker-compose.gui.yml run --rm dev 
 Depuis M5 :
 
 - **Données de l'app persistées** : le volume **`app-home`** (`/home/app`) porte la base SQLite
-  (`~/.config/org.audiosampleboard.app/audio-sample-board.db`) et les fichiers audio
-  (`~/.local/share/org.audiosampleboard.app/audio/`) — banque, bibliothèque et réglages survivent
+  (`~/.config/org.sampleboard.app/sampleboard.db`) et les fichiers audio
+  (`~/.local/share/org.sampleboard.app/audio/`) — banque, bibliothèque et réglages survivent
   aux `run --rm`. Repartir de zéro : `docker volume rm ambianceur_app-home`.
 - **Audio** : l'overlay GUI exporte `PULSE_SERVER` vers le socket PulseAudio de WSLg
   (`/mnt/wslg/PulseServer`, déjà bind-monté) — sans lui, WebKitGTK n'a aucune sortie et les
@@ -58,7 +58,7 @@ Depuis M5 :
 
 ## Production (build d'artefacts)
 
-Audio Sample Board est une app **cliente** : « prod » ne fait pas tourner un serveur, il **produit
+Sampleboard est une app **cliente** : « prod » ne fait pas tourner un serveur, il **produit
 l'artefact** puis s'arrête.
 
 ```bash
@@ -102,5 +102,5 @@ paquets root, génériques à tout conteneur rootless), puis Docker rootless ins
 
 ```bash
 docker compose -f docker-compose.dev.yml down -v    # + volumes dev
-docker image rm audio-sample-board-dev audio-sample-board-prod
+docker image rm sampleboard-dev sampleboard-prod
 ```

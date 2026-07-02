@@ -1,5 +1,5 @@
 {
-  "app.name": "Audio Sample Board",
+  "app.name": "Sampleboard",
   "app.tagline": "Pads déclencheurs de sons",
   "app.bootError": "Échec du démarrage de l'application.",
   "nav.play": "Jeu",

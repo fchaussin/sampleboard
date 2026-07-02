@@ -3,5 +3,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    audio_sample_board_lib::run()
+    sampleboard_lib::run()
 }

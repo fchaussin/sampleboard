@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">"Audio Sample Board"</string>
-    <string name="main_activity_title">"Audio Sample Board"</string>
+    <string name="app_name">"Sampleboard"</string>
+    <string name="main_activity_title">"Sampleboard"</string>
 </resources>
