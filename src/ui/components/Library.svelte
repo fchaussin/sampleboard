@@ -3,7 +3,7 @@
 <script lang="ts">
   import type { App } from '../../app/create-app';
   import type { ImportError } from '../../app/commands';
-  import { importFile } from '../import-file';
+  import { importFileError } from '../import-file';
   import { t } from '../i18n';
 
   let { app }: { app: App } = $props();
@@ -20,6 +20,14 @@
     return app.store.bank ? app.store.bank.pads.filter((p) => p.sampleId === sampleId).length : 0;
   }
 
+  /** Méta affichées : taille (Mo) et durée (s), formatées selon la langue. */
+  function meta(sizeBytes: number, durationMs: number | null): string {
+    const nf = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
+    const size = `${nf.format(sizeBytes / 1_048_576)} ${t('unit.mb', locale)}`;
+    if (durationMs === null) return size;
+    return `${size} · ${nf.format(durationMs / 1000)} ${t('unit.seconds', locale)}`;
+  }
+
   async function onImport(event: Event): Promise<void> {
     const input = event.currentTarget as HTMLInputElement;
     const file = input.files?.[0];
@@ -27,7 +35,7 @@
     if (!file) return;
     busy = true;
     error = null;
-    error = await importFile(app, file);
+    error = await importFileError(app, file);
     busy = false;
   }
 
@@ -62,12 +70,15 @@
     <ul class="list">
       {#each samples as s (s.id)}
         <li>
-          <input
-            class="label"
-            type="text"
-            value={s.label}
-            oninput={(e) => app.commands.renameSample(s.id, e.currentTarget.value)}
-          />
+          <span class="cell">
+            <input
+              class="label"
+              type="text"
+              value={s.label}
+              oninput={(e) => app.commands.renameSample(s.id, e.currentTarget.value)}
+            />
+            <span class="meta">{meta(s.sizeBytes, s.durationMs)}</span>
+          </span>
           <button type="button" class="icon" title={t('library.preview', locale)} onclick={() => app.commands.previewSample(s.id)}>▶</button>
           {#if confirming === s.id}
             <span class="confirm">
@@ -125,7 +136,7 @@
   }
 
   .error {
-    color: #e0574f;
+    color: var(--danger);
     font-size: 0.8rem;
   }
 
@@ -152,14 +163,28 @@
     font-size: 0.85rem;
   }
 
-  .label {
+  .cell {
     flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .label {
+    width: 100%;
     padding: 0.25rem 0.5rem;
     background: transparent;
     color: inherit;
-    border: 1px solid var(--muted);
+    border: 1px solid var(--border);
     border-radius: 6px;
     font: inherit;
+  }
+
+  .meta {
+    font-size: 0.72rem;
+    color: var(--muted);
+    padding-left: 0.5rem;
   }
 
   .icon {
@@ -180,7 +205,7 @@
   }
 
   .danger {
-    border-color: #e0574f;
-    color: #e0574f;
+    border-color: var(--danger);
+    color: var(--danger);
   }
 </style>

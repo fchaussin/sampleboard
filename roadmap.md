@@ -162,10 +162,23 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
   ≥ 44 px, grille centrée plein écran `100dvh`, safe-areas Android, formulaire de tiroir
   mutualisé (`.drawer-form`).
 - [x] i18n : nouvelles clés (bottombar, drawer, panneau bibliothèque).
-- [x] **Tests** : 141 unitaires (dont 13 commandes UI) + 4 e2e adaptés aux nouveaux parcours
-  (import rapide, tiroir, Stop général), verts en Docker.
+- [x] **Couleurs** (2ᵉ passe, demandes du 2026-07-02) : prop `color` (token) sur pages et
+  pads — palette **OKLCH** homogène (8 teintes, `--c-*` dans app.css), `ColorPicker` partagé,
+  onglets et pads teintés, **migration 2** (colonnes `color`), tokens inconnus neutralisés.
+- [x] **Noms par défaut** : page de la banque par défaut « Principal », pages ajoutées
+  « Page N » (générateurs i18n injectés depuis le bootstrap, §4) ; un pad sans nom prend le
+  label du sample assigné (extension retirée, rogné à 12 caractères).
+- [x] **Modale de choix de sample** (`<dialog>`, `SamplePicker`) : liste + pré-écoute +
+  « aucun » + import direct (importé → assigné). Empilement des surcouches formalisé :
+  couche 0 app / couche 1 tiroir & panneau (`--z-*`) / modales en top-layer natif (l'ordre
+  d'ouverture fait la pile — prêt pour la modale de crop, backlog #4).
+- [x] **Bibliothèque** : méta affichées (taille Mo, durée s — `Intl.NumberFormat`). LUFS →
+  backlog #7.
+- [x] **Grille 1×1** : bornes élargies (`rows [1,12]`, `cols [1,6]`) — **migration 3**
+  (reconstruction de `pages`, procédure SQLite, cascade FK vérifiée) ; spec §2/§6/§8/§16 à jour.
+- [x] **Tests** : 156 unitaires + 4 e2e adaptés (modale, tiroir, Stop général), verts en Docker.
 - [x] **Validation web (1er temps)** : parcours complet couvert en e2e (import → tiroir →
-  assignation → jeu → stop) + captures 390×844 revues. Android/captures fastlane ensuite (M7).
+  modale → jeu → stop) + captures 390×844 revues. Android/captures fastlane ensuite (M7).
 
 ### M7 — Empaquetage · `0.8.0` · Phase E
 
@@ -220,6 +233,11 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 | 1 | Signalement visuel d'un sample dont le **fichier disque a disparu** (aujourd'hui : sample listé, pad muet no-op — voir doc M5) | 2026-07-02 | — | À trier |
 | 2 | **Refonte de l'agencement UI** : *bottombar* (actions principales + pages + accès Réglages généraux) ; *topbar* (infos importantes de la page) ; *drawer* contextuel à droite (réglages page & pad). Spec affinée le 2026-07-02 (voir jalon M6). | 2026-07-02 | `0.7.0` | **Planifiée → M6** |
 | 3 | **Correctif env dev** : son muet dans la fenêtre `tauri dev` sous WSLg malgré `PULSE_SERVER` (diagnostiquer WebKitGTK/GStreamer/Pulse — cookie ? sink ?). N'affecte pas la cible Android. | 2026-07-02 | — | À trier |
+| 4 | **Éditeur audio (waveform + crop à l'import)** : à l'upload, afficher la forme d'onde avec une UI de rognage (start/end) avant encodage, dans une **vue dédiée plein écran** (façon LibraryPanel). ⚠️ C'est le « **découper** » + waveform classés v2 en spec §17 — les rapatrier en v1 = décision à figer en spec §16/§17. Gros morceau : jalon dédié proposé après M6. | 2026-07-02 | jalon dédié ? | À trier |
+| 5 | **Undo/redo dans l'éditeur de découpe** : historique des actions (start/end) dans l'UI de crop (#4). Dépend de #4. | 2026-07-02 | avec #4 | À trier |
+| 6 | **Titre ID3 à l'import** : lire les tags (ID3 & co) du fichier source pour initialiser `label` (sinon nom de fichier). Améliore aussi le nom par défaut des pads. | 2026-07-02 | — | À trier |
+| 7 | **Niveau LUFS des samples** : mesurer la sonie intégrée (ITU-R BS.1770) sur le PCM à l'import, la persister (migration : colonne `loudness_lufs`) et l'afficher en bibliothèque. (Nom/taille/durée : déjà affichés depuis M6.) | 2026-07-02 | — | À trier |
+| 8 | **Normalisation de sonie** : ramener les samples à un niveau LUFS cible (réglage global ?) — offset de gain dérivé de la mesure #7, appliqué au GainNode (non destructif) ou au PCM avant encodage. Dépend de #7. | 2026-07-02 | avec #7 | À trier |
 
 ---
 

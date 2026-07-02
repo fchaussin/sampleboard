@@ -1,14 +1,35 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 :root {
   color-scheme: dark;
-  --bg: #101216;
-  --panel: #181b21;
-  --border: #2a2f3a;
-  --fg: #e7e9ee;
-  --muted: #9aa0ad;
-  --accent: #5b8cff;
-  --accent-contrast: #0c1220;
-  --danger: #e0574f;
+
+  /* Thème — tout en OKLCH : L homogène entre teintes, maintenance par simple rotation de hue. */
+  --bg: oklch(18% 0.012 265);
+  --panel: oklch(22% 0.014 265);
+  --border: oklch(32% 0.02 265);
+  --fg: oklch(93% 0.006 265);
+  --muted: oklch(71% 0.016 265);
+  --accent: oklch(66% 0.17 265);
+  --accent-contrast: oklch(16% 0.03 265);
+  --danger: oklch(62% 0.17 27);
+
+  /* Palette assignable (pages, pads) — tokens du domaine (COLORS, enums.ts).
+     Même L/C partout : seules les teintes varient → contrastes homogènes garantis. */
+  --c-red: oklch(66% 0.17 27);
+  --c-orange: oklch(70% 0.16 55);
+  --c-amber: oklch(78% 0.14 90);
+  --c-green: oklch(70% 0.16 150);
+  --c-teal: oklch(72% 0.13 190);
+  --c-blue: oklch(66% 0.17 265);
+  --c-violet: oklch(66% 0.17 300);
+  --c-pink: oklch(68% 0.17 350);
+
+  /* Empilement des surcouches (§11) — couche 0 : app (topbar/grille/bottombar).
+     Les MODALES (<dialog>.showModal) vivent dans le top-layer natif, TOUJOURS au-dessus
+     de ces z-index, et s'empilent entre elles dans l'ordre d'ouverture (import → crop…). */
+  --z-drawer: 20;   /* couche 1 : tiroir contextuel (voile + panneau) */
+  --z-panel: 25;    /* couche 1 : panneau plein écran (bibliothèque) */
+  --z-snackbar: 30; /* notifications transitoires au-dessus de la couche 1 */
+
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -144,4 +165,21 @@ body {
   margin: 0;
   color: var(--muted);
   font-size: 0.85rem;
+}
+
+.drawer-form .sample-select {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0.45rem 0.6rem;
+  text-align: left;
+  background: var(--bg);
+  color: inherit;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

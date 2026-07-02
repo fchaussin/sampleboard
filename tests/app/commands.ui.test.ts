@@ -131,6 +131,80 @@ describe('tiroirs page & réglages', () => {
   });
 });
 
+describe('couleurs de palette (M6)', () => {
+  it('setPadColor pose et retire un token valide', () => {
+    const { store, commands } = setup();
+    commands.setPadColor('pad', 'teal');
+    expect(store.bank!.pads[0]!.color).toBe('teal');
+    commands.setPadColor('pad', null);
+    expect(store.bank!.pads[0]!.color).toBeNull();
+  });
+
+  it('setPadColor refuse un token hors palette', () => {
+    const { store, commands } = setup();
+    commands.setPadColor('pad', 'fuchsia-disco' as never);
+    expect(store.bank!.pads[0]!.color).toBeUndefined();
+  });
+
+  it('setPageColor pose un token sur la page', () => {
+    const { store, commands } = setup();
+    commands.setPageColor('pg', 'violet');
+    expect(store.bank!.pages[0]!.color).toBe('violet');
+  });
+});
+
+describe('noms par défaut (M6)', () => {
+  it('addPage nomme « Page N » via le générateur injecté', () => {
+    const store = fakeStore();
+    const engine = fakeEngine();
+    const commands = createCommands({
+      store,
+      engine: engine as unknown as AudioEngine,
+      encode: async () => new Uint8Array(),
+      sampleRepository: fakeSampleRepository(),
+      ids: () => 'p-new',
+      newPageName: (n) => `Page ${n}`,
+    });
+    commands.addPage();
+    expect(store.bank!.pages.find((p) => p.id === 'p-new')?.name).toBe('Page 2');
+  });
+
+  it('assignSample nomme un pad SANS nom d’après le label du sample (rogné)', () => {
+    const store = fakeStore();
+    (store.samples as unknown[]).push({
+      id: 's1',
+      label: 'explosion-de-fin-du-monde.mp3',
+      fileName: 's1.ogg',
+      originalName: 'x',
+      mime: 'audio/ogg',
+      sizeBytes: 1,
+      durationMs: null,
+      createdAt: 0,
+    });
+    const { commands } = setup(store);
+    commands.assignSample('pad', 's1');
+    expect(store.bank!.pads[0]!.name).toBe('explosion-de');
+  });
+
+  it('assignSample n’écrase jamais un nom choisi par l’utilisateur', () => {
+    const store = fakeStore();
+    store.bank!.pads[0]!.name = 'Mon pad';
+    (store.samples as unknown[]).push({
+      id: 's1',
+      label: 'kick.wav',
+      fileName: 's1.ogg',
+      originalName: 'x',
+      mime: 'audio/ogg',
+      sizeBytes: 1,
+      durationMs: null,
+      createdAt: 0,
+    });
+    const { commands } = setup(store);
+    commands.assignSample('pad', 's1');
+    expect(store.bank!.pads[0]!.name).toBe('Mon pad');
+  });
+});
+
 describe('panneau bibliothèque & Stop général', () => {
   it('openLibrary ouvre le panneau et referme le tiroir (une surcouche à la fois)', () => {
     const { store, commands } = setup();

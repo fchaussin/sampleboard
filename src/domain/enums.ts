@@ -12,3 +12,20 @@ export type BackgroundBehavior = 'stopAll' | 'stopSustained' | 'keepPlaying';
 
 /** État visuel d'un pad dérivé de son assignation (voir Glossaire). */
 export type PadStatus = 'active' | 'missing' | 'empty' | 'idle';
+
+/**
+ * Palette de couleurs assignables (pages, pads). Tokens stables persistés en base ;
+ * les valeurs visuelles (OKLCH) vivent dans app.css (`--c-<token>`), pas ici.
+ */
+export const COLORS = [
+  'red',
+  'orange',
+  'amber',
+  'green',
+  'teal',
+  'blue',
+  'violet',
+  'pink',
+] as const;
+
+export type Color = (typeof COLORS)[number];

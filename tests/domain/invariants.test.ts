@@ -35,13 +35,15 @@ describe('bornes de gain (dB)', () => {
 
 describe('bornes de grille', () => {
   it('rows ∈ [2,12], cols ∈ [2,6], entiers', () => {
-    expect(isValidRows(2)).toBe(true);
+    expect(isValidRows(1)).toBe(true);
     expect(isValidRows(12)).toBe(true);
+    expect(isValidRows(0)).toBe(false);
     expect(isValidRows(13)).toBe(false);
     expect(isValidRows(3.5)).toBe(false);
+    expect(isValidCols(1)).toBe(true);
     expect(isValidCols(6)).toBe(true);
     expect(isValidCols(7)).toBe(false);
-    expect(isValidCols(1)).toBe(false);
+    expect(isValidCols(0)).toBe(false);
   });
 
   it('capacité = rows × cols', () => {

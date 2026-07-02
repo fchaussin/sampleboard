@@ -23,6 +23,18 @@ export interface App {
 }
 
 /**
+ * Libellés par défaut injectés par le bootstrap (main.ts) : les couches app/domaine ne
+ * peuvent pas importer ui/i18n (règle de dépendance §4), mais les noms par défaut des
+ * pages sont des DONNÉES utilisateur localisées à la création.
+ */
+export interface CreateAppOptions {
+  /** Nom de la page de la banque par défaut (premier lancement) — « Principal ». */
+  defaultPageName?: string;
+  /** Nom de la n-ième page ajoutée — « Page N ». */
+  newPageName?: (n: number) => string;
+}
+
+/**
  * Dépôts selon le runtime : SQLite natif + fichiers sous Tauri (la cible),
  * en mémoire dans le navigateur nu (:1420 en dev — session seulement, voir storage/memory.ts).
  */
@@ -43,7 +55,7 @@ async function createRepositories(): Promise<Repositories> {
 }
 
 /** Construit et câble le graphe d'objets de l'application, puis hydrate depuis la persistance. */
-export async function createApp(): Promise<App> {
+export async function createApp(options: CreateAppOptions = {}): Promise<App> {
   const store = createStore();
 
   // Plafond de voix lu dynamiquement depuis les réglages (FIFO interne, voir §7).
@@ -51,7 +63,13 @@ export async function createApp(): Promise<App> {
 
   const { bankRepository, sampleRepository, settingsRepository } = await createRepositories();
 
-  const commands = createCommands({ store, engine, encode: createOpusEncoder(), sampleRepository });
+  const commands = createCommands({
+    store,
+    engine,
+    encode: createOpusEncoder(),
+    sampleRepository,
+    newPageName: options.newPageName,
+  });
   const persistence = createPersistence({
     store,
     bankRepository,
@@ -83,7 +101,7 @@ export async function createApp(): Promise<App> {
 
   let bank = await bankRepository.load();
   if (!bank) {
-    bank = createDefaultBank();
+    bank = createDefaultBank(undefined, options.defaultPageName ?? '');
     await bankRepository.save(bank); // ids stables dès le premier lancement
   }
   commands.hydrateBank(bank);

@@ -32,9 +32,25 @@ versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
 - `Editor.svelte` → éclaté en `PadSettings` + `PageSettings` (tiroir) ; `PageTabs.svelte` →
   onglets intégrés à la bottombar ; `Settings` quitte son `<details>` pour le tiroir.
 
+### Ajouté (2ᵉ passe)
+- **Couleurs de pages et de pads** : prop `color` (token de palette), **palette OKLCH**
+  (8 teintes homogènes en L/C, thème entier converti en oklch()), `ColorPicker` partagé,
+  onglets/pads teintés (`--tint`), **migration 2** ; token inconnu neutralisé au chargement.
+- **Noms par défaut** : page initiale « Principal », pages ajoutées « Page N » (générateurs
+  i18n injectés via `CreateAppOptions` — la couche app n'importe jamais ui/i18n, §4) ; pad
+  sans nom nommé d'après le sample assigné (`defaultPadName`, extension retirée, 12 car. max).
+- **Modale de choix de sample** (`SamplePicker`, `<dialog>` natif) : liste + pré-écoute +
+  « aucun » + **import direct assigné dans la foulée**. Empilement des surcouches formalisé
+  (couche 0 app / couche 1 tiroir & panneau `--z-*` / modales en top-layer natif).
+- **Bibliothèque** : méta par sample (taille Mo, durée s, localisées).
+- **Grille réductible à 1×1** : bornes `rows [1,12]` / `cols [1,6]` — **migration 3**
+  (reconstruction de `pages` selon la procédure SQLite, FK/cascades vérifiées).
+- DRY : helpers partagés `ui/import-file.ts` (chemin d'import unique) et `ui/tint.ts`.
+
 ### Tests
-- `commands.ui.test.ts` (13 tests) ; e2e réécrits sur les nouveaux parcours (import rapide
-  bottombar, panneau bibliothèque, tiroir, Stop général). Total : **141 unitaires + 4 E2E**.
+- `commands.ui.test.ts` (drawer/bibliothèque/stop + couleurs + noms), `colors-naming.test.ts`,
+  migrations 2-3 (aller-retour couleur, assainissement, reconstruction 1×1) ; e2e adaptés
+  (modale de sample). Total : **156 unitaires + 4 E2E**.
 
 ## [0.6.0] - 2026-07-02 — M5 (Persistance & réglages)
 

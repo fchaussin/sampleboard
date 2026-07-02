@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Domaine pur : types du modèle (voir specifications.md §6). Aucune dépendance externe.
-import type { PlayMode, VoiceMode, BackgroundBehavior } from './enums';
+import type { PlayMode, VoiceMode, BackgroundBehavior, Color } from './enums';
 
 export interface Pad {
   id: string;
@@ -14,6 +14,8 @@ export interface Pad {
   gainDb: number;
   /** Index dans la grille : 0 .. rows*cols-1. */
   position: number;
+  /** Token de la palette (M6, voir COLORS) ; null/absent = neutre. */
+  color?: Color | null;
 }
 
 export interface Page {
@@ -21,11 +23,13 @@ export interface Page {
   name: string;
   /** Polyphonie ; défaut : 'poly'. */
   voiceMode: VoiceMode;
-  /** Défaut : 4 (plage 2..12). */
+  /** Défaut : 4 (plage 1..12). */
   rows: number;
-  /** Défaut : 4 (plage 2..6). */
+  /** Défaut : 4 (plage 1..6). */
   cols: number;
   position: number;
+  /** Token de la palette (M6, voir COLORS) ; null/absent = neutre. */
+  color?: Color | null;
 }
 
 /**

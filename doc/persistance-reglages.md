@@ -18,7 +18,9 @@ Sous Linux : `~/.config/com.sampleboard.app/` et `~/.local/share/com.sampleboard
 
 - **`db.ts`** — contrat `SqlExecutor` (`execute`/`select`) + **migrations** par `user_version`
   (`openDatabase` applique les manquantes en séquence, jamais de destruction silencieuse).
-  Migration 1 = schéma §8 complet. Aussi : `createWriteLock()` (voir ci-dessous).
+  Migration 1 = schéma §8 ; migration 2 (M6) = colonnes `color` ; migration 3 (M6) =
+  bornes de grille 1×1 (reconstruction de `pages`, procédure SQLite). Aussi :
+  `createWriteLock()` (voir ci-dessous).
 - **`tauri.ts`** — SEUL module qui touche les plugins : exécuteur sur `Database.load` (plugin sql)
   et `AudioFileStore` sur plugin fs (`BaseDirectory.AppData`, `mkdir` paresseux de `audio/`).
   Chargé par **import dynamique** uniquement sous Tauri.

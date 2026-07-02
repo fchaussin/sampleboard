@@ -50,6 +50,33 @@ sélectionné referme le tiroir ; `toggleEditMode` referme le tiroir (le context
 | `Settings.svelte` en `<details>` | contenu du tiroir Réglages |
 | `Library` au-dessus de la grille | `LibraryPanel` plein écran |
 
+## Couleurs (palette OKLCH)
+
+Pages et pads portent un **token** de palette (`color`, domaine `COLORS`, persisté —
+migrations 2). Les valeurs visuelles vivent dans `app.css` : thème entier en **oklch()** et
+8 teintes `--c-<token>` à L/C constants (contrastes homogènes, maintenance par rotation de
+teinte). `ui/tint.ts` produit le style `--tint`, consommé en CSS via `var(--tint, var(--accent))`
+(pads : bordure idle / fond actif ; onglets : bordure, fond quand actif). `ColorPicker`
+(pastilles + « neutre ») est partagé par les tiroirs pad et page. Token inconnu relu en base →
+neutralisé (`sanitizeColor`).
+
+## Modale de choix de sample & empilement
+
+`SamplePicker` (`<dialog>` natif, `showModal`) : liste de la bibliothèque + pré-écoute +
+« aucun » + **import direct** (le sample importé est assigné dans la foulée). Empilement des
+surcouches : **couche 0** app → **couche 1** tiroir (`--z-drawer`) et panneau (`--z-panel`),
+snackbar au-dessus (`--z-snackbar`) → **modales** dans le *top-layer* natif du navigateur,
+toujours au-dessus et empilées dans l'ordre d'ouverture (la future modale de crop — backlog
+#4 — se posera naturellement sur celle d'import).
+
+## Noms par défaut
+
+Page initiale « Principal », pages ajoutées « Page N » : générateurs **injectés** depuis
+`main.ts` (`CreateAppOptions`) car la couche app ne peut pas importer `ui/i18n` (§4) — ce sont
+des données utilisateur localisées à la création, éditables ensuite. Un pad **sans nom**
+prend le label du sample qu'on lui assigne (`defaultPadName` : extension retirée, 12 caractères
+max) ; un nom choisi n'est jamais écrasé.
+
 ## Parcours e2e couverts
 
 Import rapide (bottombar) → vérification au panneau Bibliothèque → Édition → « + » → tiroir

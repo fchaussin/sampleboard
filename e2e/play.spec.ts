@@ -15,10 +15,13 @@ test('assigner un sample importé à un pad Loop (tiroir), puis le jouer → pad
   const drawer = page.locator('.drawer');
   await expect(drawer).toBeVisible();
   await drawer.getByRole('button', { name: 'Loop' }).click();
-  await drawer.locator('select').selectOption({ label: 'tone.wav' });
+  // Assignation via la modale de choix de sample (<dialog>).
+  await drawer.locator('.sample-select').click();
+  await page.locator('.picker .choice', { hasText: 'tone.wav' }).click();
 
   // Fermer le tiroir (le voile couvre la bottombar), puis retour en Jeu.
-  await drawer.locator('.close').click();
+  // `> header` : le ✕ du tiroir lui-même, pas celui de la modale imbriquée.
+  await drawer.locator('> header .close').click();
   await expect(drawer).not.toBeVisible();
   await page.locator('.bottombar .mode-toggle').click();
   const pad = page.locator('.grid .pad.idle');

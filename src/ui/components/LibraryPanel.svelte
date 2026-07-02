@@ -34,7 +34,7 @@
     display: flex;
     flex-direction: column;
     background: var(--bg);
-    z-index: 25;
+    z-index: var(--z-panel);
   }
 
   header {

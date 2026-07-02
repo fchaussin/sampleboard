@@ -68,7 +68,7 @@ C'est un **sampleboard** (façon soundboard), **pas un sampler** : pas de DSP, p
 
 ### Dans le périmètre v1
 - Pages multiples, navigation entre pages.
-- **Grille** de pads par page : **4×4 par défaut, redimensionnable par page** (cols 2–6 × lignes 2–12), déclenchement audio faible latence.
+- **Grille** de pads par page : **4×4 par défaut, redimensionnable par page** (cols 1–6 × lignes 1–12), déclenchement audio faible latence.
 - Trois **Modes de lecture** de pad : One-Shot, Gate, Loop.
 - **Polyphonie** par page : Mono (une voix à la fois) ou Poly (superposition).
 - **Bibliothèque** de samples : fichiers audio importés, gérée séparément (CRUD propre) ; les pads s'y rattachent par référence.
@@ -190,8 +190,8 @@ export interface Page {
   id: string;
   name: string;
   voiceMode: VoiceMode;     // Polyphonie ; défaut: 'poly'
-  rows: number;             // défaut: 4  (plage 2..12)
-  cols: number;             // défaut: 4  (plage 2..6)
+  rows: number;             // défaut: 4  (plage 1..12)
+  cols: number;             // défaut: 4  (plage 1..6)
   position: number;
 }
 
@@ -227,7 +227,7 @@ export interface Bank {
 
 **Invariants** (dans `invariants.ts`, purs, testables) :
 - `gainDb ∈ [-60, +6]`.
-- `cols ∈ [2, 6]`, `rows ∈ [2, 12]` ; `position ∈ [0, rows*cols-1]` et unique dans la page.
+- `cols ∈ [1, 6]`, `rows ∈ [1, 12]` ; `position ∈ [0, rows*cols-1]` et unique dans la page.
 - Réduire la grille sous une `position` occupée est refusé tant que le pad concerné n'est pas déplacé/supprimé (voir §12).
 - `position` des pages : unique et contigu dans la banque.
 - Un `Pad.sampleId` non nul référence un `Sample` existant ; sinon le pad est *introuvable* (état affiché, non bloquant — voir §12).
@@ -297,8 +297,8 @@ CREATE TABLE pages (
   bank_id     TEXT NOT NULL REFERENCES bank(id) ON DELETE CASCADE,
   name        TEXT NOT NULL,
   voice_mode  TEXT NOT NULL CHECK (voice_mode IN ('mono','poly')),
-  rows        INTEGER NOT NULL DEFAULT 4 CHECK (rows BETWEEN 2 AND 12),
-  cols        INTEGER NOT NULL DEFAULT 4 CHECK (cols BETWEEN 2 AND 6),
+  rows        INTEGER NOT NULL DEFAULT 4 CHECK (rows BETWEEN 1 AND 12),
+  cols        INTEGER NOT NULL DEFAULT 4 CHECK (cols BETWEEN 1 AND 6),
   position    INTEGER NOT NULL
 );
 
@@ -457,7 +457,7 @@ Le ré-encodage se fait **côté frontend** (règle « pas de logique métier en
 - **Gain** : échelle **dB** `[-60, +6]`, `0` = niveau d'origine, conversion → amplitude par l'engine.
 - **Bibliothèque** : gérée à part (CRUD) ; supprimer un sample référencé rend les pads *introuvables* (avertissement + confirmation), jamais de blocage dur.
 - **Arrière-plan** : réglable via `Settings.backgroundBehavior`, défaut **Tout stopper** (`stopAll`).
-- **Grille** : `4×4` par défaut, **redimensionnable par page**, bornée `cols ∈ [2,6]` × `rows ∈ [2,12]`.
+- **Grille** : `4×4` par défaut, **redimensionnable par page**, bornée `cols ∈ [1,6]` × `rows ∈ [1,12]` (élargie 2026-07-02, migration 3).
 - **Compression à l'import** : ré-encodage systématique en **OGG/Opus à 96 kbps** ; WAV/AIFF non conservés (Vorbis abandonné).
 - **Encodeur** : **WASM libopus embarqué** (portabilité max) ; WebCodecs en accélération opportuniste seulement.
 - **Licence** : **`GPL-3.0-or-later`**.

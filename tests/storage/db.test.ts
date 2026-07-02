@@ -29,19 +29,36 @@ async function tableNames(executor: TestExecutor): Promise<string[]> {
   return rows.map((r) => r.name);
 }
 
+const LATEST_VERSION = MIGRATIONS.at(-1)!.version;
+
 describe('openDatabase — migrations', () => {
-  it('applique le schéma v1 et fixe user_version', async () => {
+  it('applique le schéma complet et fixe user_version à la dernière migration', async () => {
     const executor = db();
     await openDatabase(executor);
-    expect(await userVersion(executor)).toBe(1);
+    expect(await userVersion(executor)).toBe(LATEST_VERSION);
     expect(await tableNames(executor)).toEqual(['bank', 'pads', 'pages', 'samples', 'settings']);
   });
 
   it('est idempotent : une réouverture ne rejoue rien', async () => {
     const executor = db();
     await openDatabase(executor);
-    await openDatabase(executor); // CREATE TABLE rejoué aurait levé « table already exists »
-    expect(await userVersion(executor)).toBe(1);
+    await openDatabase(executor); // CREATE/ALTER rejoué aurait levé une erreur SQL
+    expect(await userVersion(executor)).toBe(LATEST_VERSION);
+  });
+
+  it('migration 2 : une base v1 gagne les colonnes color sans perdre ses données', async () => {
+    const executor = db();
+    const [v1] = MIGRATIONS;
+    await openDatabase(executor, [v1!]); // état d'une installation 0.6.0
+    await executor.execute("INSERT INTO bank (id, name) VALUES ('b', '')");
+    await executor.execute(
+      "INSERT INTO pages (id, bank_id, name, voice_mode, rows, cols, position) VALUES ('p', 'b', 'Une', 'poly', 4, 4, 0)",
+    );
+    await openDatabase(executor); // mise à jour vers la dernière version
+    const rows = await executor.select<{ name: string; color: string | null }>(
+      'SELECT name, color FROM pages',
+    );
+    expect(rows).toEqual([{ name: 'Une', color: null }]);
   });
 
   it('applique les migrations manquantes dans l’ordre croissant', async () => {
@@ -70,6 +87,23 @@ describe('openDatabase — migrations', () => {
         "INSERT INTO pages (id, bank_id, name, voice_mode, rows, cols, position) VALUES ('p', 'b', '', 'poly', 13, 4, 0)",
       ),
     ).rejects.toThrow(); // rows hors [2,12]
+  });
+
+  it('migration 3 : la grille descend à 1×1 (reconstruction de pages, données conservées)', async () => {
+    const executor = db();
+    await openDatabase(executor);
+    await executor.execute("INSERT INTO bank (id, name) VALUES ('b', '')");
+    await executor.execute(
+      "INSERT INTO pages (id, bank_id, name, voice_mode, rows, cols, position) VALUES ('p', 'b', '', 'poly', 1, 1, 0)",
+    );
+    const rows = await executor.select<{ rows: number; cols: number }>('SELECT rows, cols FROM pages');
+    expect(rows).toEqual([{ rows: 1, cols: 1 }]);
+    // La cascade FK survit à la reconstruction (pads → pages).
+    await executor.execute(
+      "INSERT INTO pads (id, page_id, name, sample_id, play_mode, gain_db, position) VALUES ('a', 'p', '', NULL, 'oneShot', 0, 0)",
+    );
+    await executor.execute("DELETE FROM pages WHERE id = 'p'");
+    expect(await executor.select('SELECT id FROM pads')).toEqual([]);
   });
 
   it('les clés étrangères sont actives (page inconnue refusée)', async () => {

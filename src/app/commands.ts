@@ -5,7 +5,7 @@ import type { AudioEngine } from '../engine/audio-engine';
 import type { Encoder } from '../engine/encoder';
 import type { SampleRepository } from '../storage/types';
 import type { Bank, Pad, Page, Sample, Settings } from '../domain/types';
-import type { BackgroundBehavior, PlayMode, VoiceMode } from '../domain/enums';
+import type { BackgroundBehavior, Color, PlayMode, VoiceMode } from '../domain/enums';
 import { findPad, findPage, padsOfPage, pagesSorted, firstFreePosition } from '../domain/selectors';
 import {
   DEFAULT_COLS,
@@ -14,7 +14,9 @@ import {
   GAIN_DB_MAX,
   GAIN_DB_MIN,
   IMPORT_MAX_BYTES,
+  defaultPadName,
   gridCapacity,
+  isValidColor,
   isValidCols,
   isValidRows,
   padsFitGrid,
@@ -37,6 +39,11 @@ export interface CommandDeps {
   ids?: () => string;
   /** Horloge (injectable pour les tests). Défaut : `Date.now`. */
   now?: () => number;
+  /**
+   * Nom par défaut de la n-ième page ajoutée (« Page N ») — injecté depuis le bootstrap
+   * (les libellés vivent en ui/i18n, que cette couche ne peut pas importer, §4).
+   */
+  newPageName?: (n: number) => string;
 }
 
 export interface Commands {
@@ -83,6 +90,7 @@ export interface Commands {
   renamePad(padId: string, name: string): void;
   setPadPlayMode(padId: string, playMode: PlayMode): void;
   setPadGainDb(padId: string, gainDb: number): void;
+  setPadColor(padId: string, color: Color | null): void;
   assignSample(padId: string, sampleId: string | null): void;
   deletePad(padId: string): void;
   reorderPads(padId: string, toPosition: number): void;
@@ -93,6 +101,7 @@ export interface Commands {
   deletePage(pageId: string): void;
   setPageVoiceMode(pageId: string, voiceMode: VoiceMode): void;
   setPageGrid(pageId: string, rows: number, cols: number): void;
+  setPageColor(pageId: string, color: Color | null): void;
   reorderPages(pageId: string, toIndex: number): void;
 
   // Bibliothèque (§8, §13)
@@ -112,6 +121,7 @@ export function createCommands({
   sampleRepository,
   ids = () => newId(),
   now = () => Date.now(),
+  newPageName,
 }: CommandDeps): Commands {
   function resolve(padId: string): { pad: Pad; page: Page } | null {
     const bank = store.bank;
@@ -289,11 +299,24 @@ export function createCommands({
       const pad = store.bank ? findPad(store.bank, padId) : undefined;
       if (pad) pad.gainDb = Math.min(GAIN_DB_MAX, Math.max(GAIN_DB_MIN, gainDb));
     },
+    setPadColor(padId: string, color: Color | null): void {
+      if (color !== null && !isValidColor(color)) return;
+      const pad = store.bank ? findPad(store.bank, padId) : undefined;
+      if (pad) pad.color = color;
+    },
     assignSample(padId: string, sampleId: string | null): void {
       const pad = store.bank ? findPad(store.bank, padId) : undefined;
       if (!pad) return;
-      if (sampleId !== null && !store.samples.some((s) => s.id === sampleId)) return;
+      if (sampleId === null) {
+        pad.sampleId = null;
+        return;
+      }
+      const sample = store.samples.find((s) => s.id === sampleId);
+      if (!sample) return;
       pad.sampleId = sampleId;
+      // Nom par défaut (M6) : un pad SANS nom prend celui du sample (rogné) ; un nom
+      // choisi par l'utilisateur n'est jamais écrasé.
+      if (pad.name === '') pad.name = defaultPadName(sample.label);
     },
     deletePad(padId: string): void {
       const bank = store.bank;
@@ -325,7 +348,8 @@ export function createCommands({
       if (!bank) return;
       const page: Page = {
         id: ids(),
-        name: '',
+        // « Page N » (injecté, i18n) — N = rang de création dans la banque courante.
+        name: newPageName ? newPageName(bank.pages.length + 1) : '',
         voiceMode: 'poly',
         rows: DEFAULT_ROWS,
         cols: DEFAULT_COLS,
@@ -351,6 +375,11 @@ export function createCommands({
     setPageVoiceMode(pageId: string, voiceMode: VoiceMode): void {
       const page = store.bank ? findPage(store.bank, pageId) : undefined;
       if (page) page.voiceMode = voiceMode;
+    },
+    setPageColor(pageId: string, color: Color | null): void {
+      if (color !== null && !isValidColor(color)) return;
+      const page = store.bank ? findPage(store.bank, pageId) : undefined;
+      if (page) page.color = color;
     },
     setPageGrid(pageId: string, rows: number, cols: number): void {
       const bank = store.bank;

@@ -56,7 +56,7 @@
     position: fixed;
     inset: 0;
     background: rgb(0 0 0 / 45%);
-    z-index: 20;
+    z-index: var(--z-drawer);
   }
 
   .drawer {
@@ -70,7 +70,7 @@
     background: var(--panel);
     border-left: 1px solid var(--border);
     box-shadow: -12px 0 32px rgb(0 0 0 / 35%);
-    z-index: 21;
+    z-index: calc(var(--z-drawer) + 1);
     animation: slide-in 0.16s ease-out;
   }
 

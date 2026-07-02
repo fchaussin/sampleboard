@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Domaine pur : bornes et validations (voir specifications.md §6). Fonctions pures, testables.
 // Les tests dédiés arrivent au jalon M2 ; ce module pose les constantes et gardes de base.
-import type { BackgroundBehavior } from './enums';
+import { COLORS, type BackgroundBehavior, type Color } from './enums';
 import type { Pad, Page, Settings } from './types';
 
 export const GAIN_DB_MIN = -60;
 export const GAIN_DB_MAX = 6;
 
-export const ROWS_MIN = 2;
+export const ROWS_MIN = 1;
 export const ROWS_MAX = 12;
-export const COLS_MIN = 2;
+export const COLS_MIN = 1;
 export const COLS_MAX = 6;
 
 /** Valeurs par défaut du domaine (voir §6). */
@@ -31,6 +31,20 @@ export function defaultSettings(): Settings {
 
 /** Taille max d'un fichier importé, sur la source avant décodage (20 Mo, §16). */
 export const IMPORT_MAX_BYTES = 20 * 1024 * 1024;
+
+/** Longueur max du nom de pad auto-généré à l'assignation (M6). */
+export const PAD_NAME_MAX = 12;
+
+/** Nom de pad par défaut dérivé d'un label de sample : extension retirée, rogné à 12 car. */
+export function defaultPadName(label: string): string {
+  const base = label.replace(/\.[^./\\\s]{1,8}$/, '');
+  return base.slice(0, PAD_NAME_MAX).trim();
+}
+
+/** Vrai si `value` est un token de la palette (garde des données persistées/altérées). */
+export function isValidColor(value: unknown): value is Color {
+  return typeof value === 'string' && (COLORS as readonly string[]).includes(value);
+}
 
 export function isValidGainDb(gainDb: number): boolean {
   return Number.isFinite(gainDb) && gainDb >= GAIN_DB_MIN && gainDb <= GAIN_DB_MAX;

@@ -23,13 +23,13 @@ function makeBank(): Bank {
     id: 'b1',
     name: 'Ma banque',
     pages: [
-      { id: 'p1', name: 'Une', voiceMode: 'poly', rows: 4, cols: 4, position: 0 },
-      { id: 'p2', name: 'Deux', voiceMode: 'mono', rows: 2, cols: 3, position: 1 },
+      { id: 'p1', name: 'Une', voiceMode: 'poly', rows: 4, cols: 4, position: 0, color: 'teal' },
+      { id: 'p2', name: 'Deux', voiceMode: 'mono', rows: 2, cols: 3, position: 1, color: null },
     ],
     pads: [
-      { id: 'a', pageId: 'p1', name: 'Kick', sampleId: null, playMode: 'oneShot', gainDb: -6.5, position: 0 },
-      { id: 'c', pageId: 'p2', name: '', sampleId: null, playMode: 'loop', gainDb: 6, position: 5 },
-      { id: 'd', pageId: 'p1', name: 'Nappe', sampleId: null, playMode: 'gate', gainDb: -60, position: 15 },
+      { id: 'a', pageId: 'p1', name: 'Kick', sampleId: null, playMode: 'oneShot', gainDb: -6.5, position: 0, color: 'red' },
+      { id: 'c', pageId: 'p2', name: '', sampleId: null, playMode: 'loop', gainDb: 6, position: 5, color: null },
+      { id: 'd', pageId: 'p1', name: 'Nappe', sampleId: null, playMode: 'gate', gainDb: -60, position: 15, color: null },
     ],
   };
 }
@@ -116,6 +116,16 @@ describe('BankRepository', () => {
     await repo.save(bank);
     await executor.execute("DELETE FROM samples WHERE id = 's1'");
     expect((await repo.load())?.pads[0]?.sampleId).toBeNull();
+  });
+
+  it('couleur : token inconnu en base (palette réduite, donnée altérée) → neutralisé au chargement', async () => {
+    const repo = createBankRepository(executor);
+    await repo.save(makeBank());
+    await executor.execute("UPDATE pads SET color = 'fuchsia-disco' WHERE id = 'a'");
+    await executor.execute("UPDATE pages SET color = 'inconnu' WHERE id = 'p1'");
+    const loaded = await repo.load();
+    expect(loaded?.pads.find((p) => p.id === 'a')?.color).toBeNull();
+    expect(loaded?.pages.find((p) => p.id === 'p1')?.color).toBeNull();
   });
 
   it('banque sans page en base → load renvoie null (état invalide, §6)', async () => {

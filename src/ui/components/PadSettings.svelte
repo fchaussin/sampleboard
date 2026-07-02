@@ -7,6 +7,8 @@
   import { findPad } from '../../domain/selectors';
   import { GAIN_DB_MIN, GAIN_DB_MAX } from '../../domain/invariants';
   import { t } from '../i18n';
+  import ColorPicker from './ColorPicker.svelte';
+  import SamplePicker from './SamplePicker.svelte';
 
   let { app }: { app: App } = $props();
 
@@ -18,6 +20,12 @@
   );
 
   const MODES: PlayMode[] = ['oneShot', 'gate', 'loop'];
+
+  // Modale de choix de sample (<dialog>), voir SamplePicker.
+  let pickerOpen = $state(false);
+  const currentSampleLabel = $derived(
+    pad?.sampleId ? (app.store.samples.find((s) => s.id === pad.sampleId)?.label ?? '?') : null,
+  );
 </script>
 
 {#if pad}
@@ -61,18 +69,18 @@
     </span>
   </label>
 
-  <label class="row">
+  <div class="row">
+    <span>{t('editor.color', locale)}</span>
+    <ColorPicker value={p.color} {locale} onchange={(color) => app.commands.setPadColor(p.id, color)} />
+  </div>
+
+  <div class="row">
     <span>{t('editor.pad.sample', locale)}</span>
-    <select
-      value={p.sampleId ?? ''}
-      onchange={(e) => app.commands.assignSample(p.id, e.currentTarget.value || null)}
-    >
-      <option value="">{t('editor.pad.sampleNone', locale)}</option>
-      {#each app.store.samples as s (s.id)}
-        <option value={s.id}>{s.label}</option>
-      {/each}
-    </select>
-  </label>
+    <button class="sample-select" type="button" onclick={() => (pickerOpen = true)}>
+      {currentSampleLabel ?? t('editor.pad.sampleNone', locale)}
+    </button>
+  </div>
+  <SamplePicker {app} padId={p.id} open={pickerOpen} onclose={() => (pickerOpen = false)} />
 
   <button class="danger" type="button" onclick={() => app.commands.deletePad(p.id)}>
     {t('editor.pad.delete', locale)}

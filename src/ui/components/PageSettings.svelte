@@ -7,6 +7,7 @@
   import { padsOfPage, pagesSorted } from '../../domain/selectors';
   import { padsFitGrid, ROWS_MIN, ROWS_MAX, COLS_MIN, COLS_MAX } from '../../domain/invariants';
   import { t } from '../i18n';
+  import ColorPicker from './ColorPicker.svelte';
 
   let { app }: { app: App } = $props();
 
@@ -48,6 +49,11 @@
         </button>
       {/each}
     </div>
+  </div>
+
+  <div class="row">
+    <span>{t('editor.color', locale)}</span>
+    <ColorPicker value={page.color} {locale} onchange={(color) => app.commands.setPageColor(page.id, color)} />
   </div>
 
   <div class="row">

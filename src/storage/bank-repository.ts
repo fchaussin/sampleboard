@@ -4,6 +4,7 @@
 // sauvegarde est interrompue — pas de fenêtre « tout supprimé, rien réinséré ».
 import type { Bank, Pad, Page } from '../domain/types';
 import type { PlayMode, VoiceMode } from '../domain/enums';
+import { isValidColor } from '../domain/invariants';
 import { NO_LOCK, type SqlExecutor, type WriteLock } from './db';
 import type { BankRepository } from './types';
 
@@ -19,6 +20,7 @@ interface PageRow {
   rows: number;
   cols: number;
   position: number;
+  color: string | null;
 }
 
 interface PadRow {
@@ -29,6 +31,12 @@ interface PadRow {
   play_mode: PlayMode;
   gain_db: number;
   position: number;
+  color: string | null;
+}
+
+/** Token de palette relu : un token inconnu (palette réduite, donnée altérée) devient neutre. */
+function sanitizeColor(value: string | null): Page['color'] {
+  return isValidColor(value) ? value : null;
 }
 
 export function createBankRepository(db: SqlExecutor, lock: WriteLock = NO_LOCK): BankRepository {
@@ -49,14 +57,14 @@ export function createBankRepository(db: SqlExecutor, lock: WriteLock = NO_LOCK)
       if (!bankRow) return null;
 
       const pageRows = await db.select<PageRow>(
-        'SELECT id, name, voice_mode, rows, cols, position FROM pages WHERE bank_id = ? ORDER BY position',
+        'SELECT id, name, voice_mode, rows, cols, position, color FROM pages WHERE bank_id = ? ORDER BY position',
         [bankRow.id],
       );
       // Une banque a au moins une page (§6) : sans page, l'état est invalide → repartir du défaut.
       if (pageRows.length === 0) return null;
 
       const padRows = await db.select<PadRow>(
-        `SELECT p.id, p.page_id, p.name, p.sample_id, p.play_mode, p.gain_db, p.position
+        `SELECT p.id, p.page_id, p.name, p.sample_id, p.play_mode, p.gain_db, p.position, p.color
          FROM pads p JOIN pages pg ON pg.id = p.page_id
          WHERE pg.bank_id = ? ORDER BY p.position`,
         [bankRow.id],
@@ -69,6 +77,7 @@ export function createBankRepository(db: SqlExecutor, lock: WriteLock = NO_LOCK)
         rows: r.rows,
         cols: r.cols,
         position: r.position,
+        color: sanitizeColor(r.color),
       }));
       const pads: Pad[] = padRows.map((r) => ({
         id: r.id,
@@ -78,6 +87,7 @@ export function createBankRepository(db: SqlExecutor, lock: WriteLock = NO_LOCK)
         playMode: r.play_mode,
         gainDb: r.gain_db,
         position: r.position,
+        color: sanitizeColor(r.color),
       }));
       return { id: bankRow.id, name: bankRow.name, pages, pads };
     },
@@ -101,12 +111,12 @@ export function createBankRepository(db: SqlExecutor, lock: WriteLock = NO_LOCK)
 
       for (const page of bank.pages) {
         await db.execute(
-          `INSERT INTO pages (id, bank_id, name, voice_mode, rows, cols, position)
-           VALUES (?, ?, ?, ?, ?, ?, ?)
+          `INSERT INTO pages (id, bank_id, name, voice_mode, rows, cols, position, color)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)
            ON CONFLICT(id) DO UPDATE SET bank_id = excluded.bank_id, name = excluded.name,
              voice_mode = excluded.voice_mode, rows = excluded.rows, cols = excluded.cols,
-             position = excluded.position`,
-          [page.id, bank.id, page.name, page.voiceMode, page.rows, page.cols, page.position],
+             position = excluded.position, color = excluded.color`,
+          [page.id, bank.id, page.name, page.voiceMode, page.rows, page.cols, page.position, page.color ?? null],
         );
       }
       await prune('pages', bank.pages.map((p) => p.id));
@@ -115,12 +125,12 @@ export function createBankRepository(db: SqlExecutor, lock: WriteLock = NO_LOCK)
         // sample_id via sous-requête : une référence pendante (sample supprimé entre-temps)
         // est écrite NULL au lieu de violer la clé étrangère.
         await db.execute(
-          `INSERT INTO pads (id, page_id, name, sample_id, play_mode, gain_db, position)
-           VALUES (?, ?, ?, (SELECT id FROM samples WHERE id = ?), ?, ?, ?)
+          `INSERT INTO pads (id, page_id, name, sample_id, play_mode, gain_db, position, color)
+           VALUES (?, ?, ?, (SELECT id FROM samples WHERE id = ?), ?, ?, ?, ?)
            ON CONFLICT(id) DO UPDATE SET page_id = excluded.page_id, name = excluded.name,
              sample_id = excluded.sample_id, play_mode = excluded.play_mode,
-             gain_db = excluded.gain_db, position = excluded.position`,
-          [pad.id, pad.pageId, pad.name, pad.sampleId, pad.playMode, pad.gainDb, pad.position],
+             gain_db = excluded.gain_db, position = excluded.position, color = excluded.color`,
+          [pad.id, pad.pageId, pad.name, pad.sampleId, pad.playMode, pad.gainDb, pad.position, pad.color ?? null],
         );
       }
       await prune('pads', bank.pads.map((p) => p.id));

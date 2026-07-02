@@ -5,18 +5,20 @@ import type { Bank } from '../domain/types';
 import { DEFAULT_COLS, DEFAULT_ROWS } from '../domain/invariants';
 import { newId } from '../domain/id';
 
-export function createDefaultBank(ids: () => string = () => newId()): Bank {
+export function createDefaultBank(ids: () => string = () => newId(), pageName = ''): Bank {
   return {
     id: ids(),
     name: '',
     pages: [
       {
         id: ids(),
-        name: '',
+        // « Principal » — injecté depuis le bootstrap (i18n), voir create-app.
+        name: pageName,
         voiceMode: 'poly',
         rows: DEFAULT_ROWS,
         cols: DEFAULT_COLS,
         position: 0,
+        color: null,
       },
     ],
     pads: [],

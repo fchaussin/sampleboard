@@ -12,7 +12,11 @@ async function bootstrap(): Promise<void> {
     throw new Error('Cible de montage #app introuvable dans index.html');
   }
   try {
-    const app = await createApp();
+    // Noms par défaut localisés (données créées, pas des libellés d'UI — voir CreateAppOptions).
+    const app = await createApp({
+      defaultPageName: t('page.defaultName'),
+      newPageName: (n) => `${t('page.namePrefix')} ${n}`,
+    });
     mount(App, { target, props: { app } });
   } catch (err) {
     target.textContent = t('app.bootError');

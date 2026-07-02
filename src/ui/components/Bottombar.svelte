@@ -5,7 +5,8 @@
   import type { App } from '../../app/create-app';
   import type { ImportError } from '../../app/commands';
   import { pagesSorted } from '../../domain/selectors';
-  import { importFile } from '../import-file';
+  import { tintStyle } from '../tint';
+  import { importFileError } from '../import-file';
   import { t } from '../i18n';
   import Icon from './Icon.svelte';
 
@@ -26,7 +27,7 @@
     if (!file) return;
     importing = true;
     importError = null;
-    importError = await importFile(app, file);
+    importError = await importFileError(app, file);
     importing = false;
   }
 </script>
@@ -67,9 +68,11 @@
       <button
         class="tab"
         class:active={page.id === activeId}
+        class:tinted={!!page.color}
         type="button"
         role="tab"
         aria-selected={page.id === activeId}
+        style={tintStyle(page.color)}
         onclick={() => app.commands.setActivePage(page.id)}
       >
         {page.name || i + 1}
@@ -186,9 +189,15 @@
     justify-content: center;
   }
 
+  .tab.tinted {
+    border-color: var(--tint);
+    color: var(--tint);
+  }
+
   .tab.active {
-    border-color: var(--accent);
-    color: var(--accent);
+    border-color: var(--tint, var(--accent));
+    background: var(--tint, var(--accent));
+    color: var(--accent-contrast);
     font-weight: 700;
   }
 
@@ -222,7 +231,7 @@
     background: var(--panel);
     color: var(--danger);
     font-size: 0.85rem;
-    z-index: 30;
+    z-index: var(--z-snackbar);
   }
 
   .snackbar button {

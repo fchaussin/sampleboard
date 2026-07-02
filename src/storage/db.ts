@@ -87,6 +87,38 @@ export const MIGRATIONS: Migration[] = [
       )`,
     ],
   },
+  // M6 : couleur de palette assignable aux pages et aux pads (token, NULL = neutre).
+  // Pas de CHECK : la palette peut s'étendre ; un token inconnu est neutralisé au chargement.
+  {
+    version: 2,
+    statements: [
+      'ALTER TABLE pages ADD COLUMN color TEXT',
+      'ALTER TABLE pads ADD COLUMN color TEXT',
+    ],
+  },
+  // M6 : grille réductible à 1×1 (bornes rows [1,12], cols [1,6]). Un CHECK ne s'altère
+  // pas : reconstruction de `pages` selon la procédure SQLite (FK OFF → copie → swap).
+  {
+    version: 3,
+    statements: [
+      'PRAGMA foreign_keys = OFF',
+      `CREATE TABLE pages_new (
+        id          TEXT PRIMARY KEY,
+        bank_id     TEXT NOT NULL REFERENCES bank(id) ON DELETE CASCADE,
+        name        TEXT NOT NULL,
+        voice_mode  TEXT NOT NULL CHECK (voice_mode IN ('mono','poly')),
+        rows        INTEGER NOT NULL DEFAULT 4 CHECK (rows BETWEEN 1 AND 12),
+        cols        INTEGER NOT NULL DEFAULT 4 CHECK (cols BETWEEN 1 AND 6),
+        position    INTEGER NOT NULL,
+        color       TEXT
+      )`,
+      `INSERT INTO pages_new (id, bank_id, name, voice_mode, rows, cols, position, color)
+       SELECT id, bank_id, name, voice_mode, rows, cols, position, color FROM pages`,
+      'DROP TABLE pages',
+      'ALTER TABLE pages_new RENAME TO pages',
+      'PRAGMA foreign_keys = ON',
+    ],
+  },
 ];
 
 /**

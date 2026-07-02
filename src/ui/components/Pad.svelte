@@ -5,6 +5,7 @@
   import type { Pad } from '../../domain/types';
   import { attachPadInput, type PadInputHandlers } from '../interaction/pad-input';
   import { t } from '../i18n';
+  import { tintStyle } from '../tint';
 
   let { app, pad }: { app: App; pad: Pad } = $props();
 
@@ -30,6 +31,9 @@
   function padInput(node: HTMLElement) {
     return { destroy: attachPadInput(node, pad.id, pad.playMode, handlers) };
   }
+
+  // Teinte de palette (M6) : sans couleur, l'accent reste la teinte par défaut.
+  const tint = $derived(tintStyle(pad.color));
 </script>
 
 {#if editMode}
@@ -38,13 +42,14 @@
     class:selected
     data-mode={pad.playMode}
     type="button"
+    style={tint}
     onclick={() => app.commands.openPadDrawer(pad.id)}
   >
     <span class="name">{pad.name || t('pad.untitled', locale)}</span>
     <span class="mode">{t(`mode.${pad.playMode}`, locale)}</span>
   </button>
 {:else}
-  <button class="pad {status}" data-mode={pad.playMode} type="button" use:padInput>
+  <button class="pad {status}" data-mode={pad.playMode} type="button" style={tint} use:padInput>
     <span class="name">{pad.name}</span>
     <span class="mode">{t(`mode.${pad.playMode}`, locale)}</span>
   </button>
@@ -86,7 +91,7 @@
   }
 
   .pad.idle {
-    border-color: var(--accent);
+    border-color: var(--tint, var(--accent));
   }
 
   .pad.empty {
@@ -99,18 +104,18 @@
   }
 
   .pad.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #101014;
+    background: var(--tint, var(--accent));
+    border-color: var(--tint, var(--accent));
+    color: var(--accent-contrast);
     transform: scale(0.97);
   }
 
   .pad.active .mode {
-    color: #101014;
+    color: var(--accent-contrast);
   }
 
   .pad.selected {
-    outline: 3px solid var(--accent);
+    outline: 3px solid var(--tint, var(--accent));
     outline-offset: 2px;
     opacity: 1;
   }
