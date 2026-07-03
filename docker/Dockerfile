@@ -62,6 +62,14 @@ ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 # dev — itération à chaud (bind-mount + volumes)
 ############################################
 FROM base AS dev
+
+# Libs runtime du Chromium Playwright (e2e) — absentes de la toolchain Tauri.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      libasound2 \
+      libnspr4 \
+      libnss3 \
+    && rm -rf /var/lib/apt/lists/*
+
 EXPOSE 1420 1421
 CMD ["npm", "run", "dev"]
 
