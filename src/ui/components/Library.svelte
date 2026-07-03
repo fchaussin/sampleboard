@@ -5,6 +5,7 @@
   import type { ImportError } from '../../app/commands';
   import { filterSamples } from '../../app/tag-filter';
   import { t } from '../i18n';
+  import { setSampleDrag } from '../interaction/sample-dnd';
   import Icon from './Icon.svelte';
   import PreviewButton from './PreviewButton.svelte';
 
@@ -34,6 +35,15 @@
   function toggleExpanded(sampleId: string): void {
     app.commands.stopPreview(); // toute autre action fait office de stop
     expanded = expanded === sampleId ? null : sampleId;
+  }
+
+  /** Glissement d'une ligne vers le pool (#18) — jamais depuis le champ de renommage. */
+  function dragRow(e: DragEvent, sampleId: string): void {
+    if (e.target instanceof HTMLElement && e.target.closest('input') !== null) {
+      e.preventDefault();
+      return;
+    }
+    setSampleDrag(e, sampleId);
   }
 
   function sampleHasTag(sampleId: string, tagId: string): boolean {
@@ -127,7 +137,7 @@
   {:else}
     <ul class="list">
       {#each samples as s (s.id)}
-        <li>
+        <li draggable="true" ondragstart={(e) => dragRow(e, s.id)}>
           <span class="cell">
             <input
               class="label"

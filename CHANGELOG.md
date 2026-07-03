@@ -6,6 +6,16 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) ;
 versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
 `1.0.0` n'est pas planifiée : elle sanctionne la première version **stable et complète**.
 
+## [Unreleased]
+
+### Modifié
+- **Pool revu** (#18) : outil d'**Édition exclusivement** — **sidebar systématique** sur
+  écran large (≥ 48 rem, ni bouton ni fermeture), **tiroir gauche** à bouton (bottombar)
+  en étroit, flottant au-dessus de la bibliothèque ouverte pour le dépôt.
+  **Glisser-déposer** : ligne de bibliothèque → pool, élément du pool → pad (assignation
+  immédiate) ; le tactile « armer puis toucher » reste le chemin mobile. En-tête :
+  **Ajouter** (ouvre la bibliothèque) + **Vider**.
+
 ## [0.9.0] - 2026-07-03 — M8 (Bibliothèque avancée)
 
 > Backlog #10-16. Validé sur web : 283 unitaires + 13 E2E, revue visuelle utilisateur.

@@ -90,6 +90,27 @@ no-op (§12) ; un signalement visuel dédié est au backlog.
 - **Modale de choix de sample** (#12) : combobox — champ de recherche + chips de tags,
   filtres locaux à la modale.
 
+## Pool d'assignation (M8, revu #18)
+
+Liste de travail de samples **de session** (`store.poolSampleIds`, non persistée), outil
+d'**Édition exclusivement** :
+
+- **Écran large (≥ 48 rem)** : **sidebar systématique** en flux (`App.svelte` : `.body` =
+  sidebar + grille, détection `matchMedia`) — ni bouton d'ouverture, ni fermeture.
+- **Écran étroit** : **tiroir gauche** flottant (`overlay`), ouvert/fermé par le bouton
+  pool de la bottombar (`poolOpen`). Le tiroir passe aussi en flottant quand la
+  **bibliothèque est ouverte** (au-dessus d'elle, `--z-pool`) pour recevoir ses lignes.
+- **Alimentation** : bouton par ligne de bibliothèque, option d'import (#13), bouton
+  **« + »** de l'en-tête (ouvre la bibliothèque), ou **glisser-déposer** d'une ligne de
+  bibliothèque sur le pool. **« 🗑 Vider »** (`clearPool`) vide d'un coup (désarme si
+  l'armé venait du pool).
+- **Vers les pads** : toucher un élément l'**ARME** (assignation à la volée, M8), ou le
+  **glisser directement sur un pad** (assignation immédiate, `assignSample`).
+
+Le DnD HTML5 (`ui/interaction/sample-dnd.ts` : type MIME partagé
+`application/x-sampleboard-sample`) est un raccourci **pointeur** ; le flux tactile
+« armer puis toucher » reste le chemin principal sur mobile.
+
 ## Import multiple & archives (jalon M8, #13)
 
 Le bouton d'import de la **bottombar ouvre la MODALE d'import** (`ImportModal.svelte`,

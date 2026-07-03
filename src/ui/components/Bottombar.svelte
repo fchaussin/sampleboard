@@ -38,6 +38,21 @@
     <span class="seg" class:active={editMode}><Icon name="edit" size={16} /></span>
   </button>
 
+  <!-- Pool (#18) : outil d'ÉDITION, collé à la bascule — son tiroir s'ouvre à GAUCHE.
+       Bouton du tiroir en écran étroit seulement : en large, la sidebar est systématique
+       (voir App.svelte). -->
+  {#if editMode}
+    <button
+      class="action open-pool"
+      type="button"
+      title={t('pool.title', locale)}
+      aria-label={t('pool.title', locale)}
+      onclick={() => (app.store.poolOpen ? app.commands.closePool() : app.commands.openPool())}
+    >
+      <Icon name="pool" />
+    </button>
+  {/if}
+
   <button
     class="action stop"
     type="button"
@@ -88,16 +103,6 @@
   </button>
 
   <button
-    class="action open-pool"
-    type="button"
-    title={t('pool.title', locale)}
-    aria-label={t('pool.title', locale)}
-    onclick={() => (app.store.poolOpen ? app.commands.closePool() : app.commands.openPool())}
-  >
-    <Icon name="pool" />
-  </button>
-
-  <button
     class="action open-library"
     type="button"
     title={t('bottombar.library', locale)}
@@ -143,6 +148,13 @@
     color: var(--muted);
     cursor: pointer;
     flex-shrink: 0;
+  }
+
+  /* Écran large (#18) : la sidebar pool est systématique en Édition — pas de bouton. */
+  @media (min-width: 48rem) {
+    .open-pool {
+      display: none;
+    }
   }
 
   .action:active {
@@ -279,9 +291,10 @@
       max-width: 6rem;
     }
 
-    /* Actions réparties sur toute la largeur de leur rangée. */
-    .mode-toggle {
-      margin-right: auto;
+    /* Actions réparties sur toute la largeur de leur rangée : l'espace se creuse APRÈS
+       le groupe d'Édition de gauche (bascule + pool #18), avant le stop. */
+    .stop {
+      margin-left: auto;
     }
   }
 </style>

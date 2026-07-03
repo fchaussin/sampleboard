@@ -105,7 +105,7 @@ test('pré-écoute : ▶ bascule en ■ ; re-tap ou toute autre action stoppe', 
   await expect(preview).not.toHaveClass(/active/); // …et la pré-écoute a bien été stoppée
 });
 
-test('pool : stocker deux samples, armer depuis le tiroir gauche, assigner à la volée', async ({ page }) => {
+test('pool (#18, Édition seulement) : stocker deux samples, armer depuis la sidebar, assigner à la volée', async ({ page }) => {
   await gotoApp(page);
   await importWav(page, 'kick.wav');
   await importWav(page, 'nappe.wav');
@@ -116,9 +116,14 @@ test('pool : stocker deux samples, armer depuis le tiroir gauche, assigner à la
   await page.locator('.library .pool-add').nth(1).click();
   await page.locator('.close-library').click();
 
-  // Tiroir gauche : armer le premier, assigner deux pads ; armer le second, un pad.
-  await page.locator('.bottombar .open-pool').click();
+  // Le pool est un outil d'ÉDITION : rien en mode Jeu ; en Édition (écran large), la
+  // SIDEBAR apparaît systématiquement, sans bouton.
+  await expect(page.locator('.pool')).toHaveCount(0);
+  await page.locator('.bottombar .mode-toggle').click();
+
+  // Sidebar : armer le premier, assigner deux pads ; armer le second, un pad.
   const pool = page.locator('.pool');
+  await expect(pool).toBeVisible();
   await expect(pool.locator('.item')).toHaveCount(2);
   await pool.locator('.item', { hasText: 'kick.wav' }).click();
   await expect(page.locator('.banner')).toBeVisible();
@@ -128,6 +133,33 @@ test('pool : stocker deux samples, armer depuis le tiroir gauche, assigner à la
   await page.locator('.grid .pad').nth(3).click();
   await expect(page.locator('.grid .pad.idle')).toHaveCount(3);
   await page.locator('.banner button').click(); // Terminer
-  await pool.locator('.close').click();
+
+  // « Vider » vide d'un coup ; retour en Jeu → le pool disparaît avec son mode.
+  await pool.locator('.clear').click();
+  await expect(pool.locator('.item')).toHaveCount(0);
+  await page.locator('.bottombar .mode-toggle').click();
   await expect(page.locator('.pool')).toHaveCount(0);
+});
+
+test('pool (#18) : glisser une ligne de bibliothèque vers le pool, puis un élément du pool vers un pad', async ({ page }) => {
+  await gotoApp(page);
+  await importWav(page, 'kick.wav');
+
+  // Édition → sidebar pool (vide), puis bibliothèque par-dessus : le pool flotte au-dessus.
+  await page.locator('.bottombar .mode-toggle').click();
+  const pool = page.locator('.pool');
+  await expect(pool.locator('.item')).toHaveCount(0);
+  await pool.locator('.add').click(); // bouton « Ajouter » → ouvre la bibliothèque
+
+  // DnD bibliothèque → pool (prise sur .meta : le champ de renommage ne glisse pas ;
+  // le nom vit dans un <input>, invisible pour hasText → unique ligne = first).
+  await page.locator('.library .list li').first().locator('.meta').dragTo(pool);
+  await expect(pool.locator('.item', { hasText: 'kick.wav' })).toHaveCount(1);
+  await page.locator('.close-library').click();
+
+  // DnD pool → pad : assignation directe, sans passer par le mode armé.
+  const pad = page.locator('.grid .pad').nth(5);
+  await pool.locator('li', { hasText: 'kick.wav' }).dragTo(pad);
+  await expect(page.locator('.grid .pad.idle')).toHaveCount(1);
+  await expect(pad).toHaveClass(/idle/);
 });

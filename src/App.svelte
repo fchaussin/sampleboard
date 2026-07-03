@@ -14,13 +14,30 @@
   import PoolDrawer from './ui/components/PoolDrawer.svelte';
 
   let { app }: { app: App } = $props();
+
+  // Écran large (#18) : la sidebar pool est SYSTÉMATIQUE en Édition — pas de bouton, pas
+  // d'état d'ouverture. En étroit, le pool redevient un tiroir piloté par poolOpen.
+  const wideQuery = window.matchMedia('(min-width: 48rem)');
+  let wide = $state(wideQuery.matches);
+  wideQuery.addEventListener('change', (e) => (wide = e.matches));
+
+  const poolVisible = $derived(app.store.editMode && (wide || app.store.poolOpen));
+  // Tiroir flottant : écran étroit, ou bibliothèque ouverte (le pool flotte AU-DESSUS
+  // pour recevoir les lignes glissées) ; sinon sidebar en flux.
+  const poolOverlay = $derived(!wide || app.store.libraryOpen);
 </script>
 
 <div class="shell">
   <Topbar {app} />
-  <main>
-    <PadGrid {app} />
-  </main>
+  <div class="body">
+    <!-- Pool (#18) : Édition seulement — sidebar systématique en large, tiroir en étroit. -->
+    {#if poolVisible}
+      <PoolDrawer {app} overlay={poolOverlay} closable={!wide} />
+    {/if}
+    <main>
+      <PadGrid {app} />
+    </main>
+  </div>
   <Bottombar {app} />
 </div>
 
@@ -28,10 +45,6 @@
 
 {#if app.store.libraryOpen}
   <LibraryPanel {app} />
-{/if}
-
-{#if app.store.poolOpen}
-  <PoolDrawer {app} />
 {/if}
 
 {#if app.store.assigningSampleId}
@@ -55,10 +68,18 @@
     height: 100dvh;
   }
 
+  /* Corps : rangée sidebar pool + grille (le pool en flux ne masque jamais les pads). */
+  .body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+  }
+
   /* La grille occupe TOUT l'espace disponible (full adaptatif, décision M6). */
   main {
     flex: 1;
     min-height: 0;
+    min-width: 0;
     display: flex;
     padding: 0.5rem;
   }

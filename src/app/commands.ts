@@ -178,9 +178,11 @@ export interface Commands {
   /** Désarme le mode assignation. */
   stopAssigning(): void;
 
-  // Pool (M8) : liste de travail de samples, assignables à la volée depuis le tiroir gauche.
+  // Pool (M8, revu #18) : liste de travail de samples (sidebar en Édition, tiroir en étroit).
   addToPool(sampleId: string): void;
   removeFromPool(sampleId: string): void;
+  /** Vide le pool d'un coup (bouton « Vider »). */
+  clearPool(): void;
   openPool(): void;
   closePool(): void;
   /** Pré-écoute d'un sample (bascule) : lance, ou stoppe si ce sample joue déjà. */
@@ -210,6 +212,7 @@ export const PREVIEW_STOPPING_COMMANDS = [
   'startAssigning',
   'addToPool',
   'removeFromPool',
+  'clearPool',
   'openPool',
   'closePool',
   'assignSample',
@@ -919,6 +922,12 @@ export function createCommands({
     removeFromPool(sampleId: string): void {
       store.poolSampleIds = store.poolSampleIds.filter((id) => id !== sampleId);
       if (store.assigningSampleId === sampleId) store.assigningSampleId = null;
+    },
+    clearPool(): void {
+      // Même règle que removeFromPool : un sample armé qui quitte le pool est désarmé.
+      if (store.assigningSampleId !== null && store.poolSampleIds.includes(store.assigningSampleId))
+        store.assigningSampleId = null;
+      store.poolSampleIds = [];
     },
     openPool(): void {
       store.poolOpen = true;

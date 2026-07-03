@@ -1,12 +1,20 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- Pool (M8) : tiroir GAUCHE — liste de travail de samples. Toucher un élément l'ARME
-     (assignation à la volée) ; le tiroir reste ouvert pendant qu'on touche les pads. -->
+<!-- Pool (M8, revu #18) : liste de travail de samples, disponible en Édition SEULEMENT.
+     Sidebar SYSTÉMATIQUE en flux sur écran large (ni bouton ni fermeture) ; tiroir
+     par-dessus (`overlay`) en étroit — refermable (`closable`) — ou quand la bibliothèque
+     est ouverte, pour y déposer des lignes glissées. Toucher un élément l'ARME
+     (assignation à la volée) ; un élément se glisse aussi directement sur un pad. -->
 <script lang="ts">
   import type { App } from '../../app/create-app';
   import { t } from '../i18n';
+  import { carriesSample, droppedSampleId, setSampleDrag } from '../interaction/sample-dnd';
   import Icon from './Icon.svelte';
 
-  let { app }: { app: App } = $props();
+  let {
+    app,
+    overlay = false,
+    closable = false,
+  }: { app: App; overlay?: boolean; closable?: boolean } = $props();
 
   const locale = $derived(app.store.locale);
   const armed = $derived(app.store.assigningSampleId);
@@ -16,23 +24,68 @@
       .filter((s) => s !== undefined),
   );
 
+  let dropping = $state(false);
+
   function arm(sampleId: string): void {
     if (armed === sampleId) app.commands.stopAssigning();
     else app.commands.startAssigning(sampleId);
   }
+
+  function onDragOver(e: DragEvent): void {
+    if (!carriesSample(e)) return;
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+    dropping = true;
+  }
+
+  function onDrop(e: DragEvent): void {
+    dropping = false;
+    const id = droppedSampleId(e);
+    if (id === null) return;
+    e.preventDefault();
+    app.commands.addToPool(id);
+  }
 </script>
 
-<div class="pool" role="complementary" aria-label={t('pool.title', locale)}>
+<div
+  class="pool"
+  class:overlay
+  class:dropping
+  role="complementary"
+  aria-label={t('pool.title', locale)}
+  ondragover={onDragOver}
+  ondragleave={() => (dropping = false)}
+  ondrop={onDrop}
+>
   <header>
     <h2>{t('pool.title', locale)}</h2>
     <button
-      class="close"
+      class="icon-action add"
       type="button"
-      aria-label={t('drawer.close', locale)}
-      onclick={() => app.commands.closePool()}
+      title={t('pool.addSamples', locale)}
+      aria-label={t('pool.addSamples', locale)}
+      onclick={() => app.commands.openLibrary()}
     >
-      <Icon name="close" size={18} />
+      <Icon name="plus" size={16} />
     </button>
+    <button
+      class="icon-action clear"
+      type="button"
+      title={t('pool.clear', locale)}
+      aria-label={t('pool.clear', locale)}
+      disabled={items.length === 0}
+      onclick={() => app.commands.clearPool()}
+    >🗑</button>
+    {#if closable}
+      <button
+        class="icon-action close"
+        type="button"
+        aria-label={t('drawer.close', locale)}
+        onclick={() => app.commands.closePool()}
+      >
+        <Icon name="close" size={18} />
+      </button>
+    {/if}
   </header>
 
   {#if items.length === 0}
@@ -41,7 +94,7 @@
     <p class="hint">{t('pool.hint', locale)}</p>
     <ul>
       {#each items as sample (sample.id)}
-        <li>
+        <li draggable="true" ondragstart={(e) => setSampleDrag(e, sample.id)}>
           <button
             class="item"
             class:armed={armed === sample.id}
@@ -67,48 +120,53 @@
 </div>
 
 <style>
-  /* Tiroir GAUCHE, sans voile : les pads restent touchables pendant l'assignation. */
+  /* Défaut : SIDEBAR en flux (dans .body), la grille se resserre à côté. */
   .pool {
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
+    flex-shrink: 0;
     width: min(15rem, 70vw);
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
     padding: 0.75rem;
-    padding-top: calc(0.75rem + env(safe-area-inset-top));
-    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
     background: var(--panel);
     border-right: 1px solid var(--border);
-    box-shadow: 0.75rem 0 2rem rgb(0 0 0 / 35%);
-    z-index: var(--z-drawer);
     overflow-y: auto;
+  }
+
+  /* Tiroir (`overlay`, écran étroit ou bibliothèque ouverte) : GAUCHE fixé, sans voile —
+     les pads restent touchables pendant l'assignation, et il flotte AU-DESSUS de la
+     bibliothèque ouverte pour recevoir ses lignes glissées (--z-pool). */
+  .pool.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    padding-top: calc(0.75rem + env(safe-area-inset-top));
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    box-shadow: 0.75rem 0 2rem rgb(0 0 0 / 35%);
+    z-index: var(--z-pool);
+  }
+
+  /* Zone de dépôt active : liseré accentué pendant le survol d'un glissement. */
+  .pool.dropping {
+    outline: 2px dashed var(--accent);
+    outline-offset: -0.375rem;
   }
 
   header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 0.3rem;
   }
 
   h2 {
+    flex: 1;
+    min-width: 0;
     margin: 0;
     font-size: 1rem;
-  }
-
-  .close {
-    display: inline-flex;
-    min-width: 2.5rem;
-    min-height: 2.5rem;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    border-radius: 0.5rem;
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .empty,

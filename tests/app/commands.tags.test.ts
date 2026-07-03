@@ -193,6 +193,21 @@ describe('pool (M8)', () => {
     expect(store.poolOpen).toBe(false);
   });
 
+  it('clearPool (#18) vide tout et désarme un armé issu du pool — pas un armé extérieur', () => {
+    const { store, commands } = setup();
+    commands.addToPool('s1');
+    commands.addToPool('s2');
+    commands.startAssigning('s1');
+    commands.clearPool();
+    expect(store.poolSampleIds).toEqual([]);
+    expect(store.assigningSampleId).toBeNull();
+
+    // Armé hors pool : vider le pool n'interrompt pas ce flux d'assignation.
+    commands.startAssigning('s1');
+    commands.clearPool();
+    expect(store.assigningSampleId).toBe('s1');
+  });
+
   it('deleteSample sort le sample du pool et le désarme', () => {
     const { store, commands } = setup();
     commands.addToPool('s1');

@@ -27,7 +27,7 @@ Les termes de comportement empruntent la **terminologie des contrôleurs MIDI / 
 | Grille | `grid` (`rows`×`cols`) | grille | Disposition en lignes × colonnes des pads d'une page. |
 | Sample | `Sample` | sample | Un fichier audio importé (ré-encodé en Opus). |
 | Bibliothèque | `Library` | bibliothèque | La collection de samples, gérée à part (CRUD). |
-| Pool | `pool` | pool | Liste de travail de samples (tiroir gauche, session) : chaque élément touché s'arme pour l'assignation à la volée. |
+| Pool | `pool` | pool | Liste de travail de samples (session), outil d'Édition : sidebar en large, tiroir gauche en étroit. Élément touché = armé (assignation à la volée) ; glissable sur un pad. |
 | Mode de lecture | `PlayMode` | Mode de lecture | Le comportement de déclenchement d'un pad. |
 | → One-Shot | `'oneShot'` | One-Shot | Tap → joue le sample **en entier** ; re-tap → relance depuis 0. |
 | → Gate | `'gate'` | Gate | Joue **tant que le pad est maintenu** ; stop au relâchement. |
@@ -487,10 +487,18 @@ Le ré-encodage se fait **côté frontend** (règle « pas de logique métier en
   filets ≤ 3px) — dimensions, espacements, rayons, ombres en **rem** (ou unités
   viewport/%) ; pilules en `999rem`.
 - **Pool** (2026-07-02) : le conteneur intermédiaire réservé est débloqué en v1 — **liste
-  de travail de session** (tiroir GAUCHE, non persistée) alimentée depuis la bibliothèque ;
-  toucher un élément l'ARME (assignation à la volée), le tiroir reste ouvert pendant qu'on
+  de travail de session** (non persistée) alimentée depuis la bibliothèque ;
+  toucher un élément l'ARME (assignation à la volée), le pool reste affiché pendant qu'on
   touche les pads. La gestion des tags vit dans une modale standard « Gérer les tags »
   (en-tête du panneau Bibliothèque).
+- **Pool revu** (2026-07-04, #18) : outil d'**Édition exclusivement**. **Sidebar
+  systématique** en flux sur écran large (≥ 48 rem — ni bouton, ni fermeture) ; **tiroir
+  gauche** à bouton (bottombar) sur écran étroit, flottant aussi au-dessus de la
+  bibliothèque ouverte (`--z-pool`) pour le dépôt. **Glisser-déposer** : ligne de
+  bibliothèque → pool, élément du pool → pad (assignation immédiate) — type MIME partagé
+  `application/x-sampleboard-sample` (`ui/interaction/sample-dnd.ts`) ; raccourci
+  pointeur, le flux tactile « armer puis toucher » reste le chemin mobile. En-tête :
+  **Ajouter** (ouvre la bibliothèque) + **Vider** (`clearPool`).
 - **Tags de samples** (2026-07-02, tri backlog #10-12) : étiquettes **n-à-n** (`tags` +
   `sample_tags`, migration 4), personnalisables (CRUD) ; liste par défaut semée au premier
   lancement (SFX, Répliques, Jingle, Musique, Ambiance, Voix, Réaction, Meme, Alerte —

@@ -10,6 +10,7 @@
     type PadInputParams,
   } from '../interaction/pad-input';
   import { t } from '../i18n';
+  import { carriesSample, droppedSampleId } from '../interaction/sample-dnd';
   import { tintStyle } from '../tint';
   import Icon from './Icon.svelte';
   import PadWaveform from './PadWaveform.svelte';
@@ -55,11 +56,39 @@
   const displayName = $derived(
     pad.name || (status === 'empty' ? t('pad.empty', locale) : t('pad.untitled', locale)),
   );
+
+  // Cible de dépôt (#18) : en Édition, un sample glissé (pool ou bibliothèque) s'assigne au pad.
+  let dropping = $state(false);
+
+  function onDragOver(e: DragEvent): void {
+    if (!editMode || !carriesSample(e)) return;
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+    dropping = true;
+  }
+
+  function onDrop(e: DragEvent): void {
+    dropping = false;
+    if (!editMode) return;
+    const id = droppedSampleId(e);
+    if (id === null) return;
+    e.preventDefault();
+    app.commands.assignSample(pad.id, id);
+  }
 </script>
 
 <div class="cell" style={tint}>
   {#if assigning}
-    <button class="pad {status}" data-mode={pad.playMode} type="button" onclick={() => app.commands.tapAssign(pad.id)}>
+    <button
+      class="pad {status}"
+      class:dropping
+      data-mode={pad.playMode}
+      type="button"
+      onclick={() => app.commands.tapAssign(pad.id)}
+      ondragover={onDragOver}
+      ondragleave={() => (dropping = false)}
+      ondrop={onDrop}
+    >
       <span class="name">{displayName}</span>
       <span class="mode">{t(`mode.${pad.playMode}`, locale)}</span>
     </button>
@@ -67,9 +96,13 @@
     <button
       class="pad {status} editing"
       class:selected
+      class:dropping
       data-mode={pad.playMode}
       type="button"
       onclick={() => app.commands.openPadDrawer(pad.id)}
+      ondragover={onDragOver}
+      ondragleave={() => (dropping = false)}
+      ondrop={onDrop}
     >
       <span class="name">{displayName}</span>
       <span class="mode">{t(`mode.${pad.playMode}`, locale)}</span>
@@ -108,6 +141,12 @@
     position: relative;
     min-height: 0;
     min-width: 0;
+  }
+
+  /* Survol d'un glissement de sample (#18) : le pad cible se signale. */
+  .pad.dropping {
+    outline: 3px dashed var(--accent);
+    outline-offset: 2px;
   }
 
   .pad {
