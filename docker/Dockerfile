@@ -64,7 +64,9 @@ ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 FROM base AS dev
 
 # Libs runtime du Chromium Playwright (e2e) — absentes de la toolchain Tauri.
+# Police emoji : icônes de l'UI (corbeille…) dans les captures fastlane.
 RUN apt-get update && apt-get install -y --no-install-recommends \
+      fonts-noto-color-emoji \
       libasound2 \
       libnspr4 \
       libnss3 \

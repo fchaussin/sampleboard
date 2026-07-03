@@ -280,7 +280,10 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 - [ ] Build reproductible (toolchain épinglée ✓ ; déterminisme APK + WASM opus build-from-source à traiter).
 - [x] En-têtes SPDX complets + conformité licence (audit : 1 manquant corrigé, 100 % couvert).
 - [~] Métadonnées F-Droid (fastlane) : descriptions FR/EN ✓ ; changelogs par versionCode
-  (6000/8000/9000, FR+EN) ✓ ; captures restantes (UI finale disponible depuis M8).
+  (6000/8000/9000, FR+EN) ✓ ; captures ✓ — 5 phoneScreenshots fr-FR REPRODUCTIBLES
+  (`e2e/screenshots.fastlane.spec.ts`, `FASTLANE_SHOTS=1`, 393×852 @3x : board semé,
+  lecture Loop, bibliothèque, éditeur, Édition+tiroir) ; reste la revue utilisateur des
+  captures.
 - [ ] Soumission F-Droid (RFP / merge request metadata).
 - [ ] **Validation** : APK installable, app fonctionnelle hors Play Services.
 
