@@ -12,6 +12,13 @@ export const OPUS_BITRATE_BPS = 96_000;
 const OPUS_ENCODER_SAMPLE_RATE = 48_000;
 /** OPUS_APPLICATION_AUDIO (musique / bruitages), voir libopus. */
 const OPUS_APPLICATION_AUDIO = 2049;
+/**
+ * Silence poussé en QUEUE d'entrée (s) : le codec retient un délai interne (pre-skip,
+ * 3 840 éch. à 48 kHz = 80 ms) que le worker ne vide pas au « done » — sans ce coussin,
+ * les 80 derniers ms de l'audio réel restent dans le tampon et sont PERDUS. Le silence
+ * ajouté, lui, n'est jamais restitué : trimOggTail borne la granule à la durée réelle.
+ */
+const TAIL_FLUSH_SECONDS = 0.08;
 
 /** PCM non entrelacé (un Float32Array par canal) + fréquence source. */
 export interface PcmData {
@@ -66,12 +73,19 @@ export function createOpusEncoder(): Encoder {
       // Les pages OGG arrivent dans data.page (pas en messages bruts).
       worker.onmessage = ({ data }: MessageEvent) => {
         switch (data?.message) {
-          case 'ready':
+          case 'ready': {
             // OpusHead + OpusTags d'abord (sinon OGG sans en-têtes = indécodable), puis l'audio.
             worker.postMessage({ command: 'getHeaderPages' });
-            worker.postMessage({ command: 'encode', buffers: pcm.channelData });
+            const pad = Math.ceil(TAIL_FLUSH_SECONDS * pcm.sampleRate);
+            const buffers = pcm.channelData.map((channel) => {
+              const padded = new Float32Array(channel.length + pad);
+              padded.set(channel);
+              return padded;
+            });
+            worker.postMessage({ command: 'encode', buffers });
             worker.postMessage({ command: 'done' });
             break;
+          }
           case 'page':
             pages.push(data.page instanceof Uint8Array ? data.page : new Uint8Array(data.page));
             break;
