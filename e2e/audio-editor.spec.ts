@@ -2,7 +2,7 @@
 // E2E M7 : l'éditeur audio (« découper ») dans un vrai Chromium — waveform, poignée
 // déplacée au pointeur, rognage AVANT encodage (durée persistée réduite), undo, retravail.
 import { test, expect, type Page } from '@playwright/test';
-import { makeWav, openLibrary } from './helpers';
+import { gotoApp, makeWav, openLibrary, pickImportFile } from './helpers';
 
 /** Glisse la poignée de fin vers `ratio` (0..1) de la largeur de la waveform. */
 async function dragEndHandleTo(page: Page, ratio: number): Promise<void> {
@@ -16,13 +16,9 @@ async function dragEndHandleTo(page: Page, ratio: number): Promise<void> {
 }
 
 test('import → rognage à la poignée → durée persistée réduite ; undo restaure', async ({ page }) => {
-  await page.goto('/');
+  await gotoApp(page);
   // WAV d'une seconde : les durées affichées sont non ambiguës (1 s → 0,5 s).
-  await page.locator('.bottombar .import input[type=file]').setInputFiles({
-    name: 'long.wav',
-    mimeType: 'audio/wav',
-    buffer: makeWav(1),
-  });
+  await pickImportFile(page, { name: 'long.wav', mimeType: 'audio/wav', buffer: makeWav(1) });
 
   const editor = page.locator('.audio-editor');
   await editor.waitFor({ timeout: 20_000 });
@@ -42,12 +38,8 @@ test('import → rognage à la poignée → durée persistée réduite ; undo re
 });
 
 test('retravail depuis la bibliothèque : re-rognage → durée mise à jour', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('.bottombar .import input[type=file]').setInputFiles({
-    name: 'long.wav',
-    mimeType: 'audio/wav',
-    buffer: makeWav(1),
-  });
+  await gotoApp(page);
+  await pickImportFile(page, { name: 'long.wav', mimeType: 'audio/wav', buffer: makeWav(1) });
   const editor = page.locator('.audio-editor');
   await editor.waitFor({ timeout: 20_000 });
   await editor.locator('.apply').click(); // import plage complète (1 s)

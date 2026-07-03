@@ -4,7 +4,6 @@
   import type { App } from '../../app/create-app';
   import type { ImportError } from '../../app/commands';
   import { filterSamples } from '../../app/tag-filter';
-  import { importFile } from '../import-file';
   import { t } from '../i18n';
   import Icon from './Icon.svelte';
 
@@ -13,7 +12,6 @@
   const tags = $derived(app.store.tags);
   const filter = $derived(app.store.libraryFilter);
 
-  let busy = $state(false);
   let error = $state<ImportError | null>(null);
   // Sample en attente de confirmation de suppression (impacte des pads).
   let confirming = $state<string | null>(null);
@@ -45,17 +43,6 @@
     return `${size} · ${nf.format(durationMs / 1000)} ${t('unit.seconds', locale)}`;
   }
 
-  async function onImport(event: Event): Promise<void> {
-    const input = event.currentTarget as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = '';
-    if (!file) return;
-    busy = true;
-    error = null;
-    error = await importFile(app, file);
-    busy = false;
-  }
-
   function requestDelete(sampleId: string): void {
     if (impactedPads(sampleId) > 0) {
       confirming = sampleId;
@@ -84,10 +71,10 @@
 
 <section class="library">
   <div class="head">
-    <label class="import">
-      <span>{busy ? t('library.importing', locale) : t('library.import', locale)}</span>
-      <input type="file" accept="audio/*" onchange={onImport} disabled={busy} />
-    </label>
+    <!-- Point d'entrée UNIQUE de l'import : la modale (choix des fichiers + progression). -->
+    <button class="import" type="button" onclick={() => app.commands.openImport()}>
+      {t('library.import', locale)}
+    </button>
     {#if error}
       <span class="error">{t(`library.error.${error}`, locale)}</span>
     {/if}
@@ -147,7 +134,7 @@
             aria-label={t('library.tags', locale)}
             aria-expanded={expanded === s.id}
             onclick={() => toggleExpanded(s.id)}
-          >🏷</button>
+          ><Icon name="tag" size={16} /></button>
           {#if confirming === s.id}
             <span class="confirm">
               {impactedPads(s.id)}
@@ -202,24 +189,14 @@
   }
 
   .import {
-    cursor: pointer;
-  }
-
-  .import span {
-    display: inline-block;
     padding: 0.35rem 0.9rem;
     border: 1px solid var(--accent);
     border-radius: 0.5rem;
+    background: transparent;
     color: var(--accent);
+    font: inherit;
     font-size: 0.85rem;
-  }
-
-  .import input {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
-    pointer-events: none;
+    cursor: pointer;
   }
 
   .error {

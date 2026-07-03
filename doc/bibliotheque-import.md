@@ -77,3 +77,43 @@ no-op (§12) ; un signalement visuel dédié est au backlog.
   page→pad** (#11 — selects Page/Pad + Assigner, `assignSample` existant).
 - **Modale de choix de sample** (#12) : combobox — champ de recherche + chips de tags,
   filtres locaux à la modale.
+
+## Import multiple & archives (jalon M8, #13)
+
+Le bouton d'import de la **bottombar ouvre la MODALE d'import** (`ImportModal.svelte`,
+`openImport`/`closeImport`) : état « choix des fichiers » (bouton + rappel des formats +
+option **« Ajouter les sons importés au pool »** — chaque sample réussi rejoint le pool,
+sur le lot comme sur le fichier unique validé dans l'éditeur), puis **progression au même
+endroit** quand un lot démarre. L'input de la bibliothèque
+reste un accès direct au sélecteur ; les deux sont `multiple` et acceptent
+`audio/* + .zip + .rar` (`IMPORT_ACCEPT`, `ui/import-file.ts`). Aiguillage dans
+`importFiles` :
+
+- **UN fichier audio** → `beginImport` : l'**éditeur audio s'ouvre** (flux M7 inchangé,
+  y compris l'assignation à un pad depuis la modale de choix) et la modale d'import se
+  referme.
+- **Plusieurs fichiers ou une archive** → `commands.importBatch` : **lot direct** sans
+  éditeur (rognage possible après coup via « Découper »), progression dans
+  `store.batchImport` ($state.raw, remplacé en bloc) — barre globale, statut par fichier,
+  **Interrompre** (l'élément en cours se termine, les restants passent à « ignoré »).
+  « Fermer » en fin de lot referme modale et état d'un coup (`closeBatchImport`).
+
+### Archives (zip/rar) — `engine/archive.ts`
+
+Extraction via **libarchive compilé en WASM** dans un worker éphémère par archive :
+`libarchive.js` (MIT) enrobe libarchive (BSD, lecteurs zip + rar4/rar5 **clean-room**) —
+le unrar officiel est **refusé** (licence non libre, décision §16). Le worker résout
+`libarchive.wasm` **relativement à sa propre URL** : le plugin `libarchive-assets`
+(`vite.config.ts`) sert les deux fichiers côte à côte en dev et les copie en
+`dist/libarchive/` au build (noms stables, pas de hash).
+
+Dans le lot, une archive est **dépliée en place** : ses entrées à extension audio
+(`AUDIO_EXTENSIONS`, le décodage reste l'arbitre final §12) s'ajoutent à la file et à la
+modale ; `__MACOSX/` et les fichiers cachés sont écartés. Gardes : archive ≤ 200 Mo
+(`ARCHIVE_MAX_BYTES`) → `tooLarge` ; extraction impossible → `archiveFailed` ; aucune
+entrée audio → `archiveEmpty`. Chaque entrée repasse ensuite par le pipeline d'import
+standard (20 Mo, décodage, Opus, écriture immédiate).
+
+L'extracteur est **injecté** dans les commandes (`createCommands({ extractArchive })`) :
+factice dans les tests (`tests/app/commands.batch-import.test.ts` — lot, isolation des
+échecs par fichier, expansion, interruption), réel câblé par `create-app.ts`.

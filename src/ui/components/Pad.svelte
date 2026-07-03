@@ -4,7 +4,11 @@
   import type { App } from '../../app/create-app';
   import type { Pad } from '../../domain/types';
   import type { PadStatus } from '../../domain/enums';
-  import { attachPadInput, type PadInputHandlers } from '../interaction/pad-input';
+  import {
+    padInputAction,
+    type PadInputHandlers,
+    type PadInputParams,
+  } from '../interaction/pad-input';
   import { t } from '../i18n';
   import { tintStyle } from '../tint';
   import Icon from './Icon.svelte';
@@ -31,8 +35,10 @@
     toggleLoop: (id) => app.commands.toggleLoopPad(id),
   };
 
-  function padInput(node: HTMLElement) {
-    return { destroy: attachPadInput(node, pad.id, pad.playMode, handlers) };
+  // Le paramètre est RÉACTIF : la grille étant clée par position, ce composant est réutilisé
+  // au changement de page — l'action doit suivre le pad affiché, pas celui du montage.
+  function padInput(node: HTMLElement, params: PadInputParams) {
+    return padInputAction(node, params, handlers);
   }
 
   // Teinte de palette (M6) : sans couleur, l'accent reste la teinte par défaut.
@@ -69,7 +75,12 @@
       <span class="mode">{t(`mode.${pad.playMode}`, locale)}</span>
     </button>
   {:else}
-    <button class="pad {status}" data-mode={pad.playMode} type="button" use:padInput>
+    <button
+      class="pad {status}"
+      data-mode={pad.playMode}
+      type="button"
+      use:padInput={{ padId: pad.id, playMode: pad.playMode }}
+    >
       {#if playing && pad.sampleId !== null}
         <PadWaveform {app} padId={pad.id} sampleId={pad.sampleId} />
       {/if}

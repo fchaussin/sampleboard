@@ -57,6 +57,8 @@ Les termes de comportement empruntent la **terminologie des contrôleurs MIDI / 
 | Stop général | `stopAllVoices` | Stop général | Arrête toutes les voix d'un tap (bouton panique de la barre d'actions). |
 | Tag | `Tag` | tag | Étiquette libre affectée aux samples (n-à-n) ; filtre la bibliothèque. |
 | → Non classé | `'untagged'` | Non classé | **Filtre virtuel** : les samples sans aucun tag (jamais stocké). |
+| Import multiple | `importBatch` / `BatchImport` | import multiple | Import séquentiel d'un **lot** de fichiers et/ou d'archives, suivi dans une modale de progression. |
+| Archive | `archive` (`zip`, `rar`) | archive | Conteneur zip/rar déplié à l'import : ses fichiers audio rejoignent le lot. |
 
 ---
 
@@ -501,6 +503,20 @@ Le ré-encodage se fait **côté frontend** (règle « pas de logique métier en
   décodé AVANT l'encodage Opus (le fichier stocké est déjà rogné). Empilement : modale/vue de
   niveau 2 (au-dessus de la modale d'import, top-layer natif). Le mot « couper » reste banni
   du reste de l'UI (« stopper »).
+- **Import multiple & archives** (2026-07-02) : les inputs d'import acceptent la **sélection
+  multifichier** et les **archives zip/rar**. UN fichier audio → éditeur audio (flux M7
+  inchangé) ; plusieurs fichiers ou une archive → **lot direct** sans éditeur (le rognage
+  reste possible après coup via « Découper »), suivi dans la **modale d'import**
+  (barre globale, statut par fichier, interruption). Le bouton d'import de la bottombar
+  **ouvre cette modale** (choix des fichiers puis progression au même endroit) ; l'input
+  de la bibliothèque reste un accès direct au sélecteur. Archives dépliées via **libarchive
+  compilé en WASM** (`libarchive.js`, MIT ; libarchive, BSD — lecteurs zip + rar4/rar5
+  clean-room) : le code **unrar officiel est refusé** (licence non libre, incompatible
+  GPL-3.0 et bloquante F-Droid). Le worker et son `.wasm` sont servis côte à côte à chemin
+  stable (plugin Vite dédié). Bornes : archive ≤ **200 Mo** (`ARCHIVE_MAX_BYTES`), chaque
+  entrée reste soumise aux 20 Mo d'import ; seules les extensions audio candidates entrent
+  dans le lot (le décodage reste l'arbitre final, §12). Build from-source du WASM : même
+  traitement que l'encodeur opus (jalon Empaquetage).
 - **Ordre de validation : web d'abord, Android ensuite.** Chaque jalon est d'abord développé et validé sur **web** (dev Vite http://localhost:1420 + fenêtre `tauri dev` bureau) ; la validation sur **appareil Android réel** est un **second temps**, jamais un prérequis pour avancer. La cible finale reste F-Droid/Android (§15) — c'est l'ordre de travail qui est fixé, pas la cible.
 
 ## 17. Évolutions futures (hors v1)

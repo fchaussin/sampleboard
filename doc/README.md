@@ -31,5 +31,6 @@ les règles projet :
 - [Persistance & réglages (M5)](./persistance-reglages.md)
 - [Interface (M6)](./interface.md)
 - [Éditeur audio « Découper » (M7)](./editeur-audio.md)
+- [Samples d'usine (#14)](./samples-usine.md)
 - [Audit FOSS des dépendances (M7)](./audit-foss.md)
 - [Tests](./tests.md)

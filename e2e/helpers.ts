@@ -29,6 +29,16 @@ export function makeWav(seconds = 0.25, sampleRate = 44100, freq = 440, channels
   return Buffer.concat([header, data]);
 }
 
+/**
+ * Ouvre l'app SANS semis d'usine (#14) : en navigateur, chaque chargement est un « premier
+ * lancement » (dépôts mémoire) et le semis remplirait bibliothèque et board — ces scénarios
+ * exigent une app vierge et déterministe. Le semis réel a son spec dédié (factory-seed.spec.ts).
+ */
+export async function gotoApp(page: Page): Promise<void> {
+  await page.route('**/factory-samples/**', (route) => route.fulfill({ status: 404, body: '' }));
+  await page.goto('/');
+}
+
 /** Ouvre le panneau Bibliothèque depuis la bottombar. */
 export async function openLibrary(page: Page): Promise<void> {
   await page.locator('.bottombar .open-library').click();
@@ -43,13 +53,24 @@ export async function applyAudioEditor(page: Page): Promise<void> {
 }
 
 /**
+ * Ouvre la MODALE d'import (#13 : l'import passe par elle, plus d'input direct) depuis le
+ * bouton `opener`, puis y sélectionne le fichier — un seul fichier audio → éditeur M7.
+ */
+export async function pickImportFile(
+  page: Page,
+  file: { name: string; mimeType: string; buffer: Buffer },
+  opener = '.bottombar .import',
+): Promise<void> {
+  await page.locator(opener).click();
+  await page.locator('.import-modal input[type=file]').setInputFiles(file);
+}
+
+/**
  * Importe un WAV via l'« Import rapide » de la bottombar (éditeur audio validé plage
  * complète), vérifie son apparition dans le panneau Bibliothèque, puis referme le panneau.
  */
 export async function importWav(page: Page, name = 'tone.wav', seconds = 0.25): Promise<void> {
-  await page
-    .locator('.bottombar .import input[type=file]')
-    .setInputFiles({ name, mimeType: 'audio/wav', buffer: makeWav(seconds) });
+  await pickImportFile(page, { name, mimeType: 'audio/wav', buffer: makeWav(seconds) });
   await applyAudioEditor(page);
   await openLibrary(page);
   await page.locator('.library .list li').first().waitFor({ timeout: 20_000 });

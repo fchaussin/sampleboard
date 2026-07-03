@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Couche de commandes — SEUL point de mutation du store (voir specifications.md §9).
 // Coordonne store + engine de façon atomique. L'UI n'émet que des intentions.
+import type { ArchiveExtractor } from '../engine/archive';
 import type { AudioEngine } from '../engine/audio-engine';
 import type { Encoder, PcmData } from '../engine/encoder';
 import { pcmDuration, trimPcm } from '../engine/pcm';
@@ -9,10 +10,13 @@ import type { Bank, Pad, Page, Sample, Settings, Tag } from '../domain/types';
 import type { BackgroundBehavior, Color, PlayMode, VoiceMode } from '../domain/enums';
 import { findPad, findPage, padsOfPage, pagesSorted, firstFreePosition } from '../domain/selectors';
 import {
+  ARCHIVE_MAX_BYTES,
   GAIN_DB_MAX,
   GAIN_DB_MIN,
   IMPORT_MAX_BYTES,
   defaultPadName,
+  isArchiveFileName,
+  isAudioFileName,
   gridCapacity,
   isValidColor,
   isValidCols,
@@ -21,11 +25,24 @@ import {
 } from '../domain/invariants';
 import { newId } from '../domain/id';
 import { BankFactory } from './bank-factory';
-import type { AppStore, LibraryFilter } from './store.svelte';
+import type { AppStore, BatchImportItem, LibraryFilter } from './store.svelte';
 
-/** Motif d'échec d'un import ou d'un retravail (voir §12, §13, M7). */
-export type ImportError = 'tooLarge' | 'undecodable' | 'encodeFailed' | 'writeFailed' | 'readFailed';
+/** Motif d'échec d'un import ou d'un retravail (voir §12, §13, M7, M8). */
+export type ImportError =
+  | 'tooLarge'
+  | 'undecodable'
+  | 'encodeFailed'
+  | 'writeFailed'
+  | 'readFailed'
+  | 'archiveFailed'
+  | 'archiveEmpty';
 export type ImportResult = { ok: true; sampleId: string } | { ok: false; reason: ImportError };
+
+/** Fichier source d'un lot d'import (M8) — bytes null : lecture du fichier échouée en amont. */
+export interface BatchSource {
+  name: string;
+  bytes: ArrayBuffer | null;
+}
 
 export interface CommandDeps {
   store: AppStore;
@@ -36,6 +53,8 @@ export interface CommandDeps {
   sampleRepository: SampleRepository;
   /** Dépôt des tags (M8) : écritures immédiates également. */
   tagRepository: TagRepository;
+  /** Extracteur d'archives zip/rar (M8, injectable pour les tests). */
+  extractArchive?: ArchiveExtractor;
   /** Générateur d'identifiants (injectable pour les tests). Défaut : `newId()`. */
   ids?: () => string;
   /** Horloge (injectable pour les tests). Défaut : `Date.now`. */
@@ -105,10 +124,35 @@ export interface Commands {
   // Bibliothèque (§8, §13)
   /** Pipeline d'import direct (plage complète) : taille → décodage → Opus → bibliothèque. */
   importSample(fileName: string, bytes: ArrayBuffer): Promise<ImportResult>;
+  /**
+   * Semis d'usine (#14) : OGG/Opus déjà encodé au dépôt — décodage (durée, jouabilité)
+   * puis copie des octets SANS réencodage, libellé curaté fourni par le manifest.
+   */
+  seedFactorySample(fileName: string, label: string, bytes: ArrayBuffer): Promise<ImportResult>;
+
+  // Import multiple (M8) : lot de fichiers et/ou archives, progression dans store.batchImport.
+  /**
+   * Ouvre la modale d'import (choix des fichiers) — POINT D'ENTRÉE UNIQUE de l'import.
+   * `assignPadId` : pad à assigner à l'issue du flux (modale ouverte depuis le choix de sample).
+   */
+  openImport(assignPadId?: string | null): void;
+  /** Referme la modale d'import (état choix des fichiers uniquement — pas un lot en cours). */
+  closeImport(): void;
+  /** Importe un lot en séquence ; les archives (zip/rar) sont dépliées en entrées audio. */
+  importBatch(sources: BatchSource[], options?: { addToPool?: boolean }): Promise<void>;
+  /** Interrompt le lot après l'élément en cours (les restants passent à « skipped »). */
+  cancelBatchImport(): void;
+  /** Referme la modale de progression (uniquement une fois le lot terminé). */
+  closeBatchImport(): void;
 
   // Éditeur audio (M7, « découper », §16)
   /** Décode et ouvre l'éditeur (waveform + rognage). Renvoie le motif d'échec, ou null. */
-  beginImport(fileName: string, bytes: ArrayBuffer, assignPadId?: string | null): Promise<ImportError | null>;
+  beginImport(
+    fileName: string,
+    bytes: ArrayBuffer,
+    assignPadId?: string | null,
+    addToPool?: boolean,
+  ): Promise<ImportError | null>;
   /** Re-décode un sample de la bibliothèque et ouvre l'éditeur (retravail). */
   beginSampleRework(sampleId: string): Promise<ImportError | null>;
   /** Pré-écoute la sélection courante de l'éditeur. */
@@ -152,6 +196,9 @@ export function createCommands({
   encode,
   sampleRepository,
   tagRepository,
+  extractArchive = async () => {
+    throw new Error('archive extraction unavailable');
+  },
   ids = () => newId(),
   now = () => Date.now(),
   factory = new BankFactory({ ids }),
@@ -176,6 +223,13 @@ export function createCommands({
   /** Tags triés par libellé (ordre stable de l'UI). */
   function sortedTags(tags: readonly Tag[]): Tag[] {
     return [...tags].sort((a, b) => a.label.localeCompare(b.label));
+  }
+
+  /** Ajoute un sample au pool (idempotent) — partagé commande directe / option d'import. */
+  function addSampleToPool(sampleId: string): void {
+    if (!store.samples.some((s) => s.id === sampleId)) return;
+    if (store.poolSampleIds.includes(sampleId)) return;
+    store.poolSampleIds = [...store.poolSampleIds, sampleId];
   }
 
   /** Rattache un sample (ou vide) à un pad ; nom par défaut si le pad n'en a pas (M6). */
@@ -248,6 +302,51 @@ export function createCommands({
     store.samples = [...store.samples, sample];
     if (assignPadId !== null) assignSampleToPad(assignPadId, id);
     return { ok: true, sampleId: id };
+  }
+
+  /** Pipeline d'import direct d'UNE source : taille → décodage → fin de pipeline (§13). */
+  async function importSource(fileName: string, bytes: ArrayBuffer): Promise<ImportResult> {
+    if (bytes.byteLength > IMPORT_MAX_BYTES) return { ok: false, reason: 'tooLarge' };
+    const pcm = await decodeSource(bytes);
+    if (!pcm) return { ok: false, reason: 'undecodable' }; // format non décodable (§12)
+    return finishImport(fileName, pcm, null);
+  }
+
+  // --- Import multiple (M8) -------------------------------------------------------------------
+  let batchCancelled = false;
+
+  /** Publie l'état du lot EN BLOC ($state.raw) : items clonés, compteur réglé dérivé. */
+  function publishBatch(items: BatchImportItem[], finished: boolean): void {
+    store.batchImport = {
+      items: items.map((item) => ({ ...item })),
+      settled: items.filter((i) => i.status === 'done' || i.status === 'failed' || i.status === 'skipped').length,
+      finished,
+      cancelled: batchCancelled,
+    };
+  }
+
+  /** Déplie une archive en entrées audio ; renvoie le motif d'échec, ou null. */
+  async function expandArchive(
+    job: { item: BatchImportItem; bytes: ArrayBuffer },
+    items: BatchImportItem[],
+    queue: { item: BatchImportItem; bytes: ArrayBuffer | null }[],
+  ): Promise<ImportError | null> {
+    if (job.bytes.byteLength > ARCHIVE_MAX_BYTES) return 'tooLarge';
+    let entries;
+    try {
+      entries = await extractArchive(job.item.name, job.bytes);
+    } catch (err) {
+      console.error('import: échec de l’extraction de l’archive', err);
+      return 'archiveFailed';
+    }
+    const audio = entries.filter((e) => isAudioFileName(e.name));
+    if (audio.length === 0) return 'archiveEmpty';
+    for (const entry of audio) {
+      const item: BatchImportItem = { name: entry.name, status: 'pending', reason: null };
+      items.push(item);
+      queue.push({ item, bytes: entry.bytes });
+    }
+    return null;
   }
 
   return {
@@ -495,21 +594,112 @@ export function createCommands({
     },
 
     async importSample(fileName: string, bytes: ArrayBuffer): Promise<ImportResult> {
-      if (bytes.byteLength > IMPORT_MAX_BYTES) return { ok: false, reason: 'tooLarge' };
-      const pcm = await decodeSource(bytes);
-      if (!pcm) return { ok: false, reason: 'undecodable' }; // format non décodable (§12)
-      return finishImport(fileName, pcm, null);
+      return importSource(fileName, bytes);
+    },
+
+    async seedFactorySample(fileName: string, label: string, bytes: ArrayBuffer): Promise<ImportResult> {
+      // Copies systématiques : decodeAudioData détache le buffer qu'on lui passe.
+      const pcm = await decodeSource(bytes.slice(0));
+      if (!pcm) return { ok: false, reason: 'undecodable' };
+      const id = ids();
+      try {
+        await engine.load(id, bytes.slice(0));
+      } catch {
+        return { ok: false, reason: 'undecodable' };
+      }
+      const sample: Sample = {
+        id,
+        label,
+        fileName: `${id}.ogg`,
+        originalName: fileName,
+        mime: 'audio/ogg',
+        sizeBytes: bytes.byteLength,
+        durationMs: Math.round(pcmDuration(pcm) * 1000),
+        createdAt: now(),
+      };
+      try {
+        await sampleRepository.add(sample, new Uint8Array(bytes));
+      } catch (err) {
+        console.error('semis d’usine : échec de l’écriture du sample', err);
+        engine.unload(id);
+        return { ok: false, reason: 'writeFailed' };
+      }
+      store.samples = [...store.samples, sample];
+      return { ok: true, sampleId: id };
+    },
+
+    openImport(assignPadId: string | null = null): void {
+      store.drawer = null; // une seule surcouche à la fois (§11)
+      store.importAssignPadId = assignPadId;
+      store.importOpen = true;
+    },
+
+    closeImport(): void {
+      store.importOpen = false;
+      store.importAssignPadId = null;
+    },
+
+    async importBatch(sources: BatchSource[], options: { addToPool?: boolean } = {}): Promise<void> {
+      if (store.batchImport !== null && !store.batchImport.finished) return; // un lot à la fois
+      batchCancelled = false;
+      const items: BatchImportItem[] = sources.map((s) => ({
+        name: s.name,
+        status: 'pending',
+        reason: null,
+      }));
+      // File de travail : les archives dépliées y ajoutent leurs entrées EN COURS de lot.
+      const queue = sources.map((s, i) => ({ item: items[i]!, bytes: s.bytes }));
+      publishBatch(items, false);
+
+      for (const job of queue) {
+        if (batchCancelled) break;
+        job.item.status = 'working';
+        publishBatch(items, false);
+
+        let reason: ImportError | null;
+        if (job.bytes === null) {
+          reason = 'readFailed'; // lecture du fichier échouée en amont (UI)
+        } else if (isArchiveFileName(job.item.name)) {
+          reason = await expandArchive({ item: job.item, bytes: job.bytes }, items, queue);
+        } else {
+          const result = await importSource(job.item.name, job.bytes);
+          reason = result.ok ? null : result.reason;
+          if (result.ok && options.addToPool === true) addSampleToPool(result.sampleId);
+        }
+        job.item.status = reason === null ? 'done' : 'failed';
+        job.item.reason = reason;
+        publishBatch(items, false);
+      }
+
+      // Interruption : ce qui n'a pas été traité est marqué, jamais passé sous silence.
+      for (const item of items) {
+        if (item.status === 'pending' || item.status === 'working') item.status = 'skipped';
+      }
+      publishBatch(items, true);
+    },
+
+    cancelBatchImport(): void {
+      if (store.batchImport === null || store.batchImport.finished) return;
+      batchCancelled = true;
+    },
+
+    closeBatchImport(): void {
+      if (store.batchImport === null || !store.batchImport.finished) return;
+      store.batchImport = null;
+      store.importOpen = false; // lot clos → la modale d'import se referme avec lui
+      store.importAssignPadId = null;
     },
 
     async beginImport(
       fileName: string,
       bytes: ArrayBuffer,
       assignPadId: string | null = null,
+      addToPool = false,
     ): Promise<ImportError | null> {
       if (bytes.byteLength > IMPORT_MAX_BYTES) return 'tooLarge';
       const pcm = await decodeSource(bytes);
       if (!pcm) return 'undecodable';
-      store.audioEditor = { mode: 'import', fileName, pcm, sample: null, assignPadId };
+      store.audioEditor = { mode: 'import', fileName, pcm, sample: null, assignPadId, addToPool };
       return null;
     },
 
@@ -524,7 +714,14 @@ export function createCommands({
       }
       const pcm = await decodeSource(bytes.slice().buffer as ArrayBuffer);
       if (!pcm) return 'undecodable';
-      store.audioEditor = { mode: 'rework', fileName: sample.label, pcm, sample, assignPadId: null };
+      store.audioEditor = {
+        mode: 'rework',
+        fileName: sample.label,
+        pcm,
+        sample,
+        assignPadId: null,
+        addToPool: false,
+      };
       return null;
     },
 
@@ -543,7 +740,10 @@ export function createCommands({
 
       if (editor.mode === 'import') {
         const result = await finishImport(editor.fileName, pcm, editor.assignPadId);
-        if (result.ok) store.audioEditor = null; // échec → l'éditeur reste ouvert (message)
+        if (result.ok) {
+          if (editor.addToPool) addSampleToPool(result.sampleId);
+          store.audioEditor = null; // échec → l'éditeur reste ouvert (message)
+        }
         return result;
       }
 
@@ -666,9 +866,7 @@ export function createCommands({
       store.assigningSampleId = null;
     },
     addToPool(sampleId: string): void {
-      if (!store.samples.some((s) => s.id === sampleId)) return;
-      if (store.poolSampleIds.includes(sampleId)) return;
-      store.poolSampleIds = [...store.poolSampleIds, sampleId];
+      addSampleToPool(sampleId);
     },
     removeFromPool(sampleId: string): void {
       store.poolSampleIds = store.poolSampleIds.filter((id) => id !== sampleId);

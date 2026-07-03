@@ -2,10 +2,10 @@
 // E2E M8 : tags (semis par défaut, affectation), filtres (dont « Non classé » virtuel),
 // assignation page→pad depuis la bibliothèque, recherche dans la modale de sample.
 import { test, expect } from '@playwright/test';
-import { importWav, openLibrary } from './helpers';
+import { gotoApp, importWav, openLibrary } from './helpers';
 
 test('taguer, filtrer (tag et Non classé), assigner un pad depuis la bibliothèque', async ({ page }) => {
-  await page.goto('/');
+  await gotoApp(page);
   await importWav(page, 'explosion.wav');
   await openLibrary(page);
 
@@ -41,7 +41,7 @@ test('taguer, filtrer (tag et Non classé), assigner un pad depuis la bibliothè
 });
 
 test('modale de choix de sample : la recherche filtre la liste (#12)', async ({ page }) => {
-  await page.goto('/');
+  await gotoApp(page);
   await importWav(page, 'kick.wav');
   await importWav(page, 'nappe.wav');
 
@@ -57,7 +57,7 @@ test('modale de choix de sample : la recherche filtre la liste (#12)', async ({ 
 });
 
 test('pool : stocker deux samples, armer depuis le tiroir gauche, assigner à la volée', async ({ page }) => {
-  await page.goto('/');
+  await gotoApp(page);
   await importWav(page, 'kick.wav');
   await importWav(page, 'nappe.wav');
 

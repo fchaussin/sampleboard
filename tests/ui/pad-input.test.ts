@@ -2,7 +2,11 @@
 // Tests du mappage Pointer Events → intentions selon le Mode de lecture (voir §10).
 // Élément et évènements factices : pas de DOM réel requis.
 import { describe, it, expect, vi } from 'vitest';
-import { attachPadInput, type PadInputHandlers } from '../../src/ui/interaction/pad-input';
+import {
+  attachPadInput,
+  padInputAction,
+  type PadInputHandlers,
+} from '../../src/ui/interaction/pad-input';
 import type { PlayMode } from '../../src/domain/enums';
 
 function fakeEl() {
@@ -104,6 +108,57 @@ describe('détachement', () => {
   it('retire les écouteurs (plus de déclenchement après detach)', () => {
     const { dispatch, h, detach } = attach('oneShot');
     detach();
+    dispatch('pointerdown', pointer());
+    expect(h.fire).not.toHaveBeenCalled();
+  });
+});
+
+// Régression : la grille est clée par position, les composants Pad sont réutilisés d'une
+// page à l'autre — l'action doit suivre le pad affiché (sinon le pad de la page 1 se
+// déclenche depuis les pages 2/3).
+describe('padInputAction — ré-attachement au changement de pad', () => {
+  it('après update, un tap déclenche le NOUVEAU pad (jamais celui du montage)', () => {
+    const { el, dispatch } = fakeEl();
+    const h = handlers();
+    const action = padInputAction(el, { padId: 'pad-page1', playMode: 'oneShot' }, h);
+
+    action.update({ padId: 'pad-page2', playMode: 'oneShot' });
+    dispatch('pointerdown', pointer());
+
+    expect(h.fire).toHaveBeenCalledTimes(1);
+    expect(h.fire).toHaveBeenCalledWith('pad-page2');
+  });
+
+  it("update suit aussi un changement de Mode de lecture", () => {
+    const { el, dispatch } = fakeEl();
+    const h = handlers();
+    const action = padInputAction(el, { padId: 'pad-1', playMode: 'oneShot' }, h);
+
+    action.update({ padId: 'pad-1', playMode: 'loop' });
+    dispatch('pointerdown', pointer());
+
+    expect(h.fire).not.toHaveBeenCalled();
+    expect(h.toggleLoop).toHaveBeenCalledWith('pad-1');
+  });
+
+  it('update pendant un Gate tenu relâche la voix de l’ancien pad', () => {
+    const { el, dispatch } = fakeEl();
+    const h = handlers();
+    const action = padInputAction(el, { padId: 'pad-page1', playMode: 'gate' }, h);
+
+    dispatch('pointerdown', pointer());
+    expect(h.press).toHaveBeenCalledWith('pad-page1');
+
+    action.update({ padId: 'pad-page2', playMode: 'gate' });
+    expect(h.release).toHaveBeenCalledWith('pad-page1');
+  });
+
+  it('destroy retire les écouteurs', () => {
+    const { el, dispatch } = fakeEl();
+    const h = handlers();
+    const action = padInputAction(el, { padId: 'pad-1', playMode: 'oneShot' }, h);
+
+    action.destroy();
     dispatch('pointerdown', pointer());
     expect(h.fire).not.toHaveBeenCalled();
   });

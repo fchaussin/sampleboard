@@ -32,6 +32,33 @@ export function defaultSettings(): Settings {
 /** Taille max d'un fichier importé, sur la source avant décodage (20 Mo, §16). */
 export const IMPORT_MAX_BYTES = 20 * 1024 * 1024;
 
+/** Taille max d'une ARCHIVE importée (M8) ; chaque entrée reste soumise à IMPORT_MAX_BYTES. */
+export const ARCHIVE_MAX_BYTES = 200 * 1024 * 1024;
+
+/** Extensions d'archives acceptées à l'import (M8) — zip + rar (lecteurs libarchive, §16). */
+export const ARCHIVE_EXTENSIONS = ['zip', 'rar'] as const;
+
+/** Extensions retenues comme candidates audio lors de l'expansion d'une archive. */
+export const AUDIO_EXTENSIONS = [
+  'mp3', 'wav', 'ogg', 'oga', 'opus', 'flac', 'm4a', 'aac', 'webm', 'aif', 'aiff',
+] as const;
+
+/** Extension d'un nom de fichier, en minuscules ('' si aucune). */
+function fileExtension(name: string): string {
+  const dot = name.lastIndexOf('.');
+  return dot < 0 ? '' : name.slice(dot + 1).toLowerCase();
+}
+
+/** Vrai si le nom désigne une archive prise en charge (zip/rar). */
+export function isArchiveFileName(name: string): boolean {
+  return (ARCHIVE_EXTENSIONS as readonly string[]).includes(fileExtension(name));
+}
+
+/** Vrai si le nom est une candidate audio (le décodage reste l'arbitre final, §12). */
+export function isAudioFileName(name: string): boolean {
+  return (AUDIO_EXTENSIONS as readonly string[]).includes(fileExtension(name));
+}
+
 /** Longueur max du nom de pad auto-généré à l'assignation (M6). */
 export const PAD_NAME_MAX = 12;
 

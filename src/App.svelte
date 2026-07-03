@@ -9,6 +9,7 @@
   import Drawer from './ui/components/Drawer.svelte';
   import LibraryPanel from './ui/components/LibraryPanel.svelte';
   import AudioEditor from './ui/components/AudioEditor.svelte';
+  import ImportModal from './ui/components/ImportModal.svelte';
   import AssignBanner from './ui/components/AssignBanner.svelte';
   import PoolDrawer from './ui/components/PoolDrawer.svelte';
 
@@ -41,6 +42,10 @@
   {#key app.store.audioEditor}
     <AudioEditor {app} editor={app.store.audioEditor} />
   {/key}
+{/if}
+
+{#if app.store.importOpen || app.store.batchImport}
+  <ImportModal {app} />
 {/if}
 
 <style>

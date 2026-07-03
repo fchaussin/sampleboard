@@ -99,6 +99,15 @@ describe('beginImport', () => {
     expect(store.audioEditor!.pcm.sampleRate).toBe(8);
   });
 
+  it("option addToPool (modale d'import) : le sample validé rejoint le pool", async () => {
+    const { store, commands } = setup();
+    await commands.beginImport('kick.wav', new ArrayBuffer(8), null, true);
+    expect(store.audioEditor).toMatchObject({ addToPool: true });
+    const result = await commands.applyAudioEditor(0, 1);
+    expect(result.ok).toBe(true);
+    expect(store.poolSampleIds).toEqual(['id-0']);
+  });
+
   it('garde de taille et de décodage', async () => {
     const { store, engine, commands } = setup();
     expect(await commands.beginImport('big.wav', new ArrayBuffer(IMPORT_MAX_BYTES + 1))).toBe('tooLarge');

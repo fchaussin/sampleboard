@@ -4,6 +4,7 @@
 import { defaultSettings } from '../domain/invariants';
 import type { Bank, Page, Sample, Settings, Tag } from '../domain/types';
 import type { PcmData } from '../engine/encoder';
+import type { ImportError } from './commands';
 
 /** Contenu du tiroir contextuel (§11) : réglages du pad, de la page, ou généraux. */
 export type DrawerContent = 'pad' | 'page' | 'settings';
@@ -22,6 +23,28 @@ export interface AudioEditorState {
   sample: Sample | null;
   /** Pad à assigner après validation (flux modale de choix de sample), ou null. */
   assignPadId: string | null;
+  /** Ajouter le sample au pool après validation (option de la modale d'import, M8). */
+  addToPool: boolean;
+}
+
+/** Statut d'un élément du lot d'import (M8) — « skipped » : lot interrompu avant lui. */
+export type BatchItemStatus = 'pending' | 'working' | 'done' | 'failed' | 'skipped';
+
+/** Élément suivi par la modale de progression : un fichier source ou une entrée d'archive. */
+export interface BatchImportItem {
+  name: string;
+  status: BatchItemStatus;
+  reason: ImportError | null;
+}
+
+/** Lot d'import en cours/terminé (M8) — remplacé EN BLOC à chaque progression ($state.raw). */
+export interface BatchImportState {
+  /** La liste GRANDIT en cours de lot : chaque archive y ajoute ses entrées audio. */
+  items: BatchImportItem[];
+  /** Éléments réglés (done/failed/skipped) — numérateur de la barre de progression. */
+  settled: number;
+  finished: boolean;
+  cancelled: boolean;
 }
 
 export class AppStore {
@@ -44,6 +67,12 @@ export class AppStore {
   libraryOpen = $state(false);
   /** Éditeur audio ouvert (M7) — $state.raw : remplacé en bloc, le PCM n'est pas proxifié. */
   audioEditor = $state.raw<AudioEditorState | null>(null);
+  /** Modale d'import ouverte (M8) — état « choix des fichiers » avant tout lot. */
+  importOpen = $state(false);
+  /** Pad à assigner à l'issue de l'import (modale ouverte depuis le choix de sample), ou null. */
+  importAssignPadId = $state<string | null>(null);
+  /** Lot d'import en cours (M8, progression dans la modale d'import), ou null. */
+  batchImport = $state.raw<BatchImportState | null>(null);
   /** Tags de la bibliothèque (M8), triés par libellé. */
   tags = $state<Tag[]>([]);
   /** Affectations sample → tags — remplacée EN BLOC à chaque mutation (Map non proxifiée). */

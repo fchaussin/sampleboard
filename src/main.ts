@@ -15,16 +15,17 @@ async function bootstrap(): Promise<void> {
     // Noms par défaut localisés (données créées, pas des libellés d'UI — voir CreateAppOptions).
     const app = await createApp({
       pageName: (rank) => (rank === 1 ? t('page.defaultName') : `${t('page.namePrefix')} ${rank}`),
-      defaultTagLabels: [
-        t('tag.sfx'),
-        t('tag.replies'),
-        t('tag.jingle'),
-        t('tag.music'),
-        t('tag.ambience'),
-        t('tag.voice'),
-        t('tag.reaction'),
-        t('tag.meme'),
-        t('tag.alert'),
+      // Le token est la clé stable référencée par le manifest des samples d'usine (#14).
+      defaultTags: [
+        { token: 'sfx', label: t('tag.sfx') },
+        { token: 'replies', label: t('tag.replies') },
+        { token: 'jingle', label: t('tag.jingle') },
+        { token: 'music', label: t('tag.music') },
+        { token: 'ambience', label: t('tag.ambience') },
+        { token: 'voice', label: t('tag.voice') },
+        { token: 'reaction', label: t('tag.reaction') },
+        { token: 'meme', label: t('tag.meme') },
+        { token: 'alert', label: t('tag.alert') },
       ],
     });
     mount(App, { target, props: { app } });

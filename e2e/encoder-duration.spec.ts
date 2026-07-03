@@ -3,9 +3,10 @@
 // traîne (granule de dernière page, ogg.ts) est vérifié en re-décodant l'OGG dans un VRAI
 // Chromium. Sans lui, l'encodeur WASM laisse ~100 ms de silence (gap audible en Loop).
 import { test, expect } from '@playwright/test';
+import { gotoApp } from './helpers';
 
 test('OGG encodé : durée fidèle au PCM (pas de traîne de silence)', async ({ page }) => {
-  await page.goto('/');
+  await gotoApp(page);
   await page.locator('.grid .pad').first().waitFor();
 
   const durations = await page.evaluate(async () => {

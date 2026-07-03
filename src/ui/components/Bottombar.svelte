@@ -3,10 +3,9 @@
      Édition), Import rapide, Bibliothèque, Réglages généraux. -->
 <script lang="ts">
   import type { App } from '../../app/create-app';
-  import type { ImportError } from '../../app/commands';
   import { pagesSorted } from '../../domain/selectors';
+  import { attachDragScroll } from '../interaction/drag-scroll';
   import { tintStyle } from '../tint';
-  import { importFile } from '../import-file';
   import { t } from '../i18n';
   import Icon from './Icon.svelte';
 
@@ -17,29 +16,11 @@
   const pages = $derived(app.store.bank ? pagesSorted(app.store.bank) : []);
   const activeId = $derived(app.store.activePageId);
 
-  let importing = $state(false);
-  let importError = $state<ImportError | null>(null);
-
-  async function onQuickImport(event: Event): Promise<void> {
-    const input = event.currentTarget as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = '';
-    if (!file) return;
-    importing = true;
-    importError = null;
-    importError = await importFile(app, file);
-    importing = false;
+  /* La piste défile masquée : à la souris elle se fait GLISSER (le tactile panne nativement). */
+  function dragScroll(node: HTMLElement) {
+    return { destroy: attachDragScroll(node) };
   }
 </script>
-
-{#if importError}
-  <div class="snackbar" role="alert">
-    <span>{t(`library.error.${importError}`, locale)}</span>
-    <button type="button" aria-label={t('drawer.close', locale)} onclick={() => (importError = null)}>
-      <Icon name="close" size={16} />
-    </button>
-  </div>
-{/if}
 
 <nav class="bottombar">
   <!-- Toggle segmenté Jeu ↔ Édition : les DEUX options visibles, curseur glissant sur l'active. -->
@@ -67,7 +48,7 @@
     <Icon name="stop" />
   </button>
 
-  <div class="pages" role="tablist">
+  <div class="pages" role="tablist" use:dragScroll>
     {#each pages as page, i (page.id)}
       <button
         class="tab"
@@ -95,10 +76,16 @@
     {/if}
   </div>
 
-  <label class="action import" class:busy={importing} title={t('bottombar.import', locale)}>
+  <!-- Ouvre la MODALE d'import (choix des fichiers + progression), pas le sélecteur OS. -->
+  <button
+    class="action import"
+    type="button"
+    title={t('bottombar.import', locale)}
+    aria-label={t('bottombar.import', locale)}
+    onclick={() => app.commands.openImport()}
+  >
     <Icon name="import" />
-    <input type="file" accept="audio/*" onchange={onQuickImport} disabled={importing} />
-  </label>
+  </button>
 
   <button
     class="action open-pool"
@@ -220,9 +207,15 @@
     align-items: center;
     gap: 0.3rem;
     flex: 1;
+    /* Indispensable : sans min-width:0, un enfant flex ne rétrécit pas sous son contenu —
+       la piste pousserait les actions hors écran au lieu de défiler. */
+    min-width: 0;
     overflow-x: auto;
     scrollbar-width: none;
     padding: 0 0.2rem;
+    /* Tactile : pan horizontal natif ; souris/stylet : glisser-pour-panner (drag-scroll). */
+    touch-action: pan-x;
+    cursor: grab;
   }
 
   .pages::-webkit-scrollbar {
@@ -231,6 +224,7 @@
 
   .tab {
     min-width: 2.5rem;
+    max-width: 8rem; /* un nom long n'avale pas la piste : ellipse */
     min-height: 2.5rem;
     padding: 0 0.7rem;
     border: 1px solid var(--border);
@@ -241,6 +235,8 @@
     font-size: 0.85rem;
     cursor: pointer;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
@@ -259,45 +255,33 @@
     font-weight: 700;
   }
 
-  .import {
-    position: relative;
-  }
+  /* Écrans étroits : DEUX rangées — la piste des pages prend une rangée pleine largeur
+     au-dessus des actions (sinon elle serait écrasée à quelques pixels). */
+  @media (max-width: 30rem) {
+    .bottombar {
+      flex-wrap: wrap;
+      gap: 0.3rem 0.2rem;
+      padding: 0.4rem 0.4rem calc(0.4rem + env(safe-area-inset-bottom));
+    }
 
-  .import input {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    cursor: pointer;
-  }
+    .pages {
+      order: -1;
+      flex-basis: 100%;
+    }
 
-  .import.busy {
-    opacity: 0.4;
-    pointer-events: none;
-  }
+    .action {
+      min-width: 2.5rem;
+      min-height: 2.5rem;
+    }
 
-  .snackbar {
-    position: fixed;
-    left: 50%;
-    bottom: calc(4.75rem + env(safe-area-inset-bottom));
-    transform: translateX(-50%);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.9rem;
-    border: 1px solid var(--danger);
-    border-radius: 0.625rem;
-    background: var(--panel);
-    color: var(--danger);
-    font-size: 0.85rem;
-    z-index: var(--z-snackbar);
-  }
+    .tab {
+      padding: 0 0.5rem;
+      max-width: 6rem;
+    }
 
-  .snackbar button {
-    display: inline-flex;
-    border: none;
-    background: transparent;
-    color: inherit;
-    cursor: pointer;
-    padding: 0.2rem;
+    /* Actions réparties sur toute la largeur de leur rangée. */
+    .mode-toggle {
+      margin-right: auto;
+    }
   }
 </style>

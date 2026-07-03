@@ -254,6 +254,13 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
   global avec animation IDLE (sinusoïdes lentes) ; **livrée Édition violette façon MIDI-map
   Ableton** (mode immanquable) ; conventions figées (CSS sans px hors bordures, éléments UI
   standard).
+- [x] #13 : **Import multiple & archives** (demande utilisateur 2026-07-02) — sélection
+  multifichier sur les inputs d'import + archives **zip/rar** dépliées via **libarchive
+  WASM** (`libarchive.js` MIT / libarchive BSD, lecteurs rar clean-room — unrar officiel
+  refusé : licence non libre, bloquante F-Droid, décision §16). UN fichier audio → éditeur
+  (flux M7) ; sinon **lot direct** avec **modale de progression** (barre, statut par
+  fichier, interruption, agrégation des échecs). Assets worker+wasm servis à chemin stable
+  (plugin Vite). 11 tests unitaires (lot, archives, interruption).
 - [x] i18n + **tests** : 207 unitaires + **8 e2e** (tags/filtres/Non classé/assignation
   directe/recherche), verts en Docker.
 - [x] **Validation web (1er temps)** : parcours e2e complets + captures revues. Verdict
@@ -321,6 +328,8 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 | 10 | **Tags de samples** : affecter des tags libres aux samples (schéma : table `tags` + jointure → migration) et **filtrer la bibliothèque** par tags. | 2026-07-02 | `0.9.0` | **Planifiée → M8** |
 | 11 | **Assignation page→pad depuis la bibliothèque** : depuis un sample, choisir directement une page et un pad cibles (sans passer par le tiroir du pad). | 2026-07-02 | `0.9.0` | **Planifiée → M8** |
 | 12 | **Combobox de samples dans le tiroir pad** : parcourir/filtrer les samples (recherche + tags #10) depuis les paramètres du pad, en complément/remplacement de la modale actuelle. | 2026-07-02 | `0.9.0` | **Planifiée → M8** |
+| 13 | **Import multiple & archives** : sélection multifichier + archives zip/rar (libarchive WASM, décision §16), lot direct sans éditeur, modale de progression (barre, statut par fichier, interruption). | 2026-07-02 | `0.9.0` | **Intégrée → M8** |
+| 14 | **Samples d'usine** : bibliothèque pré-remplie au **premier lancement uniquement** (même garde que banque/tags : ne repoussent jamais). **Livrée le 2026-07-03 (hors jalon, à la demande)** : 78 OGG/Opus (18,3 Mo) + `manifest.json` curaté (libellés, tags d'usine) dans `public/factory-samples/` (injecté dans CHAQUE dist), **validation au build** (plugin Vite : manifest ↔ fichiers, OGG only, build en échec si incohérent), semis sans réencodage (`seedFactorySample`), sélection `board` pré-assignée à la page « Principal » (16 pads, 2 Loop). Tests : 13 unitaires + 1 e2e. **RESTE : provenance + licences à renseigner dans le manifest (78 × TODO — bloquant F-Droid, avertissement à chaque build).** | 2026-07-03 | — | Livrée (licences restantes) |
 
 ---
 

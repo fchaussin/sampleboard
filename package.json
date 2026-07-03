@@ -20,6 +20,7 @@
     "@tauri-apps/plugin-dialog": "^2.7.1",
     "@tauri-apps/plugin-fs": "^2.5.1",
     "@tauri-apps/plugin-sql": "^2.4.0",
+    "libarchive.js": "^2.0.2",
     "opus-recorder": "^8.0.5"
   },
   "devDependencies": {

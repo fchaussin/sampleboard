@@ -3,10 +3,8 @@
      option « aucun », et import direct — le sample importé est assigné dans la foulée. -->
 <script lang="ts">
   import type { App } from '../../app/create-app';
-  import type { ImportError } from '../../app/commands';
   import type { LibraryFilter } from '../../app/store.svelte';
   import { filterSamples } from '../../app/tag-filter';
-  import { importFile } from '../import-file';
   import { t } from '../i18n';
   import Icon from './Icon.svelte';
 
@@ -32,8 +30,6 @@
   );
 
   let dialog: HTMLDialogElement;
-  let busy = $state(false);
-  let error = $state<ImportError | null>(null);
 
   $effect(() => {
     if (open && !dialog.open) dialog.showModal();
@@ -45,21 +41,10 @@
     onclose();
   }
 
-  async function onImport(event: Event): Promise<void> {
-    const input = event.currentTarget as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = '';
-    if (!file) return;
-    busy = true;
-    error = null;
-    // M7 : l'import ouvre l'ÉDITEUR AUDIO (rognage) ; le pad sera assigné à la validation.
-    const failure = await importFile(app, file, padId);
-    busy = false;
-    if (failure) {
-      error = failure;
-      return;
-    }
-    onclose(); // l'éditeur (top-layer) prend le relais
+  /** Import unifié : la modale d'import prend le relais, le pad sera assigné à la validation. */
+  function openImport(): void {
+    app.commands.openImport(padId);
+    onclose();
   }
 </script>
 
@@ -71,13 +56,9 @@
     </button>
   </header>
 
-  <label class="import" class:busy>
-    <span>{busy ? t('library.importing', locale) : t('library.import', locale)}</span>
-    <input type="file" accept="audio/*" onchange={onImport} disabled={busy} />
-  </label>
-  {#if error}
-    <p class="error" role="alert">{t(`library.error.${error}`, locale)}</p>
-  {/if}
+  <button class="import" type="button" onclick={openImport}>
+    {t('library.import', locale)}
+  </button>
 
   <input
     class="search"
@@ -163,29 +144,17 @@
 
   .import {
     display: block;
+    width: 100%;
     text-align: center;
     padding: 0.5rem;
     border: 1px dashed var(--accent);
     border-radius: 0.625rem;
+    background: transparent;
     color: var(--accent);
+    font: inherit;
     font-size: 0.85rem;
     cursor: pointer;
     margin-bottom: 0.75rem;
-  }
-
-  .import input {
-    display: none;
-  }
-
-  .import.busy {
-    opacity: 0.4;
-    pointer-events: none;
-  }
-
-  .error {
-    margin: 0 0 0.6rem;
-    color: var(--danger);
-    font-size: 0.8rem;
   }
 
   .search {

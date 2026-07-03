@@ -3,10 +3,10 @@
 // lecture réelle. Couvre le VRAI moteur Web Audio (oneShot/toggleLoop, reflet
 // onPlayingChanged → activePadIds) ET le nouvel agencement §11 (bottombar, tiroir).
 import { test, expect } from '@playwright/test';
-import { importWav } from './helpers';
+import { gotoApp, importWav } from './helpers';
 
 test('assigner un sample importé à un pad Loop (tiroir), puis le jouer → pad actif', async ({ page }) => {
-  await page.goto('/');
+  await gotoApp(page);
   await importWav(page);
 
   // Édition : le board naît COMPLET (M6) — tap sur le premier pad → son tiroir s'ouvre.

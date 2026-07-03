@@ -8,9 +8,28 @@ versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
 
 ## [Unreleased] — M8 (Bibliothèque avancée), candidate `0.9.0`
 
-> Backlog #10-12. Validé sur web : 207 unitaires + 8 E2E. Tag après revue utilisateur.
+> Backlog #10-14. Validé sur web : 265 unitaires + 11 E2E. Tag après revue utilisateur.
 
 ### Ajouté
+- **Import multiple & archives** (#13) : sélection multifichier + archives **zip/rar**
+  dépliées via **libarchive WASM** (`libarchive.js` MIT, lecteurs rar clean-room — décision
+  §16). UN fichier audio → éditeur (flux M7) ; sinon **lot direct** avec **modale de
+  progression** (barre, statut par fichier, interruption, agrégation des échecs, option
+  « ajouter au pool »). Assets worker+wasm servis à chemin stable (plugin Vite).
+- **Samples d'usine** (#14) : 78 OGG/Opus curatés (18,3 Mo) embarqués dans chaque dist
+  (`public/factory-samples/` + `manifest.json` : libellés, tags, provenance/licence).
+  **Semés au premier lancement uniquement** (même garde que banque/tags : supprimés, ils
+  ne repoussent jamais), **sans réencodage** (`seedFactorySample`), non bloquant. Sélection
+  **`board`** pré-assignée à la page « Principal » (16 pads, 2 ambiances en Loop).
+  **Validation à chaque build** (plugin `factory-samples-manifest`) : manifest ↔ fichiers
+  1:1, OGG uniquement, tags admis, board cohérent — build en échec sinon ; provenance ou
+  licence manquante = avertissement (à renseigner AVANT soumission F-Droid).
+
+### Corrigé
+- **Encodeur : les 80 derniers ms des samples ne sont plus perdus** — le codec Opus retient
+  un délai interne (pre-skip, 3 840 éch.) que le worker ne vide pas : la fin de l'audio
+  restait dans le tampon. Remède : coussin de silence poussé en queue d'entrée, la granule
+  restant bornée à la durée réelle (`trimOggTail`). Durée restituée fidèle à ±0,03 ms.
 - **Tags de samples** (migration 4 : `tags` + `sample_tags`, cascades) : n-à-n,
   personnalisables (créer/renommer/supprimer dans la bibliothèque), **semés au premier
   lancement** (SFX, Répliques, Jingle, Musique, Ambiance, Voix, Réaction, Meme, Alerte —

@@ -2,6 +2,7 @@
 // Composition root — injection de dépendances explicite (voir specifications.md §4, §5).
 // Pas de singletons importés à la volée : tout est construit, câblé et hydraté ici.
 import { isTauri } from '@tauri-apps/api/core';
+import { createArchiveExtractor } from '../engine/archive';
 import { AudioEngine } from '../engine/audio-engine';
 import { createOpusEncoder } from '../engine/encoder';
 import { createWriteLock, openDatabase } from '../storage/db';
@@ -15,6 +16,7 @@ import { createCommands, type Commands } from './commands';
 import { createPersistence, type Persistence } from './persistence';
 import { createRunesWatch } from './watch.svelte';
 import { BankFactory } from './bank-factory';
+import { seedFactoryContent } from './factory-seed';
 
 export interface App {
   store: AppStore;
@@ -31,8 +33,11 @@ export interface App {
 export interface CreateAppOptions {
   /** Nom localisé de la page de rang n (1-based) : « Principal », « Page 2 »… */
   pageName?: (rank: number) => string;
-  /** Libellés des tags semés au premier lancement (M8) — personnalisables ensuite. */
-  defaultTagLabels?: string[];
+  /**
+   * Tags semés au premier lancement (M8) — personnalisables ensuite. Le `token` est la clé
+   * STABLE référencée par le manifest des samples d'usine (#14), le `label` est localisé.
+   */
+  defaultTags?: Array<{ token: string; label: string }>;
 }
 
 /**
@@ -73,6 +78,7 @@ export async function createApp(options: CreateAppOptions = {}): Promise<App> {
     encode: createOpusEncoder(),
     sampleRepository,
     tagRepository,
+    extractArchive: createArchiveExtractor(),
     factory,
   });
   const persistence = createPersistence({
@@ -107,17 +113,43 @@ export async function createApp(options: CreateAppOptions = {}): Promise<App> {
   commands.hydrateTags(await tagRepository.list(), await tagRepository.assignments());
 
   let bank = await bankRepository.load();
+  const firstLaunch = bank === null;
   if (!bank) {
     bank = factory.createBank(); // board complet : page « Principal », grille remplie, colorée
     await bankRepository.save(bank); // ids stables dès le premier lancement
     // Semis des tags par défaut (M8) — UNIQUEMENT au premier lancement : une liste vidée
     // par l'utilisateur ne doit jamais repousser.
-    for (const label of options.defaultTagLabels ?? []) commands.createTag(label);
+    for (const tag of options.defaultTags ?? []) commands.createTag(tag.label);
   }
   commands.hydrateBank(bank);
 
   // L'autosave ne démarre QU'après hydratation : l'état par défaut n'écrase jamais la base.
   persistence.start();
+
+  // Semis d'usine (#14) — même garde « premier lancement » que banque et tags : supprimé
+  // par l'utilisateur, un sample d'usine ne repousse JAMAIS. Non bloquant : l'app est
+  // utilisable pendant que la bibliothèque se remplit (les mutations passent par commands,
+  // l'autosave déjà démarré persiste le board pré-assigné).
+  if (firstLaunch) {
+    const tagIdByToken = new Map<string, string>();
+    for (const tag of options.defaultTags ?? []) {
+      const created = store.tags.find((t) => t.label === tag.label);
+      if (created) tagIdByToken.set(tag.token, created.id);
+    }
+    void seedFactoryContent({
+      commands,
+      store,
+      tagIdByToken,
+      fetchBytes: async (path) => {
+        try {
+          const response = await fetch(`/${path}`);
+          return response.ok ? await response.arrayBuffer() : null;
+        } catch {
+          return null;
+        }
+      },
+    }).catch((err) => console.warn('semis d’usine : échec', err));
+  }
 
   // Cycle de vie : réglage Arrière-plan (§12) + écriture du débounce en cours avant le gel.
   document.addEventListener('visibilitychange', () => {

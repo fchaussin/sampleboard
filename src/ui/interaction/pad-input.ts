@@ -11,6 +11,12 @@ export interface PadInputHandlers {
   toggleLoop(padId: string): void;
 }
 
+/** Paramètre réactif de l'action Svelte : identité et Mode de lecture du pad affiché. */
+export interface PadInputParams {
+  padId: string;
+  playMode: PlayMode;
+}
+
 /**
  * Attache la gestion Pointer Events d'un pad selon son Mode de lecture.
  * Renvoie une fonction de détachement (retire les écouteurs ; relâche un Gate encore tenu).
@@ -76,5 +82,28 @@ export function attachPadInput(
       gateHeld = false;
       handlers.release(padId);
     }
+  };
+}
+
+/**
+ * Contrat d'action Svelte (`use:`) autour de `attachPadInput`, avec RÉ-ATTACHEMENT quand
+ * le pad affiché change. Indispensable : la grille est clée par position, les composants
+ * Pad sont donc réutilisés d'une page à l'autre — sans `update`, les écouteurs resteraient
+ * liés au pad de la page précédente (son sample se déclencherait depuis les autres pages).
+ */
+export function padInputAction(
+  element: HTMLElement,
+  params: PadInputParams,
+  handlers: PadInputHandlers,
+): { update(next: PadInputParams): void; destroy(): void } {
+  let detach = attachPadInput(element, params.padId, params.playMode, handlers);
+  return {
+    update(next: PadInputParams): void {
+      detach(); // relâche au passage un Gate encore tenu sur l'ancien pad
+      detach = attachPadInput(element, next.padId, next.playMode, handlers);
+    },
+    destroy(): void {
+      detach();
+    },
   };
 }
