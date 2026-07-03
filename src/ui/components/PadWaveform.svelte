@@ -4,7 +4,7 @@
      pendant la lecture (Pad.svelte) — une seule boucle rAF par pad. -->
 <script lang="ts">
   import type { App } from '../../app/create-app';
-  import { fitCanvas, themeColor } from '../waveform';
+  import { drawPeakBars, fitCanvas, peakBuckets, themeColor } from '../waveform';
 
   let { app, padId, sampleId }: { app: App; padId: string; sampleId: string } = $props();
 
@@ -16,26 +16,14 @@
     let raf = requestAnimationFrame(function render() {
       const { width, height } = fitCanvas(canvas);
       const dpr = window.devicePixelRatio || 1;
-      const barWidth = 2 * dpr;
-      const gap = 1 * dpr;
-      const buckets = Math.max(8, Math.floor(width / (barWidth + gap)));
       // Sur le fond plein du pad actif, tout se dessine en couleur de contraste.
-      const color = themeColor('--accent-contrast');
-      const peaks = app.engine.peaks(sampleId, buckets);
+      const peaks = app.engine.peaks(sampleId, peakBuckets(width, dpr));
       const progress = app.engine.progress(padId);
 
-      ctx.clearRect(0, 0, width, height);
       if (peaks && progress !== null) {
-        const mid = height / 2;
-        const playedX = progress * width;
-        ctx.fillStyle = color;
-        for (let i = 0; i < peaks.length; i++) {
-          const x = i * (barWidth + gap);
-          const barHeight = Math.max(1 * dpr, peaks[i]! * height * 0.86);
-          ctx.globalAlpha = x <= playedX ? 0.95 : 0.3;
-          ctx.fillRect(x, mid - barHeight / 2, barWidth, barHeight);
-        }
-        ctx.globalAlpha = 1;
+        drawPeakBars(ctx, peaks, themeColor('--accent-contrast'), width, height, dpr, progress);
+      } else {
+        ctx.clearRect(0, 0, width, height);
       }
       raf = requestAnimationFrame(render);
     });

@@ -5,17 +5,16 @@
   import { t } from '../i18n';
   import Icon from './Icon.svelte';
   import Library from './Library.svelte';
-  import TagManager from './TagManager.svelte';
 
   let { app }: { app: App } = $props();
   const locale = $derived(app.store.locale);
-  let tagsOpen = $state(false);
 </script>
 
 <div class="panel" role="dialog" aria-label={t('library.title', locale)}>
   <header>
     <h2>{t('library.title', locale)}</h2>
-    <button class="manage-tags" type="button" onclick={() => (tagsOpen = true)}>
+    <!-- Gestion des tags dans le TIROIR droit (#20), qui passe au-dessus du panneau. -->
+    <button class="manage-tags" type="button" onclick={() => app.commands.openTagsDrawer()}>
       {t('library.manageTags', locale)}
     </button>
     <button
@@ -30,7 +29,6 @@
   <div class="content">
     <Library {app} />
   </div>
-  <TagManager {app} open={tagsOpen} onclose={() => (tagsOpen = false)} />
 </div>
 
 <style>

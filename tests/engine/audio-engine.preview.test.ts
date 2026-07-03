@@ -155,3 +155,23 @@ describe('bus master', () => {
     expect(ctx.analysers).toHaveLength(1); // pas de second analyseur au 2e appel
   });
 });
+
+describe('previewProgress (#19 — progression des cartes de bibliothèque)', () => {
+  it('null sans pré-écoute ; avancement borné à 1 pendant ; null après stop', async () => {
+    const { engine, ctx } = makeEngine();
+    expect(engine.previewProgress()).toBeNull(); // pas de contexte
+    await engine.resume();
+    await engine.load('s1', bytes());
+    expect(engine.previewProgress()).toBeNull(); // rien ne joue
+
+    ctx.currentTime = 10;
+    engine.previewSample('s1');
+    ctx.currentTime = 10.5;
+    expect(engine.previewProgress()).toBeCloseTo(0.5); // buffer d'1 s
+    ctx.currentTime = 20;
+    expect(engine.previewProgress()).toBe(1); // borné, jamais > 1
+
+    engine.stopPreview();
+    expect(engine.previewProgress()).toBeNull();
+  });
+});

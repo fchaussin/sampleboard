@@ -70,7 +70,11 @@ no-op (§12) ; un signalement visuel dédié est au backlog.
 
 - **Tags** (`Tag`, n-à-n, migration 4) : personnalisables via « Gérer les tags » (créer,
   renommer, supprimer — la suppression épure affectations et filtre). Neuf tags **semés au
-  premier lancement uniquement** (libellés i18n injectés par le bootstrap).
+  premier lancement uniquement** (libellés i18n injectés par le bootstrap). La gestion vit
+  dans le **tiroir droit** (#20, `TagSettings` dans `Drawer`, vue `tags`,
+  `openTagsDrawer`) : ouvert depuis l'en-tête de la bibliothèque, le tiroir passe
+  **au-dessus du panneau** (`--z-drawer` > `--z-panel`) — la liste et les filtres se
+  mettent à jour derrière, en direct.
 - **« Non classé »** : filtre **virtuel** = samples sans affectation (décision §16 — une
   seule représentation de l'absence ; un ensemble vidé disparaît de `sampleTags`).
 - **Filtres** : chips (Tous / tags / Non classé) au-dessus de la liste ; logique pure
@@ -87,6 +91,11 @@ no-op (§12) ; un signalement visuel dédié est au backlog.
   base mini du nom `10rem`) ; en **tactile** (`pointer: coarse`), cibles ≥ 44 px (règle M6).
 - **Ligne dépliable** (🏷) par sample : chips de tags à bascule + **assignation directe
   page→pad** (#11 — selects Page/Pad + Assigner, `assignSample` existant).
+- **Waveform par carte** (#19, `SampleWaveform.svelte`) : pics statiques du sample
+  toujours visibles sous le nom (`engine.peaks`, tracé partagé `drawPeakBars` avec le
+  pad) ; pendant la **pré-écoute**, la partie jouée se remplit (`engine.previewProgress`).
+  La boucle rAF ne tourne que pendant la pré-écoute de la carte concernée — au repos, un
+  seul tracé statique.
 - **Modale de choix de sample** (#12) : combobox — champ de recherche + chips de tags,
   filtres locaux à la modale.
 

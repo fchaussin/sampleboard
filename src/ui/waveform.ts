@@ -57,3 +57,37 @@ export function drawWave(
   }
   ctx.stroke();
 }
+
+/**
+ * Trace des pics en barres verticales (waveform de sample) avec progression : la partie
+ * déjà jouée est pleine, le reste estompé. `progress` null = tracé statique (tout estompé
+ * au même niveau). Un seul chemin de rendu pad / carte de bibliothèque (DRY, §4).
+ */
+export function drawPeakBars(
+  ctx: CanvasRenderingContext2D,
+  peaks: Float32Array,
+  color: string,
+  width: number,
+  height: number,
+  dpr: number,
+  progress: number | null,
+): void {
+  const barWidth = 2 * dpr;
+  const gap = 1 * dpr;
+  const mid = height / 2;
+  const playedX = progress === null ? -1 : progress * width;
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = color;
+  for (let i = 0; i < peaks.length; i++) {
+    const x = i * (barWidth + gap);
+    const barHeight = Math.max(1 * dpr, peaks[i]! * height * 0.86);
+    ctx.globalAlpha = progress === null ? 0.45 : x <= playedX ? 0.95 : 0.3;
+    ctx.fillRect(x, mid - barHeight / 2, barWidth, barHeight);
+  }
+  ctx.globalAlpha = 1;
+}
+
+/** Nombre de tranches de pics pour une largeur de tracé donnée (barres 2px + espace 1px). */
+export function peakBuckets(width: number, dpr: number): number {
+  return Math.max(8, Math.floor(width / (3 * dpr)));
+}

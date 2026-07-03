@@ -498,7 +498,16 @@ Le ré-encodage se fait **côté frontend** (règle « pas de logique métier en
   bibliothèque → pool, élément du pool → pad (assignation immédiate) — type MIME partagé
   `application/x-sampleboard-sample` (`ui/interaction/sample-dnd.ts`) ; raccourci
   pointeur, le flux tactile « armer puis toucher » reste le chemin mobile. En-tête :
-  **Ajouter** (ouvre la bibliothèque) + **Vider** (`clearPool`).
+  **Ajouter** (ouvre la bibliothèque) + **Vider** (`clearPool`). Curseur **main**
+  (`grab`/`grabbing`) sur les éléments glissables.
+- **Cartes de bibliothèque : waveform + progression** (2026-07-04, #19) : pics statiques
+  du sample sur chaque carte (`SampleWaveform`, tracé partagé `drawPeakBars` avec le pad) ;
+  pendant la pré-écoute, la partie jouée se remplit (`engine.previewProgress()`). rAF
+  seulement pendant la pré-écoute de la carte concernée.
+- **Gestion des tags → tiroir droit** (2026-07-04, #20) : la modale « Gérer les tags »
+  devient une vue du **tiroir contextuel** (`TagSettings`, `drawer = 'tags'`,
+  `openTagsDrawer`). Le tiroir passe au-dessus du panneau bibliothèque
+  (`--z-drawer: 27` > `--z-panel`) : la liste se met à jour derrière, en direct.
 - **Tags de samples** (2026-07-02, tri backlog #10-12) : étiquettes **n-à-n** (`tags` +
   `sample_tags`, migration 4), personnalisables (CRUD) ; liste par défaut semée au premier
   lancement (SFX, Répliques, Jingle, Musique, Ambiance, Voix, Réaction, Meme, Alerte —

@@ -163,3 +163,23 @@ test('pool (#18) : glisser une ligne de bibliothèque vers le pool, puis un él�
   await expect(page.locator('.grid .pad.idle')).toHaveCount(1);
   await expect(pad).toHaveClass(/idle/);
 });
+
+test('gestion des tags dans le tiroir droit (#20) : créer, voir le filtre derrière, fermer', async ({ page }) => {
+  await gotoApp(page);
+  await importWav(page);
+  await openLibrary(page);
+
+  // « Gérer les tags » ouvre le TIROIR droit PAR-DESSUS le panneau bibliothèque.
+  await page.locator('.manage-tags').click();
+  const drawer = page.locator('.drawer');
+  await expect(drawer).toBeVisible();
+
+  // Créer un tag depuis le tiroir : la barre de filtres, visible derrière, l'affiche.
+  await drawer.locator('.add-tag input').fill('Bruitages');
+  await drawer.locator('.add-tag button').click();
+  await expect(page.locator('.library .filters .chip', { hasText: 'Bruitages' })).toBeVisible();
+
+  await drawer.locator('.close').click();
+  await expect(drawer).toHaveCount(0);
+  await expect(page.locator('.library')).toBeVisible(); // la bibliothèque n'a pas bougé
+});

@@ -1,5 +1,6 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- Tiroir contextuel (§11) : panneau à droite + voile. Contenus : pad / page / réglages. -->
+<!-- Tiroir contextuel (§11) : panneau à droite + voile. Contenus : pad / page / réglages /
+     tags (#20 — ouvert depuis la bibliothèque, le tiroir passe au-dessus du panneau). -->
 <script lang="ts">
   import type { App } from '../../app/create-app';
   import { t } from '../i18n';
@@ -7,6 +8,7 @@
   import PadSettings from './PadSettings.svelte';
   import PageSettings from './PageSettings.svelte';
   import Settings from './Settings.svelte';
+  import TagSettings from './TagSettings.svelte';
 
   let { app }: { app: App } = $props();
 
@@ -17,7 +19,9 @@
       ? t('editor.pad.title', locale)
       : drawer === 'page'
         ? t('editor.page.title', locale)
-        : t('settings.title', locale),
+        : drawer === 'tags'
+          ? t('library.manageTags', locale)
+          : t('settings.title', locale),
   );
 </script>
 
@@ -44,6 +48,8 @@
         <PadSettings {app} />
       {:else if drawer === 'page'}
         <PageSettings {app} />
+      {:else if drawer === 'tags'}
+        <TagSettings {app} />
       {:else}
         <Settings {app} />
       {/if}

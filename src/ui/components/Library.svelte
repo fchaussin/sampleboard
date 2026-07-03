@@ -8,6 +8,7 @@
   import { setSampleDrag } from '../interaction/sample-dnd';
   import Icon from './Icon.svelte';
   import PreviewButton from './PreviewButton.svelte';
+  import SampleWaveform from './SampleWaveform.svelte';
 
   let { app }: { app: App } = $props();
   const locale = $derived(app.store.locale);
@@ -146,6 +147,8 @@
               oninput={(e) => app.commands.renameSample(s.id, e.currentTarget.value)}
             />
             <span class="meta">{meta(s.sizeBytes, s.durationMs)}</span>
+            <!-- Waveform du sample (#19) : pics statiques + progression pendant la pré-écoute. -->
+            <SampleWaveform {app} sampleId={s.id} />
           </span>
           <!-- Actions groupées : le bloc passe SOUS le nom quand la ligne est trop étroite. -->
           <div class="actions">
@@ -284,6 +287,11 @@
     flex-wrap: wrap; /* les actions basculent sous le nom quand la ligne est trop étroite */
     gap: 0.4rem;
     font-size: 0.85rem;
+    cursor: grab; /* la ligne se GLISSE vers le pool (#18) — main ouverte */
+  }
+
+  li:active {
+    cursor: grabbing;
   }
 
   .cell {
@@ -336,6 +344,7 @@
   }
 
   .expansion {
+    cursor: default; /* la ligne dépliée (tags) n'est pas glissable */
     flex-direction: column;
     align-items: stretch;
     gap: 0.5rem;

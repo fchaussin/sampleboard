@@ -74,6 +74,8 @@ export interface Commands {
   openPadDrawer(padId: string): void;
   openPageDrawer(): void;
   openSettingsDrawer(): void;
+  /** Gestion des tags dans le tiroir droit (#20) — ouvert depuis l'en-tête de la bibliothèque. */
+  openTagsDrawer(): void;
   closeDrawer(): void;
   openLibrary(): void;
   closeLibrary(): void;
@@ -222,6 +224,7 @@ export const PREVIEW_STOPPING_COMMANDS = [
   'createTag',
   'renameTag',
   'deleteTag',
+  'openTagsDrawer',
   'openImport',
   'beginSampleRework',
   'previewEditorSelection',
@@ -426,6 +429,9 @@ export function createCommands({
     },
     openSettingsDrawer(): void {
       store.drawer = 'settings';
+    },
+    openTagsDrawer(): void {
+      store.drawer = 'tags';
     },
     closeDrawer(): void {
       if (store.drawer === 'pad') store.selectedPadId = null;

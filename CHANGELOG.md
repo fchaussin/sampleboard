@@ -8,7 +8,16 @@ versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
 
 ## [Unreleased]
 
+### Ajouté
+- **Waveform sur les cartes de bibliothèque** (#19) : pics statiques du sample toujours
+  visibles sous le nom ; pendant la pré-écoute, la partie jouée se remplit (progression).
+
 ### Modifié
+- **Gestion des tags dans le tiroir droit** (#20) : « Gérer les tags » ouvre désormais le
+  tiroir contextuel PAR-DESSUS la bibliothèque (exit la modale) — la liste et les filtres
+  se mettent à jour derrière, en direct.
+- **Curseur main** (`grab`/`grabbing`) sur les éléments glissables (lignes de
+  bibliothèque, éléments du pool).
 - **Pool revu** (#18) : outil d'**Édition exclusivement** — **sidebar systématique** sur
   écran large (≥ 48 rem, ni bouton ni fermeture), **tiroir gauche** à bouton (bottombar)
   en étroit, flottant au-dessus de la bibliothèque ouverte pour le dépôt.

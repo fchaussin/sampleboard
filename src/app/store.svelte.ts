@@ -6,8 +6,8 @@ import type { Bank, Page, Sample, Settings, Tag } from '../domain/types';
 import type { PcmData } from '../engine/encoder';
 import type { ImportError } from './commands';
 
-/** Contenu du tiroir contextuel (§11) : réglages du pad, de la page, ou généraux. */
-export type DrawerContent = 'pad' | 'page' | 'settings';
+/** Contenu du tiroir contextuel (§11) : réglages du pad, de la page, généraux, ou tags (#20). */
+export type DrawerContent = 'pad' | 'page' | 'settings' | 'tags';
 
 /** Filtre de la bibliothèque (M8) : un tagId, 'untagged' (virtuel : sans tag), ou null. */
 export type LibraryFilter = string | 'untagged' | null;

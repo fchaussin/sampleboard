@@ -189,6 +189,11 @@
     display: flex;
     align-items: center;
     gap: 0.3rem;
+    cursor: grab; /* l'élément se GLISSE vers un pad (#18) — main ouverte */
+  }
+
+  li:active {
+    cursor: grabbing;
   }
 
   .item {
@@ -203,10 +208,14 @@
     color: inherit;
     font: inherit;
     font-size: 0.85rem;
-    cursor: pointer;
+    cursor: grab; /* glissable vers un pad — le tap arme (assignation à la volée) */
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .item:active {
+    cursor: grabbing;
   }
 
   .item.armed {

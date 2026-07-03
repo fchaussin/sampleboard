@@ -179,10 +179,12 @@ export class AudioEngine {
   // fois sur le bus master (hors pads, hors reflet), REMPLACÉE par la suivante, stoppable.
 
   #preview: AudioBufferSourceNode | null = null;
+  #previewStartedAt = 0;
 
   /** Cœur commun : joue un buffer comme pré-écoute courante ; remplace la précédente. */
   #playPreview(ctx: AudioContext, buffer: AudioBuffer, onEnded?: () => void): void {
     this.stopPreview();
+    this.#previewStartedAt = ctx.currentTime;
     const source = ctx.createBufferSource();
     source.buffer = buffer;
     source.connect(this.#ensureMaster(ctx));
@@ -229,6 +231,19 @@ export class AudioEngine {
     pcm.channelData.forEach((data, channel) => buffer.copyToChannel(data, channel));
     this.#playPreview(ctx, buffer, onEnded);
     return true;
+  }
+
+  /**
+   * Avancement [0, 1] de la pré-écoute en cours (waveform de progression des cartes de
+   * bibliothèque, #19), ou null si rien n'est pré-écouté. Même convention que progress().
+   */
+  previewProgress(): number | null {
+    const ctx = this.#ctx;
+    const source = this.#preview;
+    if (!ctx || !source) return null;
+    const duration = source.buffer?.duration ?? 0;
+    if (duration <= 0) return 0;
+    return Math.min(1, (ctx.currentTime - this.#previewStartedAt) / duration);
   }
 
   /**
