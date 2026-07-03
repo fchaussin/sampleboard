@@ -46,7 +46,10 @@ suffisent pas).
 Complète le hook `doc-sync` (rappel de mise à jour de `doc/`). Les deux sont déclarés dans
 `.claude/settings.json`.
 
-## Couverture actuelle (M1 → M7) — 197 unitaires + 6 E2E
+## Couverture actuelle (M1 → M8 en cours) — 271 unitaires + 12 E2E
+
+> Liste ci-dessous non exhaustive pour M8 (tags, import multiple, samples d'usine) — voir
+> `doc/bibliotheque-import.md` et `doc/samples-usine.md`.
 
 - `tests/engine/voice.test.ts` — conversion gain dB → amplitude (bornes, plancher -60 dB,
   monotonie).
@@ -79,6 +82,8 @@ Complète le hook `doc-sync` (rappel de mise à jour de `doc/`). Les deux sont d
   `write-lock.test.ts` — couche storage contre un **vrai SQLite en mémoire** (`node:sqlite`) :
   migrations, aller-retour banque (upsert/élagage, cascades, `ON DELETE SET NULL`), bibliothèque,
   réglages, verrou d'écriture. Utilitaires : `node-sqlite-executor.ts`, `node-sqlite.d.ts`.
+- `tests/app/tag-filter.test.ts` — recherche texte de la bibliothèque (`filterSamples`) :
+  casse/espaces, combinaison ET avec le filtre par tag et « Non classé ».
 - `tests/engine/fake-audio-context.ts` — `AudioContext` factice partagé (utilitaire, pas un test).
 - `tests/app/fake-sample-repository.ts` — dépôt bibliothèque factice partagé (utilitaire).
 
@@ -90,6 +95,8 @@ Complète le hook `doc-sync` (rappel de mise à jour de `doc/`). Les deux sont d
   + reflet `activePadIds` réels).
 - `e2e/audio-editor.spec.ts` — M7 : rognage à la poignée (drag réel), undo, durée persistée
   réduite, retravail d'un sample existant.
+- `e2e/library-tags.spec.ts` — M8 : tags/filtres, assignation à la volée, pool, recherche
+  (modale de sample ET panneau bibliothèque — état « aucun résultat » + Tout afficher).
 - `e2e/helpers.ts` — génération de WAV + helpers d'import/éditeur (utilitaire, pas un test).
 
 > Au navigateur nu, la persistance passe par les dépôts **mémoire** (voir doc M5) : l'E2E couvre

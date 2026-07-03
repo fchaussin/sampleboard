@@ -56,6 +56,26 @@ test('modale de choix de sample : la recherche filtre la liste (#12)', async ({ 
   await expect(picker.locator('.choice', { hasText: 'kick.wav' })).toBeVisible();
 });
 
+test('bibliothèque : la recherche filtre la liste ; « aucun résultat » propose Tout afficher', async ({ page }) => {
+  await gotoApp(page);
+  await importWav(page, 'kick.wav');
+  await importWav(page, 'nappe.wav');
+  await openLibrary(page);
+
+  const library = page.locator('.library');
+  await expect(library.locator('.list li')).toHaveCount(2);
+  await library.locator('.search').fill('kick');
+  await expect(library.locator('.list li')).toHaveCount(1);
+  await expect(library.locator('.list .label')).toHaveValue('kick.wav');
+
+  // Sans correspondance : message + bouton de réinitialisation (recherche ET filtre).
+  await library.locator('.search').fill('zzz');
+  await expect(library.locator('.list')).toHaveCount(0);
+  await library.locator('.empty .chip').click();
+  await expect(library.locator('.search')).toHaveValue('');
+  await expect(library.locator('.list li')).toHaveCount(2);
+});
+
 test('pool : stocker deux samples, armer depuis le tiroir gauche, assigner à la volée', async ({ page }) => {
   await gotoApp(page);
   await importWav(page, 'kick.wav');

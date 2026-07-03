@@ -157,16 +157,9 @@
     margin-bottom: 0.75rem;
   }
 
+  /* Style .search mutualisé (app.css) — seul l'espacement est local. */
   .search {
-    width: 100%;
-    min-height: 2.5rem;
-    padding: 0.4rem 0.6rem;
     margin-bottom: 0.5rem;
-    background: var(--bg);
-    color: var(--fg);
-    border: 1px solid var(--border);
-    border-radius: 0.625rem;
-    font: inherit;
   }
 
   .chip-row {

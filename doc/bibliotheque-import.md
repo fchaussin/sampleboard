@@ -73,6 +73,16 @@ no-op (§12) ; un signalement visuel dédié est au backlog.
   seule représentation de l'absence ; un ensemble vidé disparaît de `sampleTags`).
 - **Filtres** : chips (Tous / tags / Non classé) au-dessus de la liste ; logique pure
   partagée `app/tag-filter.ts` (`matchesFilter`, `filterSamples` avec recherche texte).
+- **Recherche dans le panneau** : champ texte (sur le label, insensible casse/espaces)
+  combiné (ET) aux chips, dans une **barre d'outils sticky** (import + recherche + filtres
+  restent visibles au défilement). Sans correspondance : message « Aucun son ne
+  correspond » + bouton **Tout afficher** (efface recherche et filtre). Style `.search`
+  mutualisé dans `app.css` (partagé avec la modale de choix de sample).
+- **Layout adaptatif** (media queries, styles de `Library.svelte`) : en **écran large**
+  (`≥ 48rem` — tablette/paysage/desktop) la liste devient une **grille de cartes**
+  (`auto-fill minmax(20rem, 1fr)`, ligne dépliée sur toute la largeur) ; en **étroit**,
+  les actions groupées (`.actions`) passent **sous le nom** (wrap piloté par le contenu,
+  base mini du nom `10rem`) ; en **tactile** (`pointer: coarse`), cibles ≥ 44 px (règle M6).
 - **Ligne dépliable** (🏷) par sample : chips de tags à bascule + **assignation directe
   page→pad** (#11 — selects Page/Pad + Assigner, `assignSample` existant).
 - **Modale de choix de sample** (#12) : combobox — champ de recherche + chips de tags,

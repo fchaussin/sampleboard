@@ -12,6 +12,9 @@ const manifest = JSON.parse(readFileSync('public/factory-samples/manifest.json',
 };
 
 test('semis d’usine : bibliothèque remplie et board Principal pré-assigné', async ({ page }) => {
+  // Le semis complet (78 samples) dépasse le timeout Playwright par défaut (30 s) —
+  // l'aligner sur les timeouts des assertions ci-dessous.
+  test.setTimeout(180_000);
   await page.goto('/');
 
   // La grille est disponible immédiatement (semis non bloquant)…

@@ -16,8 +16,16 @@
   // Sample en attente de confirmation de suppression (impacte des pads).
   let confirming = $state<string | null>(null);
 
-  // Filtre M8 : tag sélectionné ou « Non classé » virtuel (samples sans tag).
-  const samples = $derived(filterSamples(app.store.samples, app.store.sampleTags, filter));
+  // Recherche texte, locale au panneau (comme dans SamplePicker).
+  let search = $state('');
+  // Filtre M8 (tag ou « Non classé » virtuel) combiné à la recherche sur le label.
+  const samples = $derived(filterSamples(app.store.samples, app.store.sampleTags, filter, search));
+
+  /** Sortie de l'état « aucun résultat » : efface recherche ET filtre. */
+  function resetFilters(): void {
+    search = '';
+    app.commands.setLibraryFilter(null);
+  }
 
   /** Ligne dépliée (tags + assignation à la volée), ou null. */
   let expanded = $state<string | null>(null);
@@ -70,32 +78,49 @@
 </script>
 
 <section class="library">
-  <div class="head">
-    <!-- Point d'entrée UNIQUE de l'import : la modale (choix des fichiers + progression). -->
-    <button class="import" type="button" onclick={() => app.commands.openImport()}>
-      {t('library.import', locale)}
-    </button>
-    {#if error}
-      <span class="error">{t(`library.error.${error}`, locale)}</span>
-    {/if}
-  </div>
-
-  <div class="chip-row filters">
-    <button class="chip" class:active={filter === null} type="button" onclick={() => app.commands.setLibraryFilter(null)}>
-      {t('library.filter.all', locale)}
-    </button>
-    {#each tags as tag (tag.id)}
-      <button class="chip" class:active={filter === tag.id} type="button" onclick={() => app.commands.setLibraryFilter(tag.id)}>
-        {tag.label}
+  <!-- Barre d'outils sticky : import, recherche et filtres restent visibles au défilement. -->
+  <div class="toolbar">
+    <div class="head">
+      <!-- Point d'entrée UNIQUE de l'import : la modale (choix des fichiers + progression). -->
+      <button class="import" type="button" onclick={() => app.commands.openImport()}>
+        {t('library.import', locale)}
       </button>
-    {/each}
-    <button class="chip" class:active={filter === 'untagged'} type="button" onclick={() => app.commands.setLibraryFilter('untagged')}>
-      {t('library.filter.untagged', locale)}
-    </button>
+      {#if error}
+        <span class="error">{t(`library.error.${error}`, locale)}</span>
+      {/if}
+    </div>
+
+    <input
+      class="search"
+      type="search"
+      placeholder={t('library.search', locale)}
+      aria-label={t('library.search', locale)}
+      bind:value={search}
+    />
+
+    <div class="chip-row filters">
+      <button class="chip" class:active={filter === null} type="button" onclick={() => app.commands.setLibraryFilter(null)}>
+        {t('library.filter.all', locale)}
+      </button>
+      {#each tags as tag (tag.id)}
+        <button class="chip" class:active={filter === tag.id} type="button" onclick={() => app.commands.setLibraryFilter(tag.id)}>
+          {tag.label}
+        </button>
+      {/each}
+      <button class="chip" class:active={filter === 'untagged'} type="button" onclick={() => app.commands.setLibraryFilter('untagged')}>
+        {t('library.filter.untagged', locale)}
+      </button>
+    </div>
   </div>
 
-  {#if samples.length === 0}
+  {#if app.store.samples.length === 0}
     <p class="empty">{t('library.empty', locale)}</p>
+  {:else if samples.length === 0}
+    <!-- Bibliothèque non vide mais recherche/filtre sans correspondance. -->
+    <p class="empty">
+      {t('library.noResults', locale)}
+      <button class="chip" type="button" onclick={resetFilters}>{t('library.reset', locale)}</button>
+    </p>
   {:else}
     <ul class="list">
       {#each samples as s (s.id)}
@@ -109,42 +134,45 @@
             />
             <span class="meta">{meta(s.sizeBytes, s.durationMs)}</span>
           </span>
-          <button type="button" class="icon" title={t('library.preview', locale)} onclick={() => app.commands.previewSample(s.id)}>▶</button>
-          <button type="button" class="icon rework" title={t('library.rework', locale)} aria-label={t('library.rework', locale)} onclick={() => rework(s.id)}>✂</button>
-          <button
-            type="button"
-            class="icon assign-start"
-            title={t('assign.start', locale)}
-            aria-label={t('assign.start', locale)}
-            onclick={() => app.commands.startAssigning(s.id)}
-          ><Icon name="assign" size={16} /></button>
-          <button
-            type="button"
-            class="icon pool-add"
-            title={t('pool.add', locale)}
-            aria-label={t('pool.add', locale)}
-            disabled={app.store.poolSampleIds.includes(s.id)}
-            onclick={() => app.commands.addToPool(s.id)}
-          ><Icon name="pool" size={16} /></button>
-          <button
-            type="button"
-            class="icon tags-toggle"
-            class:active={expanded === s.id}
-            title={t('library.tags', locale)}
-            aria-label={t('library.tags', locale)}
-            aria-expanded={expanded === s.id}
-            onclick={() => toggleExpanded(s.id)}
-          ><Icon name="tag" size={16} /></button>
-          {#if confirming === s.id}
-            <span class="confirm">
-              {impactedPads(s.id)}
-              {t('library.impacted', locale)}
-              <button type="button" class="danger" onclick={() => confirmDelete(s.id)}>{t('library.confirm', locale)}</button>
-              <button type="button" class="icon" onclick={() => (confirming = null)}>✕</button>
-            </span>
-          {:else}
-            <button type="button" class="icon danger" title={t('library.delete', locale)} onclick={() => requestDelete(s.id)}>🗑</button>
-          {/if}
+          <!-- Actions groupées : le bloc passe SOUS le nom quand la ligne est trop étroite. -->
+          <div class="actions">
+            <button type="button" class="icon" title={t('library.preview', locale)} onclick={() => app.commands.previewSample(s.id)}>▶</button>
+            <button type="button" class="icon rework" title={t('library.rework', locale)} aria-label={t('library.rework', locale)} onclick={() => rework(s.id)}>✂</button>
+            <button
+              type="button"
+              class="icon assign-start"
+              title={t('assign.start', locale)}
+              aria-label={t('assign.start', locale)}
+              onclick={() => app.commands.startAssigning(s.id)}
+            ><Icon name="assign" size={16} /></button>
+            <button
+              type="button"
+              class="icon pool-add"
+              title={t('pool.add', locale)}
+              aria-label={t('pool.add', locale)}
+              disabled={app.store.poolSampleIds.includes(s.id)}
+              onclick={() => app.commands.addToPool(s.id)}
+            ><Icon name="pool" size={16} /></button>
+            <button
+              type="button"
+              class="icon tags-toggle"
+              class:active={expanded === s.id}
+              title={t('library.tags', locale)}
+              aria-label={t('library.tags', locale)}
+              aria-expanded={expanded === s.id}
+              onclick={() => toggleExpanded(s.id)}
+            ><Icon name="tag" size={16} /></button>
+            {#if confirming === s.id}
+              <span class="confirm">
+                {impactedPads(s.id)}
+                {t('library.impacted', locale)}
+                <button type="button" class="danger" onclick={() => confirmDelete(s.id)}>{t('library.confirm', locale)}</button>
+                <button type="button" class="icon" onclick={() => (confirming = null)}>✕</button>
+              </span>
+            {:else}
+              <button type="button" class="icon danger" title={t('library.delete', locale)} onclick={() => requestDelete(s.id)}>🗑</button>
+            {/if}
+          </div>
         </li>
         {#if expanded === s.id}
           <li class="expansion">
@@ -180,6 +208,18 @@
     width: 100%;
   }
 
+  /* Colle au bord haut du conteneur scrollable (.content du panneau) ; la liste défile derrière. */
+  .toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-bottom: 0.25rem;
+    background: var(--bg);
+  }
+
   .head {
     display: flex;
     gap: 0.6rem;
@@ -206,6 +246,11 @@
 
   .empty {
     margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
     text-align: center;
     color: var(--muted);
     font-size: 0.85rem;
@@ -223,16 +268,25 @@
   li {
     display: flex;
     align-items: center;
+    flex-wrap: wrap; /* les actions basculent sous le nom quand la ligne est trop étroite */
     gap: 0.4rem;
     font-size: 0.85rem;
   }
 
   .cell {
-    flex: 1;
+    flex: 1 1 10rem; /* base mini du nom : en deçà, .actions passe à la ligne */
     min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 0.15rem;
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-left: auto; /* alignées à droite, y compris sur leur propre ligne */
   }
 
   .label {
@@ -304,5 +358,41 @@
 
   .icon :global(svg) {
     display: block;
+  }
+
+  /* --- Adaptation au média --- */
+
+  /* Écran large (tablette, paysage, desktop) : la liste devient une grille de cartes. */
+  @media (min-width: 48rem) {
+    .library {
+      max-width: 64rem;
+    }
+
+    .list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+      align-items: start;
+      gap: 0.4rem;
+    }
+
+    .list li {
+      padding: 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      background: var(--panel);
+    }
+
+    /* La ligne dépliée (tags) occupe toute la largeur de la grille. */
+    .list .expansion {
+      grid-column: 1 / -1;
+    }
+  }
+
+  /* Tactile : cibles ≥ 44 px (règle M6), quel que soit le viewport. */
+  @media (pointer: coarse) {
+    .icon {
+      min-width: 2.75rem;
+      min-height: 2.75rem;
+    }
   }
 </style>

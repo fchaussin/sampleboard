@@ -196,6 +196,18 @@ body {
   align-items: center;
 }
 
+/* Champ de recherche — partagé bibliothèque + modale de choix de sample. */
+.search {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 0.625rem;
+  font: inherit;
+}
+
 .drawer-form .sample-select {
   flex: 1;
   min-width: 0;
