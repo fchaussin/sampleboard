@@ -14,7 +14,10 @@ export class FakeParam {
 
 export class FakeGainNode {
   gain = new FakeParam();
+  /** Cibles de connect(), pour asserter la topologie du graphe (bus master). */
+  connectedTo: unknown[] = [];
   connect(dest: unknown): unknown {
+    this.connectedTo.push(dest);
     return dest;
   }
   disconnect(): void {}
@@ -22,7 +25,9 @@ export class FakeGainNode {
 
 export class FakeAnalyserNode {
   fftSize = 2048;
+  connectedTo: unknown[] = [];
   connect(dest: unknown): unknown {
+    this.connectedTo.push(dest);
     return dest;
   }
   disconnect(): void {}
@@ -38,10 +43,15 @@ export class FakeSourceNode {
   onended: (() => void) | null = null;
   started = false;
   stopped = false;
+  disconnected = false;
+  connectedTo: unknown[] = [];
   connect(dest: unknown): unknown {
+    this.connectedTo.push(dest);
     return dest;
   }
-  disconnect(): void {}
+  disconnect(): void {
+    this.disconnected = true;
+  }
   start(): void {
     this.started = true;
   }

@@ -183,12 +183,48 @@ export interface Commands {
   removeFromPool(sampleId: string): void;
   openPool(): void;
   closePool(): void;
-  /** Pré-écoute d'un sample de la bibliothèque. */
+  /** Pré-écoute d'un sample (bascule) : lance, ou stoppe si ce sample joue déjà. */
   previewSample(sampleId: string): void;
+  /** Arrête la pré-écoute en cours — toute autre action de l'UI en fait autant. */
+  stopPreview(): void;
   renameSample(sampleId: string, label: string): void;
   /** Supprime un sample ; les pads qui le référençaient deviennent *introuvables* (§12). */
   deleteSample(sampleId: string): void;
 }
+
+/**
+ * RÈGLE MÉTIER (§16) : toute commande d'INTERACTION fait office de stop de pré-écoute.
+ * La règle est appliquée MÉCANIQUEMENT en fin de createCommands (jamais de stopPreview
+ * saupoudré dans les corps) et vérifiée par un test générique qui itère cette liste.
+ * Toute nouvelle commande utilisateur doit y être ajoutée. Exclusions volontaires :
+ * previewSample/stopPreview (gèrent eux-mêmes la bascule), tapAssign/stopAssigning
+ * (suite du flux ouvert par startAssigning, qui a déjà stoppé), applyBackgroundBehavior
+ * (stop conditionné au masquage, géré dans son corps), hydratations et pipelines d'import
+ * (importSample, importBatch : non interactifs — le semis d'usine ne stoppe jamais une
+ * pré-écoute en cours).
+ */
+export const PREVIEW_STOPPING_COMMANDS = [
+  'stopAllVoices',
+  'closeLibrary',
+  'setLibraryFilter',
+  'startAssigning',
+  'addToPool',
+  'removeFromPool',
+  'openPool',
+  'closePool',
+  'assignSample',
+  'renameSample',
+  'toggleSampleTag',
+  'deleteSample',
+  'createTag',
+  'renameTag',
+  'deleteTag',
+  'openImport',
+  'beginSampleRework',
+  'previewEditorSelection',
+  'applyAudioEditor',
+  'cancelAudioEditor',
+] as const satisfies readonly (keyof Commands)[];
 
 export function createCommands({
   store,
@@ -223,6 +259,16 @@ export function createCommands({
   /** Tags triés par libellé (ordre stable de l'UI). */
   function sortedTags(tags: readonly Tag[]): Tag[] {
     return [...tags].sort((a, b) => a.label.localeCompare(b.label));
+  }
+
+  /**
+   * Arrête la pré-écoute en cours et efface son reflet. Appliquée mécaniquement à toutes
+   * les commandes de PREVIEW_STOPPING_COMMANDS (voir la règle §16 documentée là-bas) ;
+   * exposée telle quelle comme commande `stopPreview`.
+   */
+  function stopPreview(): void {
+    engine.stopPreview();
+    store.previewingSampleId = null;
   }
 
   /** Ajoute un sample au pool (idempotent) — partagé commande directe / option d'import. */
@@ -349,7 +395,7 @@ export function createCommands({
     return null;
   }
 
-  return {
+  const commands: Commands = {
     toggleEditMode(): void {
       store.editMode = !store.editMode;
       // Changer de mode referme le tiroir : son contexte (pad sélectionné…) n'a plus cours.
@@ -360,6 +406,7 @@ export function createCommands({
       return engine.resume();
     },
     stopAllVoices(): void {
+      // Panique : voix des pads (la pré-écoute est stoppée par la règle §16, comme partout).
       engine.stopAll();
     },
 
@@ -402,6 +449,9 @@ export function createCommands({
     applyBackgroundBehavior(hidden: boolean): void {
       // Retour au premier plan : rien à faire ici — resume() repart au prochain geste (§12).
       if (!hidden) return;
+      // La pré-écoute est un son transitoire de PARCOURS (pas une voix de jeu voulue) :
+      // elle s'arrête au masquage quel que soit le réglage, y compris « Laisser jouer » (§16).
+      stopPreview();
       switch (store.settings.backgroundBehavior) {
         case 'stopAll':
           engine.stopAll();
@@ -735,7 +785,6 @@ export function createCommands({
     async applyAudioEditor(startS: number, endS: number): Promise<ImportResult> {
       const editor = store.audioEditor;
       if (!editor) return { ok: false, reason: 'readFailed' };
-      engine.stopPcmPreview();
       const pcm = trimPcm(editor.pcm, startS, endS);
 
       if (editor.mode === 'import') {
@@ -792,7 +841,6 @@ export function createCommands({
     },
 
     cancelAudioEditor(): void {
-      engine.stopPcmPreview();
       store.audioEditor = null;
     },
 
@@ -879,9 +927,23 @@ export function createCommands({
       store.poolOpen = false;
     },
     previewSample(sampleId: string): void {
+      // Bascule : re-tap sur le sample en cours de pré-écoute → stop.
+      if (store.previewingSampleId === sampleId) {
+        stopPreview();
+        return;
+      }
+      // Stop AVANT le lancement : un échec (buffer non chargé) ne doit jamais laisser
+      // l'ancienne pré-écoute jouer sans reflet (son orphelin, plus aucun bouton stop).
+      stopPreview();
       void engine.resume();
-      engine.previewSample(sampleId);
+      const started = engine.previewSample(sampleId, () => {
+        // Fin NATURELLE uniquement — le moteur garde par identité de source : le onended
+        // tardif d'une lecture remplacée ou stoppée ne notifie jamais.
+        store.previewingSampleId = null;
+      });
+      if (started) store.previewingSampleId = sampleId;
     },
+    stopPreview,
     renameSample(sampleId: string, label: string): void {
       if (!store.samples.some((s) => s.id === sampleId)) return;
       store.samples = store.samples.map((s) => (s.id === sampleId ? { ...s, label } : s));
@@ -913,4 +975,19 @@ export function createCommands({
       });
     },
   };
+
+  // Application MÉCANIQUE de la règle §16 : chaque commande d'interaction stoppe la
+  // pré-écoute AVANT son corps — un seul point, pas de saupoudrage, oubli impossible
+  // tant que la commande figure dans PREVIEW_STOPPING_COMMANDS (test générique dédié).
+  for (const name of PREVIEW_STOPPING_COMMANDS) {
+    const original = commands[name] as (...args: unknown[]) => unknown;
+    (commands as unknown as Record<string, (...args: unknown[]) => unknown>)[name] = (
+      ...args: unknown[]
+    ) => {
+      stopPreview();
+      return original(...args);
+    };
+  }
+
+  return commands;
 }

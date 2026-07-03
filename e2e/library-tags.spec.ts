@@ -42,7 +42,7 @@ test('taguer, filtrer (tag et Non classé), assigner un pad depuis la bibliothè
 
 test('modale de choix de sample : la recherche filtre la liste (#12)', async ({ page }) => {
   await gotoApp(page);
-  await importWav(page, 'kick.wav');
+  await importWav(page, 'kick.wav', 5); // 5 s : la pré-écoute couvre les assertions
   await importWav(page, 'nappe.wav');
 
   await page.locator('.bottombar .mode-toggle').click();
@@ -54,6 +54,13 @@ test('modale de choix de sample : la recherche filtre la liste (#12)', async ({ 
   await picker.locator('.search').fill('kick');
   await expect(picker.locator('.choice')).toHaveCount(2); // « aucun » + kick
   await expect(picker.locator('.choice', { hasText: 'kick.wav' })).toBeVisible();
+
+  // Même règle que la bibliothèque : chercher pendant une pré-écoute la stoppe.
+  const preview = picker.locator('.preview').first();
+  await preview.click();
+  await expect(preview).toHaveClass(/active/);
+  await picker.locator('.search').fill('kic');
+  await expect(preview).not.toHaveClass(/active/);
 });
 
 test('bibliothèque : la recherche filtre la liste ; « aucun résultat » propose Tout afficher', async ({ page }) => {
@@ -74,6 +81,28 @@ test('bibliothèque : la recherche filtre la liste ; « aucun résultat » propo
   await library.locator('.empty .chip').click();
   await expect(library.locator('.search')).toHaveValue('');
   await expect(library.locator('.list li')).toHaveCount(2);
+});
+
+test('pré-écoute : ▶ bascule en ■ ; re-tap ou toute autre action stoppe', async ({ page }) => {
+  await gotoApp(page);
+  await importWav(page, 'nappe.wav', 5); // 5 s : la lecture couvre les assertions
+  await openLibrary(page);
+
+  const preview = page.locator('.library .preview').first();
+  await preview.click();
+  await expect(preview).toHaveClass(/active/); // ▶ → ■
+  await preview.click(); // re-tap : stop
+  await expect(preview).not.toHaveClass(/active/);
+
+  await preview.click();
+  await page.locator('.library .tags-toggle').click(); // autre action → stop
+  await expect(preview).not.toHaveClass(/active/);
+
+  await preview.click();
+  await page.locator('.library .search').fill('x'); // la recherche aussi (elle peut masquer le ■)
+  await expect(page.locator('.library .preview')).toHaveCount(0); // ligne filtrée…
+  await page.locator('.library .search').fill('');
+  await expect(preview).not.toHaveClass(/active/); // …et la pré-écoute a bien été stoppée
 });
 
 test('pool : stocker deux samples, armer depuis le tiroir gauche, assigner à la volée', async ({ page }) => {

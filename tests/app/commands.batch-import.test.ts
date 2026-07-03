@@ -4,10 +4,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createCommands, type BatchSource } from '../../src/app/commands';
 import type { AppStore, BatchImportState } from '../../src/app/store.svelte';
-import type { AudioEngine } from '../../src/engine/audio-engine';
 import type { ArchiveExtractor } from '../../src/engine/archive';
 import { ARCHIVE_MAX_BYTES } from '../../src/domain/invariants';
 import { fakeSampleRepository, fakeTagRepository } from './fake-sample-repository';
+import { asEngine, fakeEngine } from './fake-engine';
 
 function fakeStore(): AppStore {
   return {
@@ -31,18 +31,6 @@ function fakeStore(): AppStore {
   } as unknown as AppStore;
 }
 
-function fakeEngine() {
-  return {
-    resume: vi.fn().mockResolvedValue(undefined),
-    decode: vi.fn().mockResolvedValue({
-      channelData: [new Float32Array([0, 0.5, -0.5])],
-      sampleRate: 2,
-    }),
-    load: vi.fn().mockResolvedValue(undefined),
-    unload: vi.fn(),
-  };
-}
-
 function setup(opts: { extractArchive?: ArchiveExtractor } = {}) {
   const store = fakeStore();
   const engine = fakeEngine();
@@ -50,7 +38,7 @@ function setup(opts: { extractArchive?: ArchiveExtractor } = {}) {
   let n = 0;
   const commands = createCommands({
     store,
-    engine: engine as unknown as AudioEngine,
+    engine: asEngine(engine),
     encode: (async () => new Uint8Array([0x4f, 0x67, 0x67, 0x53])) as never,
     sampleRepository,
     tagRepository: fakeTagRepository(),

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Tests du pipeline d'import et de la bibliothèque (M4). Décodage/encodage/moteur factices.
-import { describe, it, expect, vi } from 'vitest';
-import { createCommands } from '../../src/app/commands';
+import { describe, it, expect } from 'vitest';
+import { createCommands, PREVIEW_STOPPING_COMMANDS } from '../../src/app/commands';
 import type { AppStore } from '../../src/app/store.svelte';
-import type { AudioEngine } from '../../src/engine/audio-engine';
 import type { Bank, Sample } from '../../src/domain/types';
 import { IMPORT_MAX_BYTES } from '../../src/domain/invariants';
 import { fakeSampleRepository, fakeTagRepository } from './fake-sample-repository';
+import { asEngine, fakeEngine } from './fake-engine';
 
 function fakeStore(bank: Bank | null = null, samples: Sample[] = []): AppStore {
   return {
@@ -19,28 +19,12 @@ function fakeStore(bank: Bank | null = null, samples: Sample[] = []): AppStore {
     tags: [],
     sampleTags: new Map<string, Set<string>>(),
     libraryFilter: null,
+    previewingSampleId: null,
     assigningSampleId: null,
     poolSampleIds: [],
     poolOpen: false,
     activePadIds: new Set<string>(),
   } as unknown as AppStore;
-}
-
-function fakeEngine() {
-  return {
-    resume: vi.fn().mockResolvedValue(undefined),
-    // 3 échantillons à 2 Hz = 1,5 s — la durée persistée est dérivée du PCM (M7).
-    decode: vi.fn().mockResolvedValue({
-      channelData: [new Float32Array([0, 0.5, -0.5])],
-      sampleRate: 2,
-      durationMs: 1500,
-    }),
-    load: vi.fn().mockResolvedValue(undefined),
-    unload: vi.fn(),
-    previewSample: vi.fn(),
-    stopPad: vi.fn(),
-    stopPage: vi.fn(),
-  };
 }
 
 function setup(opts: { store?: AppStore; encode?: (p: unknown) => Promise<Uint8Array> } = {}) {
@@ -51,7 +35,7 @@ function setup(opts: { store?: AppStore; encode?: (p: unknown) => Promise<Uint8A
   const encode = opts.encode ?? (async () => new Uint8Array([0x4f, 0x67, 0x67, 0x53])); // "OggS"
   const commands = createCommands({
     store,
-    engine: engine as unknown as AudioEngine,
+    engine: asEngine(engine),
     encode: encode as never,
     sampleRepository,
     tagRepository: fakeTagRepository(),
@@ -133,12 +117,68 @@ describe('importSample — pipeline', () => {
   });
 });
 
-describe('bibliothèque — preview / rename / delete', () => {
-  it('previewSample délègue au moteur', () => {
-    const { engine, commands } = setup();
+describe('bibliothèque — pré-écoute (bascule ▶/■, stop par toute action)', () => {
+  it('lance, reflète le sample en cours ; la fin de lecture efface le reflet', () => {
+    const { store, engine, commands } = setup();
     commands.previewSample('s1');
-    expect(engine.previewSample).toHaveBeenCalledWith('s1');
+    expect(engine.previewSample).toHaveBeenCalledWith('s1', expect.any(Function));
+    expect(store.previewingSampleId).toBe('s1');
+    // Fin NATURELLE (le moteur ne notifie que la lecture courante — garde par identité).
+    const onEnded = engine.previewSample.mock.calls[0]![1] as () => void;
+    onEnded();
+    expect(store.previewingSampleId).toBeNull();
   });
+
+  it('re-tap sur le sample en cours : bascule → stop, sans relancer', () => {
+    const { store, engine, commands } = setup();
+    commands.previewSample('s1');
+    commands.previewSample('s1');
+    expect(engine.previewSample).toHaveBeenCalledOnce();
+    expect(store.previewingSampleId).toBeNull();
+  });
+
+  it('échec de lancement (buffer non chargé) : l’ancienne pré-écoute est STOPPÉE, reflet null — jamais de son orphelin', () => {
+    const { store, engine, commands } = setup();
+    commands.previewSample('s1');
+    expect(store.previewingSampleId).toBe('s1');
+    engine.previewSample.mockReturnValueOnce(false);
+    commands.previewSample('s2');
+    // Le stop précède TOUJOURS le lancement : s1 ne survit pas à l'échec de s2.
+    expect(engine.stopPreview).toHaveBeenCalledTimes(2);
+    expect(store.previewingSampleId).toBeNull();
+  });
+
+  it('RÈGLE §16, test GÉNÉRIQUE : chaque commande de PREVIEW_STOPPING_COMMANDS stoppe la pré-écoute (un ajout à la liste est couvert d’office ; un oubli d’ajout se voit en revue via ce test)', () => {
+    const store = fakeStore(null, [sample('s1'), sample('s2')]);
+    const { commands } = setup({ store });
+    // Arguments plausibles par commande (défaut : aucun). Les commandes qui échouent en
+    // interne (cible inconnue, éditeur fermé…) doivent stopper QUAND MÊME : l'action a eu lieu.
+    const args: Partial<Record<(typeof PREVIEW_STOPPING_COMMANDS)[number], unknown[]>> = {
+      setLibraryFilter: [null],
+      startAssigning: ['s2'],
+      addToPool: ['s2'],
+      removeFromPool: ['s2'],
+      assignSample: ['p1', 's2'],
+      renameSample: ['s2', 'X'],
+      toggleSampleTag: ['s2', 't1'],
+      deleteSample: ['s2'],
+      createTag: ['Nouveau'],
+      renameTag: ['t1', 'X'],
+      deleteTag: ['t1'],
+      beginSampleRework: ['inconnu'],
+      previewEditorSelection: [0, 1],
+      applyAudioEditor: [0, 1],
+    };
+    for (const name of PREVIEW_STOPPING_COMMANDS) {
+      commands.previewSample('s1');
+      expect(store.previewingSampleId).toBe('s1');
+      (commands[name] as (...a: unknown[]) => unknown)(...(args[name] ?? []));
+      expect(store.previewingSampleId, `la commande « ${name} » doit stopper la pré-écoute`).toBeNull();
+    }
+  });
+});
+
+describe('bibliothèque — preview / rename / delete', () => {
 
   it('renameSample change le label et écrit immédiatement via le dépôt', () => {
     const store = fakeStore(null, [sample('s1')]);

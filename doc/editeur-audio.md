@@ -17,8 +17,9 @@ retravaille via **✂ dans la bibliothèque** (`beginSampleRework` : relit l'OGG
 - **`engine/pcm.ts`** (pur) : `pcmDuration`, `computePeaks` (partagé avec `engine.peaks`),
   `clampSelection` (bornes + durée min 10 ms), `trimPcm` (rognage par échantillons,
   multi-canaux, source intacte).
-- **Moteur** : `previewPcm` / `stopPcmPreview` — pré-écoute du PCM rogné (un appel remplace
-  la lecture en cours).
+- **Moteur** : `previewPcm` / `stopPreview` — pré-écoute du PCM rogné, via le mécanisme de
+  pré-écoute UNIFIÉ du moteur (un appel remplace la lecture en cours, sample ou PCM — voir
+  [moteur audio](./moteur-audio.md)).
 - **Store** : `audioEditor` (`$state.raw`) — session `{ mode: 'import' | 'rework', fileName,
   pcm, sample, assignPadId }`.
 - **Commandes** : `beginImport` (garde 20 Mo → décode → ouvre ; mémorise le pad à assigner

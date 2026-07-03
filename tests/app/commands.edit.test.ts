@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Tests des commandes d'édition M3 : CRUD pads/pages, grille (invariant de réduction),
 // bibliothèque. Store & moteur factices ; générateur d'ids déterministe.
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { createCommands } from '../../src/app/commands';
 import type { AppStore } from '../../src/app/store.svelte';
-import type { AudioEngine } from '../../src/engine/audio-engine';
 import type { Bank, Pad, Sample } from '../../src/domain/types';
 import { padsOfPage, findPad, findPage, pagesSorted } from '../../src/domain/selectors';
 import { fakeSampleRepository, fakeTagRepository } from './fake-sample-repository';
+import { asEngine, fakeEngine } from './fake-engine';
 
 function pad(id: string, pageId: string, position: number, extra: Partial<Pad> = {}): Pad {
   return {
@@ -50,26 +50,13 @@ function fakeStore(bank: Bank, samples: Sample[] = []): AppStore {
   } as unknown as AppStore;
 }
 
-function fakeEngine() {
-  return {
-    resume: vi.fn().mockResolvedValue(undefined),
-    load: vi.fn().mockResolvedValue(undefined),
-    stopPad: vi.fn(),
-    stopPage: vi.fn(),
-    oneShot: vi.fn(),
-    press: vi.fn(),
-    release: vi.fn(),
-    toggleLoop: vi.fn(),
-  };
-}
-
 function setup(bank = makeBank(), samples: Sample[] = []) {
   const store = fakeStore(bank, samples);
   const engine = fakeEngine();
   let n = 0;
   const commands = createCommands({
     store,
-    engine: engine as unknown as AudioEngine,
+    engine: asEngine(engine),
     encode: async () => new Uint8Array(),
     sampleRepository: fakeSampleRepository(),
     tagRepository: fakeTagRepository(),

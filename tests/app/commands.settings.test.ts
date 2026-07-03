@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Tests des commandes de réglages M5 : bornes, hydratation, et application du réglage
 // Arrière-plan au cycle de vie (§12). Store & moteur factices.
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { createCommands } from '../../src/app/commands';
 import type { AppStore } from '../../src/app/store.svelte';
-import type { AudioEngine } from '../../src/engine/audio-engine';
 import type { Settings } from '../../src/domain/types';
 import { fakeSampleRepository, fakeTagRepository } from './fake-sample-repository';
+import { asEngine, fakeEngine } from './fake-engine';
 
 function fakeStore(settings: Partial<Settings> = {}): AppStore {
   return {
@@ -19,6 +19,7 @@ function fakeStore(settings: Partial<Settings> = {}): AppStore {
     tags: [],
     sampleTags: new Map<string, Set<string>>(),
     libraryFilter: null,
+    previewingSampleId: null,
     assigningSampleId: null,
     poolSampleIds: [],
     poolOpen: false,
@@ -26,21 +27,12 @@ function fakeStore(settings: Partial<Settings> = {}): AppStore {
   } as unknown as AppStore;
 }
 
-function fakeEngine() {
-  return {
-    resume: vi.fn().mockResolvedValue(undefined),
-    suspend: vi.fn().mockResolvedValue(undefined),
-    stopAll: vi.fn(),
-    stopSustained: vi.fn(),
-  };
-}
-
 function setup(settings: Partial<Settings> = {}) {
   const store = fakeStore(settings);
   const engine = fakeEngine();
   const commands = createCommands({
     store,
-    engine: engine as unknown as AudioEngine,
+    engine: asEngine(engine),
     encode: async () => new Uint8Array(),
     sampleRepository: fakeSampleRepository(),
     tagRepository: fakeTagRepository(),
@@ -108,6 +100,16 @@ describe('applyBackgroundBehavior (§12)', () => {
     expect(engine.stopAll).not.toHaveBeenCalled();
     expect(engine.stopSustained).not.toHaveBeenCalled();
     expect(engine.suspend).not.toHaveBeenCalled();
+  });
+
+  it('masquage : la pré-écoute stoppe QUEL QUE SOIT le réglage (son de parcours, pas de jeu — §16)', () => {
+    for (const backgroundBehavior of ['stopAll', 'stopSustained', 'keepPlaying'] as const) {
+      const { store, commands } = setup({ backgroundBehavior });
+      commands.previewSample('s1');
+      expect(store.previewingSampleId).toBe('s1');
+      commands.applyBackgroundBehavior(true);
+      expect(store.previewingSampleId, `réglage ${backgroundBehavior}`).toBeNull();
+    }
   });
 
   it('retour au premier plan : aucun effet (resume() attend le prochain geste, §12)', () => {

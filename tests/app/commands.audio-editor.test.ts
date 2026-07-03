@@ -4,10 +4,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createCommands } from '../../src/app/commands';
 import type { AppStore } from '../../src/app/store.svelte';
-import type { AudioEngine } from '../../src/engine/audio-engine';
 import type { Bank, Sample } from '../../src/domain/types';
 import { IMPORT_MAX_BYTES } from '../../src/domain/invariants';
 import { fakeSampleRepository, fakeTagRepository } from './fake-sample-repository';
+import { asEngine, fakeEngine } from './fake-engine';
 
 function makeBank(): Bank {
   return {
@@ -54,25 +54,16 @@ function fakeStore(samples: Sample[] = []): AppStore {
   } as unknown as AppStore;
 }
 
-function fakeEngine() {
-  return {
-    resume: vi.fn().mockResolvedValue(undefined),
+function setup(samples: Sample[] = []) {
+  const store = fakeStore(samples);
+  const engine = fakeEngine({
     // 1 s à 8 Hz : 8 échantillons — le rognage se vérifie à l'échantillon près.
     decode: vi.fn().mockResolvedValue({
       channelData: [new Float32Array([0, 1, 2, 3, 4, 5, 6, 7])],
       sampleRate: 8,
       durationMs: 1000,
     }),
-    load: vi.fn().mockResolvedValue(undefined),
-    unload: vi.fn(),
-    previewPcm: vi.fn(),
-    stopPcmPreview: vi.fn(),
-  };
-}
-
-function setup(samples: Sample[] = []) {
-  const store = fakeStore(samples);
-  const engine = fakeEngine();
+  });
   const sampleRepository = fakeSampleRepository();
   const encode = vi.fn(async (pcm: { channelData: Float32Array[] }) =>
     new Uint8Array(pcm.channelData[0]!.length), // taille = nb d'échantillons (traceur)
@@ -80,7 +71,7 @@ function setup(samples: Sample[] = []) {
   let n = 0;
   const commands = createCommands({
     store,
-    engine: engine as unknown as AudioEngine,
+    engine: asEngine(engine),
     encode: encode as never,
     sampleRepository,
     tagRepository: fakeTagRepository(),
@@ -125,7 +116,7 @@ describe('previewEditorSelection / cancelAudioEditor', () => {
     const pcm = engine.previewPcm.mock.calls[0]![0] as { channelData: Float32Array[] };
     expect(Array.from(pcm.channelData[0]!)).toEqual([2, 3, 4, 5]);
     commands.cancelAudioEditor();
-    expect(engine.stopPcmPreview).toHaveBeenCalled();
+    expect(engine.stopPreview).toHaveBeenCalled();
     expect(store.audioEditor).toBeNull();
   });
 });

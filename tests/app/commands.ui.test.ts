@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Tests des commandes d'UI M6 (§11) : tiroir contextuel (pad/page/réglages), panneau
 // bibliothèque, Stop général. Store & moteur factices.
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { createCommands } from '../../src/app/commands';
 import { BankFactory } from '../../src/app/bank-factory';
 import type { AppStore } from '../../src/app/store.svelte';
-import type { AudioEngine } from '../../src/engine/audio-engine';
 import type { Bank } from '../../src/domain/types';
 import { fakeSampleRepository, fakeTagRepository } from './fake-sample-repository';
+import { asEngine, fakeEngine } from './fake-engine';
 
 function makeBank(): Bank {
   return {
@@ -44,21 +44,12 @@ function fakeStore(bank: Bank | null = makeBank(), editMode = true): AppStore {
   return store as unknown as AppStore;
 }
 
-function fakeEngine() {
-  return {
-    resume: vi.fn().mockResolvedValue(undefined),
-    stopAll: vi.fn(),
-    stopPad: vi.fn(),
-    stopPage: vi.fn(),
-  };
-}
-
 function setup(store = fakeStore()) {
   const engine = fakeEngine();
   let n = 0;
   const commands = createCommands({
     store,
-    engine: engine as unknown as AudioEngine,
+    engine: asEngine(engine),
     encode: async () => new Uint8Array(),
     sampleRepository: fakeSampleRepository(),
     tagRepository: fakeTagRepository(),
@@ -169,7 +160,7 @@ describe('création par la fabrique (M6 — board complet, coloré, nommé)', ()
     const ids = (): string => `id-${n++}`;
     const commands = createCommands({
       store,
-      engine: engine as unknown as AudioEngine,
+      engine: asEngine(engine),
       encode: async () => new Uint8Array(),
       sampleRepository: fakeSampleRepository(),
     tagRepository: fakeTagRepository(),

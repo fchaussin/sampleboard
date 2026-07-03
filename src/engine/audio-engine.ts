@@ -51,6 +51,61 @@ export class AudioEngine {
     return this.#ctx;
   }
 
+  // --- Bus master ----------------------------------------------------------------------------
+  // Point de passage UNIQUE vers la sortie : `master (Gain) → destination`. TOUT ce qui sonne
+  // (voix des pads, pré-écoutes) s'y raccorde — jamais à `destination` directement. C'est là
+  // que se brancheront gain master / limiteur / visualiseur global.
+
+  #master: GainNode | null = null;
+  #masterAnalyser: AnalyserNode | null = null;
+
+  /** Crée le bus master au besoin et renvoie son entrée. */
+  #ensureMaster(ctx: AudioContext): AudioNode {
+    if (!this.#master) {
+      this.#master = ctx.createGain();
+      this.#master.connect(ctx.destination);
+    }
+    return this.#master;
+  }
+
+  /**
+   * Forme d'onde temps réel du bus master — tout ce qui sonne, voix ET pré-écoutes
+   * (visualiseur global). Remplit `out` et renvoie true ; false si rien n'a encore joué.
+   * L'analyseur est un tap en DÉRIVATION (le son ne le traverse pas), créé paresseusement
+   * au premier appel : zéro coût de rendu tant que personne ne consomme la forme d'onde.
+   */
+  masterWaveform(out: Float32Array<ArrayBuffer>): boolean {
+    const ctx = this.#ctx;
+    if (!ctx || !this.#master) return false;
+    if (!this.#masterAnalyser) {
+      this.#masterAnalyser = ctx.createAnalyser();
+      this.#masterAnalyser.fftSize = WAVEFORM_SIZE;
+      this.#master.connect(this.#masterAnalyser);
+    }
+    this.#masterAnalyser.getFloatTimeDomainData(out);
+    return true;
+  }
+
+  // --- Nettoyage Web Audio tolérant (les nœuds jettent s'ils sont déjà arrêtés/détachés) ----
+
+  #safeStop(source: AudioBufferSourceNode): void {
+    try {
+      source.stop();
+    } catch {
+      // déjà arrêtée
+    }
+  }
+
+  #safeDisconnect(...nodes: AudioNode[]): void {
+    for (const node of nodes) {
+      try {
+        node.disconnect();
+      } catch {
+        // déjà déconnecté
+      }
+    }
+  }
+
   /** À appeler sur le 1er geste utilisateur ; idempotent (voir §7, §12). */
   async resume(): Promise<void> {
     const ctx = this.#ensureContext();
@@ -119,23 +174,73 @@ export class AudioEngine {
     return { channelData, sampleRate: buffer.sampleRate, durationMs: buffer.duration * 1000 };
   }
 
-  /** Pré-écoute : joue une fois le buffer d'un sample (hors pads, hors reflet). No-op si absent. */
-  previewSample(sampleId: string): void {
-    const ctx = this.#ctx;
-    if (!ctx) return;
-    const buffer = this.#buffers.get(sampleId);
-    if (!buffer) return;
+  // --- Pré-écoute (bibliothèque, modale de sample, éditeur audio) ---------------------------
+  // UN comportement métier, partagé : une seule pré-écoute à la fois dans l'app, jouée une
+  // fois sur le bus master (hors pads, hors reflet), REMPLACÉE par la suivante, stoppable.
+
+  #preview: AudioBufferSourceNode | null = null;
+
+  /** Cœur commun : joue un buffer comme pré-écoute courante ; remplace la précédente. */
+  #playPreview(ctx: AudioContext, buffer: AudioBuffer, onEnded?: () => void): void {
+    this.stopPreview();
     const source = ctx.createBufferSource();
     source.buffer = buffer;
-    source.connect(ctx.destination);
+    source.connect(this.#ensureMaster(ctx));
     source.onended = () => {
-      try {
-        source.disconnect();
-      } catch {
-        // déjà déconnecté
-      }
+      // Garde par IDENTITÉ : le onended (asynchrone) d'une lecture remplacée ou stoppée ne
+      // notifie PAS — sinon il effacerait le reflet de la lecture suivante du même sample.
+      const isCurrent = this.#preview === source;
+      if (isCurrent) this.#preview = null;
+      this.#safeDisconnect(source);
+      if (isCurrent) onEnded?.();
     };
+    this.#preview = source;
     source.start();
+  }
+
+  /**
+   * Pré-écoute du buffer en cache d'un sample. Renvoie false (no-op) si le buffer n'est pas
+   * chargé — la pré-écoute courante n'est alors PAS touchée (l'appelant décide). `onEnded`
+   * n'est notifié qu'à la fin NATURELLE de cette lecture (jamais si remplacée ou stoppée).
+   */
+  previewSample(sampleId: string, onEnded?: () => void): boolean {
+    const ctx = this.#ctx;
+    if (!ctx) return false;
+    const buffer = this.#buffers.get(sampleId);
+    if (!buffer) return false;
+    this.#playPreview(ctx, buffer, onEnded);
+    return true;
+  }
+
+  /**
+   * Pré-écoute d'un PCM (sélection de l'éditeur M7) — même contrat que previewSample :
+   * renvoie false sans lancer si la sélection est vide (mais stoppe la lecture courante,
+   * une sélection vide fait office de stop).
+   */
+  previewPcm(pcm: PcmData, onEnded?: () => void): boolean {
+    const ctx = this.#ensureContext();
+    const length = pcm.channelData[0]?.length ?? 0;
+    if (length === 0 || pcmDuration(pcm) === 0) {
+      this.stopPreview();
+      return false;
+    }
+
+    const buffer = ctx.createBuffer(Math.max(1, pcm.channelData.length), length, pcm.sampleRate);
+    pcm.channelData.forEach((data, channel) => buffer.copyToChannel(data, channel));
+    this.#playPreview(ctx, buffer, onEnded);
+    return true;
+  }
+
+  /**
+   * Arrête la pré-écoute en cours (no-op sinon). Déconnexion SYNCHRONE : le onended ne tire
+   * pas si le contexte se suspend juste après (arrière-plan) — on ne compte pas dessus.
+   */
+  stopPreview(): void {
+    const source = this.#preview;
+    this.#preview = null;
+    if (!source) return;
+    this.#safeStop(source);
+    this.#safeDisconnect(source);
   }
 
   // --- Déclenchements (voir la matrice §7) --------------------------------------------------
@@ -241,50 +346,6 @@ export class AudioEngine {
     return out;
   }
 
-  // --- Pré-écoute d'un PCM en cours d'édition (M7, éditeur audio) ---------------------------
-
-  #pcmPreview: AudioBufferSourceNode | null = null;
-
-  /**
-   * Joue un PCM (une fois, hors pads/reflet) — pré-écoute de la sélection dans l'éditeur
-   * audio. Un nouvel appel remplace la lecture en cours.
-   */
-  previewPcm(pcm: PcmData): void {
-    const ctx = this.#ensureContext();
-    this.stopPcmPreview();
-    const length = pcm.channelData[0]?.length ?? 0;
-    if (length === 0 || pcmDuration(pcm) === 0) return;
-
-    const buffer = ctx.createBuffer(Math.max(1, pcm.channelData.length), length, pcm.sampleRate);
-    pcm.channelData.forEach((data, channel) => buffer.copyToChannel(data, channel));
-
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.connect(ctx.destination);
-    source.onended = () => {
-      if (this.#pcmPreview === source) this.#pcmPreview = null;
-      try {
-        source.disconnect();
-      } catch {
-        // déjà déconnecté
-      }
-    };
-    this.#pcmPreview = source;
-    source.start();
-  }
-
-  /** Arrête la pré-écoute de PCM en cours (no-op sinon). */
-  stopPcmPreview(): void {
-    const source = this.#pcmPreview;
-    this.#pcmPreview = null;
-    if (!source) return;
-    try {
-      source.stop();
-    } catch {
-      // déjà arrêtée
-    }
-  }
-
   /**
    * Avancement de lecture [0, 1] de la voix d'un pad (barre de progression M6), ou null
    * si le pad ne joue pas. Loop : position dans le cycle courant ; One-Shot/Gate : borné à 1.
@@ -332,7 +393,7 @@ export class AudioEngine {
     const analyser = ctx.createAnalyser();
     analyser.fftSize = WAVEFORM_SIZE;
 
-    source.connect(gain).connect(analyser).connect(ctx.destination);
+    source.connect(gain).connect(analyser).connect(this.#ensureMaster(ctx));
 
     const voice: Voice = {
       padId: pad.id,
@@ -416,13 +477,7 @@ export class AudioEngine {
   }
 
   #disconnect(voice: Voice): void {
-    try {
-      voice.source.disconnect();
-      voice.gain.disconnect();
-      voice.analyser.disconnect();
-    } catch {
-      // Nœuds déjà déconnectés : sans conséquence.
-    }
+    this.#safeDisconnect(voice.source, voice.gain, voice.analyser);
   }
 
   /** Émet l'ensemble courant des pads qui jouent vers l'abonné (voir §9). */

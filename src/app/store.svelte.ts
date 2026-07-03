@@ -79,6 +79,8 @@ export class AppStore {
   sampleTags = $state<Map<string, Set<string>>>(new Map());
   /** Filtre courant de la bibliothèque (M8). */
   libraryFilter = $state<LibraryFilter>(null);
+  /** Sample en PRÉ-ÉCOUTE (bibliothèque / modale de sample), ou null — le ▶ devient ■. */
+  previewingSampleId = $state<string | null>(null);
   /** Sample ARMÉ pour l'assignation à la volée (M8) : chaque pad touché le reçoit. */
   assigningSampleId = $state<string | null>(null);
   /** Pool (M8) : liste de travail de samples (session), assignables à la volée. */

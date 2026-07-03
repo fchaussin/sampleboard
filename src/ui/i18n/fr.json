@@ -53,6 +53,7 @@
   "library.importing": "Import…",
   "library.empty": "Bibliothèque vide — importe un son.",
   "library.preview": "Pré-écouter",
+  "library.stopPreview": "Arrêter la pré-écoute",
   "library.delete": "Supprimer",
   "library.confirm": "Confirmer",
   "library.impacted": "pad(s) impacté(s) —",

@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Tests des commandes de tags M8 : CRUD, affectations (bascule), filtre — « Non classé »
 // = absence d'entrée (une seule représentation). Store & dépôts factices.
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { createCommands } from '../../src/app/commands';
 import type { AppStore } from '../../src/app/store.svelte';
-import type { AudioEngine } from '../../src/engine/audio-engine';
 import type { Sample, Tag } from '../../src/domain/types';
 import { matchesFilter } from '../../src/app/tag-filter';
 import { fakeSampleRepository, fakeTagRepository } from './fake-sample-repository';
+import { asEngine, fakeEngine } from './fake-engine';
 
 function sample(id: string): Sample {
   return {
@@ -56,7 +56,7 @@ function setup(store = fakeStore()) {
   let n = 0;
   const commands = createCommands({
     store,
-    engine: { unload: vi.fn(), stopPad: vi.fn() } as unknown as AudioEngine,
+    engine: asEngine(fakeEngine()),
     encode: async () => new Uint8Array(),
     sampleRepository,
     tagRepository,

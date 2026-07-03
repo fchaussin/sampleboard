@@ -5,8 +5,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createCommands } from '../../src/app/commands';
 import type { AppStore } from '../../src/app/store.svelte';
-import type { AudioEngine } from '../../src/engine/audio-engine';
 import { fakeSampleRepository, fakeTagRepository } from './fake-sample-repository';
+import { asEngine, fakeEngine } from './fake-engine';
 
 function fakeStore(): AppStore {
   return {
@@ -23,22 +23,13 @@ function fakeStore(): AppStore {
 
 function setup() {
   const store = fakeStore();
-  const engine = {
-    resume: vi.fn().mockResolvedValue(undefined),
-    decode: vi.fn().mockResolvedValue({
-      // 3 échantillons à 2 Hz → 1500 ms.
-      channelData: [new Float32Array([0, 0.5, -0.5])],
-      sampleRate: 2,
-    }),
-    load: vi.fn().mockResolvedValue(undefined),
-    unload: vi.fn(),
-  };
+  const engine = fakeEngine();
   const encode = vi.fn();
   const sampleRepository = fakeSampleRepository();
   let n = 0;
   const commands = createCommands({
     store,
-    engine: engine as unknown as AudioEngine,
+    engine: asEngine(engine),
     encode: encode as never,
     sampleRepository,
     tagRepository: fakeTagRepository(),

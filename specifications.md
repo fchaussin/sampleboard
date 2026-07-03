@@ -517,6 +517,18 @@ Le ré-encodage se fait **côté frontend** (règle « pas de logique métier en
   entrée reste soumise aux 20 Mo d'import ; seules les extensions audio candidates entrent
   dans le lot (le décodage reste l'arbitre final, §12). Build from-source du WASM : même
   traitement que l'encodeur opus (jalon Empaquetage).
+- **Bus master & pré-écoute unifiée** (2026-07-03) : le graphe Web Audio a un **point de
+  passage unique vers la sortie** — `master (GainNode) → destination` ; **tout ce qui sonne
+  s'y raccorde** (chaînes de voix des pads, pré-écoutes), jamais à `destination` en direct.
+  C'est là que se branchent gain master, limiteur ou visualiseur global (`masterWaveform`,
+  analyseur en **dérivation paresseuse** : créé au premier appel, le son ne le traverse
+  pas). La **pré-écoute est UN comportement** partagé (bibliothèque, modale de sample,
+  éditeur audio) : **une seule à la fois** dans l'app, remplacée par la suivante, **bascule
+  ▶/■** sur le bouton, et **toute autre action fait office de stop** — règle appliquée
+  **mécaniquement** via la liste `PREVIEW_STOPPING_COMMANDS` (commands.ts, test générique
+  dédié), l'arrière-plan stoppant la pré-écoute **quel que soit** le réglage (son de
+  parcours, pas de jeu). Reflet : `store.previewingSampleId` ; mutation via `commands`
+  uniquement ; le moteur ne notifie la fin que par **identité de source** (fin naturelle).
 - **Ordre de validation : web d'abord, Android ensuite.** Chaque jalon est d'abord développé et validé sur **web** (dev Vite http://localhost:1420 + fenêtre `tauri dev` bureau) ; la validation sur **appareil Android réel** est un **second temps**, jamais un prérequis pour avancer. La cible finale reste F-Droid/Android (§15) — c'est l'ordre de travail qui est fixé, pas la cible.
 
 ## 17. Évolutions futures (hors v1)

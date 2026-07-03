@@ -6,6 +6,7 @@
   import { filterSamples } from '../../app/tag-filter';
   import { t } from '../i18n';
   import Icon from './Icon.svelte';
+  import PreviewButton from './PreviewButton.svelte';
 
   let { app }: { app: App } = $props();
   const locale = $derived(app.store.locale);
@@ -31,6 +32,7 @@
   let expanded = $state<string | null>(null);
 
   function toggleExpanded(sampleId: string): void {
+    app.commands.stopPreview(); // toute autre action fait office de stop
     expanded = expanded === sampleId ? null : sampleId;
   }
 
@@ -96,6 +98,7 @@
       placeholder={t('library.search', locale)}
       aria-label={t('library.search', locale)}
       bind:value={search}
+      oninput={() => app.commands.stopPreview()}
     />
 
     <div class="chip-row filters">
@@ -136,18 +139,18 @@
           </span>
           <!-- Actions groupées : le bloc passe SOUS le nom quand la ligne est trop étroite. -->
           <div class="actions">
-            <button type="button" class="icon" title={t('library.preview', locale)} onclick={() => app.commands.previewSample(s.id)}>▶</button>
-            <button type="button" class="icon rework" title={t('library.rework', locale)} aria-label={t('library.rework', locale)} onclick={() => rework(s.id)}>✂</button>
+            <PreviewButton {app} sampleId={s.id} />
+            <button type="button" class="icon-action rework" title={t('library.rework', locale)} aria-label={t('library.rework', locale)} onclick={() => rework(s.id)}>✂</button>
             <button
               type="button"
-              class="icon assign-start"
+              class="icon-action assign-start"
               title={t('assign.start', locale)}
               aria-label={t('assign.start', locale)}
               onclick={() => app.commands.startAssigning(s.id)}
             ><Icon name="assign" size={16} /></button>
             <button
               type="button"
-              class="icon pool-add"
+              class="icon-action pool-add"
               title={t('pool.add', locale)}
               aria-label={t('pool.add', locale)}
               disabled={app.store.poolSampleIds.includes(s.id)}
@@ -155,7 +158,7 @@
             ><Icon name="pool" size={16} /></button>
             <button
               type="button"
-              class="icon tags-toggle"
+              class="icon-action tags-toggle"
               class:active={expanded === s.id}
               title={t('library.tags', locale)}
               aria-label={t('library.tags', locale)}
@@ -167,10 +170,10 @@
                 {impactedPads(s.id)}
                 {t('library.impacted', locale)}
                 <button type="button" class="danger" onclick={() => confirmDelete(s.id)}>{t('library.confirm', locale)}</button>
-                <button type="button" class="icon" onclick={() => (confirming = null)}>✕</button>
+                <button type="button" class="icon-action" onclick={() => (confirming = null)}>✕</button>
               </span>
             {:else}
-              <button type="button" class="icon danger" title={t('library.delete', locale)} onclick={() => requestDelete(s.id)}>🗑</button>
+              <button type="button" class="icon-action danger" title={t('library.delete', locale)} onclick={() => requestDelete(s.id)}>🗑</button>
             {/if}
           </div>
         </li>
@@ -305,15 +308,6 @@
     padding-left: 0.5rem;
   }
 
-  .icon {
-    padding: 0.25rem 0.5rem;
-    border: 1px solid var(--muted);
-    border-radius: 0.375rem;
-    background: transparent;
-    color: inherit;
-    cursor: pointer;
-  }
-
   .confirm {
     display: inline-flex;
     align-items: center;
@@ -331,11 +325,6 @@
     justify-content: center;
   }
 
-  .tags-toggle.active {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-
   .expansion {
     flex-direction: column;
     align-items: stretch;
@@ -349,15 +338,6 @@
   .assign-start {
     border-color: var(--accent);
     color: var(--accent);
-  }
-
-  .icon:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-  }
-
-  .icon :global(svg) {
-    display: block;
   }
 
   /* --- Adaptation au média --- */
@@ -388,11 +368,4 @@
     }
   }
 
-  /* Tactile : cibles ≥ 44 px (règle M6), quel que soit le viewport. */
-  @media (pointer: coarse) {
-    .icon {
-      min-width: 2.75rem;
-      min-height: 2.75rem;
-    }
-  }
 </style>

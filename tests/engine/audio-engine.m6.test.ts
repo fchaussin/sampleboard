@@ -15,6 +15,8 @@ async function playingEngine() {
 describe('waveform (visualiseurs)', () => {
   it('chaque voix est branchée sur un analyseur à la taille WAVEFORM_SIZE', async () => {
     const { ctx } = await playingEngine();
+    // Un analyseur PAR VOIX seulement : celui du bus master est paresseux (créé au premier
+    // masterWaveform — topologie testée dans audio-engine.preview.test.ts).
     expect(ctx.analysers).toHaveLength(1);
     expect(ctx.analysers[0]!.fftSize).toBe(WAVEFORM_SIZE);
   });
@@ -67,36 +69,6 @@ describe('peaks (forme d’onde statique du sample)', () => {
     expect(engine.peaks('sample-1', 4)).toBeNull();
     await engine.load('sample-1', bytes());
     expect(engine.peaks('sample-1', 4)).not.toBe(before); // recalculé, pas l'ancien cache
-  });
-});
-
-describe('previewPcm (pré-écoute de l’éditeur audio, M7)', () => {
-  it('joue le PCM via un buffer construit ; un nouvel appel remplace la lecture', async () => {
-    const { engine, ctx } = makeEngine();
-    await engine.resume();
-    const pcm = { channelData: [new Float32Array([0.1, 0.2])], sampleRate: 2 };
-    engine.previewPcm(pcm);
-    expect(ctx.sources).toHaveLength(1);
-    expect(ctx.sources[0]!.started).toBe(true);
-    engine.previewPcm(pcm);
-    expect(ctx.sources[0]!.stopped).toBe(true); // remplacée
-    expect(ctx.sources[1]!.started).toBe(true);
-  });
-
-  it('stopPcmPreview arrête la lecture en cours (no-op sinon)', async () => {
-    const { engine, ctx } = makeEngine();
-    await engine.resume();
-    engine.stopPcmPreview(); // no-op
-    engine.previewPcm({ channelData: [new Float32Array([0.1])], sampleRate: 1 });
-    engine.stopPcmPreview();
-    expect(ctx.sources[0]!.stopped).toBe(true);
-  });
-
-  it('PCM vide : aucun démarrage', async () => {
-    const { engine, ctx } = makeEngine();
-    await engine.resume();
-    engine.previewPcm({ channelData: [], sampleRate: 44100 });
-    expect(ctx.sources).toHaveLength(0);
   });
 });
 

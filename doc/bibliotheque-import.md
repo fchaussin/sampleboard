@@ -45,7 +45,9 @@ avec un faux encodeur, réel en E2E.
 
 ## Bibliothèque (`Library.svelte`)
 
-Import (bouton), **pré-écoute** (`previewSample` → voix transitoire hors pads), **renommage** du
+Import (bouton), **pré-écoute** (bouton ▶ **bascule en ■** pendant la lecture — re-tap ou
+**toute autre action** stoppe ; composant partagé `PreviewButton`, routage via le bus master,
+voir [moteur audio](./moteur-audio.md)), **renommage** du
 `label`, **suppression** avec **avertissement du nombre de pads impactés** : après confirmation,
 le `sampleId` de ces pads passe à **`null`** (état *vide*) — miroir en mémoire du
 `ON DELETE SET NULL` du schéma (§8), appliqué depuis M5. Renommage et suppression écrivent

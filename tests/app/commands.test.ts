@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Tests de la couche commandes : résolution pad/page + délégation au moteur (voir §9).
 // Store et moteur factices (pas de runes Svelte ni de Web Audio ici).
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { createCommands } from '../../src/app/commands';
 import type { AppStore } from '../../src/app/store.svelte';
-import type { AudioEngine } from '../../src/engine/audio-engine';
 import type { Bank } from '../../src/domain/types';
 import { fakeSampleRepository, fakeTagRepository } from './fake-sample-repository';
+import { asEngine, fakeEngine } from './fake-engine';
 
 function bank(): Bank {
   return {
@@ -37,25 +37,12 @@ function fakeStore(b: Bank | null = null): AppStore {
   } as unknown as AppStore;
 }
 
-function fakeEngine() {
-  return {
-    resume: vi.fn().mockResolvedValue(undefined),
-    oneShot: vi.fn(),
-    press: vi.fn(),
-    release: vi.fn(),
-    toggleLoop: vi.fn(),
-    stopPad: vi.fn(),
-    stopPage: vi.fn(),
-    load: vi.fn().mockResolvedValue(undefined),
-  };
-}
-
 function setup(b: Bank | null = null) {
   const store = fakeStore(b);
   const engine = fakeEngine();
   const commands = createCommands({
     store,
-    engine: engine as unknown as AudioEngine,
+    engine: asEngine(engine),
     encode: async () => new Uint8Array(),
     sampleRepository: fakeSampleRepository(),
     tagRepository: fakeTagRepository(),

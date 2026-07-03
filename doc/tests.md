@@ -46,7 +46,7 @@ suffisent pas).
 Complète le hook `doc-sync` (rappel de mise à jour de `doc/`). Les deux sont déclarés dans
 `.claude/settings.json`.
 
-## Couverture actuelle (M1 → M8 en cours) — 271 unitaires + 12 E2E
+## Couverture actuelle (M1 → M8 en cours) — 283 unitaires + 13 E2E
 
 > Liste ci-dessous non exhaustive pour M8 (tags, import multiple, samples d'usine) — voir
 > `doc/bibliotheque-import.md` et `doc/samples-usine.md`.
@@ -86,6 +86,18 @@ Complète le hook `doc-sync` (rappel de mise à jour de `doc/`). Les deux sont d
   casse/espaces, combinaison ET avec le filtre par tag et « Non classé ».
 - `tests/engine/fake-audio-context.ts` — `AudioContext` factice partagé (utilitaire, pas un test).
 - `tests/app/fake-sample-repository.ts` — dépôt bibliothèque factice partagé (utilitaire).
+- `tests/app/fake-engine.ts` — **moteur factice PARTAGÉ** des tests de commandes (superset
+  surchargeable — remplace les sept `fakeEngine` locaux dupliqués, DRY).
+- `tests/engine/audio-engine.preview.test.ts` — pré-écoute unifiée (sample/PCM, remplacement,
+  `stopPreview` avec déconnexion synchrone, contrat `false` sur sélection vide) + **garde du
+  `onEnded` par identité de source** (le onended tardif d'une lecture stoppée/remplacée — même
+  du même sample — ne notifie pas) + **topologie du bus master** (voix et pré-écoutes →
+  master → destination, jamais `destination` en direct ; analyseur `masterWaveform` en
+  dérivation paresseuse).
+- **Règle « toute action stoppe la pré-écoute » : test GÉNÉRIQUE** (commands.library.test.ts)
+  qui itère la liste exportée `PREVIEW_STOPPING_COMMANDS` — un oubli d'appel est impossible
+  (application mécanique), un oubli d'inscription à la liste se voit en revue via ce test.
+  L'arrière-plan est couvert pour les TROIS réglages (commands.settings.test.ts).
 
 **E2E (navigateur réel) :**
 
