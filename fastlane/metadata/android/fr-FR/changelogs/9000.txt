@@ -1,0 +1,8 @@
+Bibliothèque avancée (0.9.0) :
+• Tags personnalisables + filtres en chips (dont « Non classé »)
+• Recherche texte (bibliothèque et choix de sample)
+• Assignation à la volée et pool (tiroir gauche)
+• Import multifichier + archives zip/rar
+• Samples d'usine au premier lancement (78 sons)
+• Pré-écoute stoppable partout, visualiseur global
+• Correctif : la fin des samples n'est plus perdue à l'encodage

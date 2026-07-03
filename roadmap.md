@@ -279,8 +279,8 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
   Gradle AndroidX/Material) : zéro propriétaire, zéro Play Services — voir `doc/audit-foss.md`.
 - [ ] Build reproductible (toolchain épinglée ✓ ; déterminisme APK + WASM opus build-from-source à traiter).
 - [x] En-têtes SPDX complets + conformité licence (audit : 1 manquant corrigé, 100 % couvert).
-- [~] Métadonnées F-Droid (fastlane) : descriptions FR/EN ✓ ; captures + changelogs (par
-  versionCode) restants.
+- [~] Métadonnées F-Droid (fastlane) : descriptions FR/EN ✓ ; changelogs par versionCode
+  (6000/8000/9000, FR+EN) ✓ ; captures restantes (UI finale disponible depuis M8).
 - [ ] Soumission F-Droid (RFP / merge request metadata).
 - [ ] **Validation** : APK installable, app fonctionnelle hors Play Services.
 

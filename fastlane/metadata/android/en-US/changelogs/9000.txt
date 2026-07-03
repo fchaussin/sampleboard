@@ -1,0 +1,8 @@
+Advanced library (0.9.0):
+• Custom tags + chip filters (incl. "Untagged")
+• Text search (library and sample picker)
+• On-the-fly pad assignment and pool (left drawer)
+• Multi-file import + zip/rar archives
+• Factory samples on first launch (78 sounds)
+• Stoppable preview everywhere, global visualizer
+• Fix: sample endings are no longer lost when encoding

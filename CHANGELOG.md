@@ -6,9 +6,9 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) ;
 versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
 `1.0.0` n'est pas planifiée : elle sanctionne la première version **stable et complète**.
 
-## [Unreleased] — M8 (Bibliothèque avancée), candidate `0.9.0`
+## [0.9.0] - 2026-07-03 — M8 (Bibliothèque avancée)
 
-> Backlog #10-14. Validé sur web : 265 unitaires + 11 E2E. Tag après revue utilisateur.
+> Backlog #10-16. Validé sur web : 283 unitaires + 13 E2E, revue visuelle utilisateur.
 
 ### Ajouté
 - **Import multiple & archives** (#13) : sélection multifichier + archives **zip/rar**
@@ -25,11 +25,6 @@ versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
   1:1, OGG uniquement, tags admis, board cohérent — build en échec sinon ; provenance ou
   licence manquante = avertissement (à renseigner AVANT soumission F-Droid).
 
-### Corrigé
-- **Encodeur : les 80 derniers ms des samples ne sont plus perdus** — le codec Opus retient
-  un délai interne (pre-skip, 3 840 éch.) que le worker ne vide pas : la fin de l'audio
-  restait dans le tampon. Remède : coussin de silence poussé en queue d'entrée, la granule
-  restant bornée à la durée réelle (`trimOggTail`). Durée restituée fidèle à ±0,03 ms.
 - **Tags de samples** (migration 4 : `tags` + `sample_tags`, cascades) : n-à-n,
   personnalisables (créer/renommer/supprimer dans la bibliothèque), **semés au premier
   lancement** (SFX, Répliques, Jingle, Musique, Ambiance, Voix, Réaction, Meme, Alerte —
@@ -54,11 +49,29 @@ versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
 - Conventions figées (§16) : **CSS sans `px`** hors épaisseurs de trait (tout en rem) ;
   **éléments UI standard uniquement** ; toggle Jeu/Édition segmenté (curseur glissant,
   segment inactif grisé).
+- **Recherche dans la bibliothèque** (#15) : champ texte sur le label (casse/espaces
+  ignorés) **combiné (ET)** aux filtres par tag (`filterSamples` partagé avec le picker),
+  barre d'outils **sticky**, état « aucun résultat » avec bouton **Tout afficher**.
+  **Layout adaptatif** : grille de cartes ≥ 48 rem, actions sous le nom en étroit,
+  cibles ≥ 44 px en tactile.
+- **Pré-écoute stoppable + bus master** (#16) : ▶ bascule en ■ pendant la lecture, re-tap
+  ou **toute autre action** stoppe (liste `PREVIEW_STOPPING_COMMANDS` mécanique) ; UN
+  comportement unifié (bibliothèque, modale de sample, éditeur — composant partagé
+  `PreviewButton`). **Bus master** `gain → analyseur → destination` : passage unique de
+  tout le son (voix + pré-écoutes), `masterWaveform` pour le visualiseur global,
+  analyseur en dérivation paresseuse.
 
-## [Unreleased] — M7 (Éditeur audio « Découper »), candidate `0.8.0`
+### Corrigé
+- **Encodeur : les 80 derniers ms des samples ne sont plus perdus** — le codec Opus retient
+  un délai interne (pre-skip, 3 840 éch.) que le worker ne vide pas : la fin de l'audio
+  restait dans le tampon. Remède : coussin de silence poussé en queue d'entrée, la granule
+  restant bornée à la durée réelle (`trimOggTail`). Durée restituée fidèle à ±0,03 ms ;
+  la **traîne de silence** des samples encodés est éliminée au passage.
+
+## [0.8.0] - 2026-07-02 — M7 (Éditeur audio « Découper »)
 
 > Backlog #4/#5 rapatriés de v2 (décision §16). Validé sur web : 197 unitaires + 6 E2E
-> (drag réel, undo, durée persistée réduite, retravail). Tag après revue utilisateur.
+> (drag réel, undo, durée persistée réduite, retravail), revue visuelle utilisateur.
 
 ### Ajouté
 - **Éditeur audio plein écran** (`AudioEditor`, `<dialog>` top-layer) : waveform du PCM

@@ -1,0 +1,5 @@
+"Trim" audio editor (0.8.0):
+• Waveform + start/end trim handles before encoding
+• Selection preview, undo/redo
+• Every import goes through the editor; stored files are already trimmed
+• "Trim" on any existing sample: re-encoded, pad assignments kept

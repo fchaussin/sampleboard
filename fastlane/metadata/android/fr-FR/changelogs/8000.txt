@@ -1,0 +1,5 @@
+Éditeur audio « Découper » (0.8.0) :
+• Waveform + poignées de rognage début/fin avant encodage
+• Pré-écoute de la sélection, annuler/rétablir
+• Tout import passe par l'éditeur ; le fichier stocké est déjà rogné
+• « Découper » sur un sample existant : ré-encodage, pads conservés
