@@ -12,16 +12,16 @@ const manifest = JSON.parse(readFileSync('public/factory-samples/manifest.json',
 };
 
 test('semis d’usine : bibliothèque remplie et board Principal pré-assigné', async ({ page }) => {
-  // Le semis complet (78 samples) dépasse le timeout Playwright par défaut (30 s) —
-  // l'aligner sur les timeouts des assertions ci-dessous.
+  // Le semis complet (25 sons, banque de référence CC0) peut dépasser le timeout Playwright
+  // par défaut (30 s) — l'aligner sur les timeouts des assertions ci-dessous.
   test.setTimeout(180_000);
   await page.goto('/');
 
   // La grille est disponible immédiatement (semis non bloquant)…
   await page.locator('.grid .pad').first().waitFor();
 
-  // …et le pad du premier slot board finit nommé d'après son sample (« Buzzer 1 »).
-  await expect(page.locator('.grid .pad .name').first()).toHaveText('Buzzer 1', {
+  // …et le pad du premier slot board finit nommé d'après son sample (« Buzzer »).
+  await expect(page.locator('.grid .pad .name').first()).toHaveText('Buzzer', {
     timeout: 120_000,
   });
 

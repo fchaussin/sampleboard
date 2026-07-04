@@ -18,27 +18,26 @@ test.use({
 });
 
 test('captures fastlane : board, lecture, bibliothèque, éditeur, édition', async ({ page }) => {
-  // Semis d'usine complet (78 samples ~48 s) — même marge que factory-seed.spec.ts.
+  // Semis d'usine complet (25 sons, banque de référence CC0) — même marge que factory-seed.
   test.setTimeout(300_000);
   await page.goto('/');
-  await expect(page.locator('.grid .pad .name').first()).toHaveText('Buzzer 1', {
+  await expect(page.locator('.grid .pad .name').first()).toHaveText('Buzzer', {
     timeout: 120_000,
   });
 
   // 1 — board Principal semé (mode Jeu, visualiseur idle).
   await page.screenshot({ path: shot(1) });
 
-  // 2 — lecture : pad Loop (ambiance métro) actif, visualiseur vivant.
-  // « Métro — » (tiret cadratin) : évite « Portes métro » (One-Shot, hasText insensible à la casse).
-  const loopPad = page.locator('.grid .pad', { hasText: 'Métro —' }).first();
+  // 2 — lecture : pad Loop (drone « Suspense ») actif, visualiseur vivant.
+  const loopPad = page.locator('.grid .pad', { hasText: 'Suspense' }).first();
   await loopPad.click();
   await page.waitForTimeout(600); // laisser le visualiseur prendre de l'amplitude
   await page.screenshot({ path: shot(2) });
   await loopPad.click(); // re-tap = stop (Loop)
 
-  // 3 — bibliothèque : 78 samples, recherche + chips de tags.
+  // 3 — bibliothèque : la banque de référence complète, recherche + chips de tags.
   await page.locator('.bottombar .open-library').click();
-  await expect(page.locator('.library .list li')).toHaveCount(78, { timeout: 120_000 });
+  await expect(page.locator('.library .list li')).toHaveCount(25, { timeout: 120_000 });
   await page.screenshot({ path: shot(3) });
 
   // 4 — éditeur audio « Découper » : waveform réelle d'un sample d'usine.
