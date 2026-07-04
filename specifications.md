@@ -531,7 +531,9 @@ Le ré-encodage se fait **côté frontend** (règle « pas de logique métier en
   paramètres variables. Implémentation : `app/navigation.ts` (résolution pure) +
   `app/router.ts` (`createHashRouter`, profondeur marquée dans `history.state` — le ✕ et le
   geste retour dépilent la même entrée ; `createLoopbackRouter` par défaut hors navigateur),
-  table vue → composant et rendu dynamique dans `App.svelte`. : étiquettes **n-à-n** (`tags` +
+  table vue → composant et rendu dynamique dans `App.svelte`. Un paramètre de filtre
+  **périmé** (tag disparu) retombe sur « Tous », URL corrigée par `replace` — jamais de
+  filtre fantôme qui vide la bibliothèque. : étiquettes **n-à-n** (`tags` +
   `sample_tags`, migration 4), personnalisables (CRUD) ; liste par défaut semée au premier
   lancement (SFX, Répliques, Jingle, Musique, Ambiance, Voix, Réaction, Meme, Alerte —
   libellés i18n injectés à la création). **« Non classé » = filtre virtuel** (samples sans

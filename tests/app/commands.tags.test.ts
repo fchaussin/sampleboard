@@ -143,6 +143,44 @@ describe('filtre (matchesFilter + commandes)', () => {
   });
 });
 
+describe('filtre périmé (#23 : le filtre voyage dans l’URL)', () => {
+  it('hydrateTags fait retomber un filtre visant un tag inconnu sur « Tous »', () => {
+    const store = fakeStore([sample('s1')], []);
+    store.libraryFilter = 'id-perime'; // hérité de l’URL d’arrivée, appliqué avant hydratation
+    const { commands } = setup(store);
+    commands.hydrateTags([{ id: 't1', label: 'A' }], new Map());
+    expect(store.libraryFilter).toBeNull();
+  });
+
+  it('hydrateTags conserve un filtre valide (tag connu, « untagged »)', () => {
+    const store = fakeStore([sample('s1')], []);
+    store.libraryFilter = 't1';
+    const { commands } = setup(store);
+    commands.hydrateTags([{ id: 't1', label: 'A' }], new Map());
+    expect(store.libraryFilter).toBe('t1');
+    store.libraryFilter = 'untagged';
+    commands.hydrateTags([{ id: 't1', label: 'A' }], new Map());
+    expect(store.libraryFilter).toBe('untagged');
+  });
+
+  it('applyRoute corrige un paramètre périmé quand les tags sont connus (retour/avance)', () => {
+    const store = fakeStore([sample('s1')], [{ id: 't1', label: 'A' }]);
+    const { commands } = setup(store);
+    commands.applyRoute({ view: 'library', filter: 'id-perime' });
+    expect(store.libraryFilter).toBeNull(); // ré-appliqué via l’URL corrigée (replace)
+    expect(store.view).toBe('library');
+    commands.applyRoute({ view: 'library', filter: 't1' });
+    expect(store.libraryFilter).toBe('t1'); // un tag connu passe tel quel
+  });
+
+  it('applyRoute laisse passer le filtre avant hydratation (hydrateTags tranchera)', () => {
+    const store = fakeStore([sample('s1')], []); // tags pas encore hydratés
+    const { commands } = setup(store);
+    commands.applyRoute({ view: 'library', filter: 'peut-etre-valide' });
+    expect(store.libraryFilter).toBe('peut-etre-valide');
+  });
+});
+
 describe('assignation à la volée (M8)', () => {
   it('startAssigning arme le sample et ferme les surcouches', () => {
     const { store, commands } = setup();

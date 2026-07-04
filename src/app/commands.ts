@@ -291,6 +291,12 @@ export function createCommands({
     if (store.view === 'library') router.replace({ view: 'library', filter });
   }
 
+  /** Filtre valide : null, « untagged » ou un tag existant — un id périmé retombe sur null. */
+  function sanitizeFilter(filter: LibraryFilter): LibraryFilter {
+    if (filter === null || filter === 'untagged') return filter;
+    return store.tags.some((t) => t.id === filter) ? filter : null;
+  }
+
   /** Ajoute un sample au pool (idempotent) — partagé commande directe / option d'import. */
   function addSampleToPool(sampleId: string): void {
     if (!store.samples.some((s) => s.id === sampleId)) return;
@@ -461,6 +467,17 @@ export function createCommands({
       router.pop(DEFAULT_ROUTE); // le bouton ✕ et le geste retour dépilent la même entrée
     },
     applyRoute(route: Route): void {
+      // Paramètre périmé (tag supprimé, ids re-générés en dev mémoire — entrée d'historique
+      // ou URL rechargée) : dès que les tags sont connus, l'URL est CORRIGÉE puis ré-appliquée
+      // — sinon la bibliothèque filtrerait sur un tag fantôme, sans aucune chip active.
+      // Avant hydratation (tags vides au boot), le filtre passe tel quel : hydrateTags réévalue.
+      if (route.view === 'library' && store.tags.length > 0) {
+        const filter = sanitizeFilter(route.filter);
+        if (filter !== route.filter) {
+          router.replace({ view: 'library', filter });
+          return;
+        }
+      }
       store.view = route.view;
       if (route.view === 'library') store.libraryFilter = route.filter;
     },
@@ -876,6 +893,10 @@ export function createCommands({
     hydrateTags(tags: Tag[], assignments: Map<string, Set<string>>): void {
       store.tags = sortedTags(tags);
       store.sampleTags = assignments;
+      // Filtre hérité de l'URL d'arrivée (#23) appliqué AVANT l'hydratation : maintenant que
+      // les tags sont connus, un id périmé retombe sur « Tous » (et l'URL est corrigée).
+      const filter = sanitizeFilter(store.libraryFilter);
+      if (filter !== store.libraryFilter) applyLibraryFilter(filter);
     },
     createTag(label: string): void {
       const trimmed = label.trim();

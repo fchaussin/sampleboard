@@ -62,6 +62,11 @@ La vue de `<main>` est une **projection de l'URL** — jamais une variable indé
   de filtre — pas d'entrée) ; `pop` à la fermeture — **le ✕ et le geste retour Android
   dépilent la même entrée** ; sur une URL d'arrivée directe (rechargement sur `#/library`),
   `pop` se replie en `replace` vers le board.
+- **Filtre périmé** : un `?tag=` dont l'id n'existe plus (tag supprimé hors session, ids
+  re-générés à chaque chargement en dev mémoire) **retombe sur « Tous »** — assaini par
+  `hydrateTags` (boot) et `applyRoute` (retour/avance), URL corrigée par `replace`. Sans ça,
+  recharger un onglet resté sur un vieux `?tag=` filtrait sur un tag fantôme : bibliothèque
+  « vide » alors que les 78 samples d'usine sont bien là.
 
 Tests : `tests/app/navigation.test.ts`, `tests/app/router.test.ts` (fenêtre factice — pas de
 jsdom), e2e « navigation pilotée par l'URL » (`e2e/library-tags.spec.ts`).

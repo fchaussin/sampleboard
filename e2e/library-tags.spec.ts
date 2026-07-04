@@ -69,6 +69,15 @@ test("navigation pilotée par l'URL (#23) : hash source de vérité, retour navi
   await expect(page.locator('.grid')).toBeVisible();
 });
 
+test("URL d'arrivée avec filtre périmé (#23) : corrigée vers « Tous », bibliothèque intacte", async ({ page }) => {
+  // Rechargement d'un onglet resté sur un ?tag= dont l'id n'existe plus (dev mémoire : ids
+  // re-générés à chaque chargement) : le filtre retombe sur « Tous » au lieu de vider la liste.
+  await page.route('**/factory-samples/**', (route) => route.fulfill({ status: 404, body: '' }));
+  await page.goto('/#/library?tag=id-perime');
+  await expect(page).toHaveURL(/#\/library$/);
+  await expect(page.locator('.library .filters .chip.active', { hasText: 'Tous' })).toBeVisible();
+});
+
 test('modale de choix de sample : la recherche filtre la liste (#12)', async ({ page }) => {
   await gotoApp(page);
   await importWav(page, 'kick.wav', 5); // 5 s : la pré-écoute couvre les assertions
