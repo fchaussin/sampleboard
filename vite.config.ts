@@ -39,6 +39,35 @@ function libarchiveAssets(): Plugin {
   };
 }
 
+/**
+ * Service worker de la PWA (M10) : émet `sw.js` au build avec la liste RÉELLE des fichiers
+ * du bundle injectée dans `self.__PRECACHE__` (offline dès la première visite) et une
+ * version de cache dérivée du package (invalide les caches à chaque release). À placer
+ * APRÈS les plugins qui émettent des assets (libarchive) pour les voir dans le bundle.
+ */
+function pwaServiceWorker(): Plugin {
+  return {
+    name: 'pwa-sw',
+    generateBundle(_options, bundle) {
+      // Bundle (js/css hachés, libarchive) + samples d'usine (public/, hors bundle — 1,5 Mo
+      // CC0) : le PREMIER lancement hors-ligne sème la banque complète, pas un semis tronqué.
+      const factory = JSON.parse(
+        readFileSync('public/factory-samples/manifest.json', 'utf8'),
+      ) as { samples: Array<{ file: string }> };
+      const files = [
+        ...Object.keys(bundle).filter((f) => f !== 'sw.js'),
+        'factory-samples/manifest.json',
+        ...factory.samples.map((s) => `factory-samples/${encodeURIComponent(s.file)}`),
+      ];
+      const version = (JSON.parse(readFileSync('package.json', 'utf8')) as { version: string }).version;
+      const source = readFileSync('src/pwa/sw.js', 'utf8')
+        .replaceAll('self.__PRECACHE__', JSON.stringify(files))
+        .replaceAll('self.__CACHE_VERSION__', JSON.stringify(version));
+      this.emitFile({ type: 'asset', fileName: 'sw.js', source });
+    },
+  };
+}
+
 // Config Vite orientée Tauri : port fixe, pas de nettoyage d'écran (logs Rust visibles),
 // et on ignore le dossier Rust pour ne pas relancer le front à chaque build cargo.
 // Le serveur écoute sur toutes les interfaces (accessible depuis l'hôte via le mapping Docker).
@@ -47,7 +76,7 @@ function libarchiveAssets(): Plugin {
 const envHost = process.env.TAURI_DEV_HOST;
 
 export default defineConfig({
-  plugins: [svelte(), libarchiveAssets(), factorySamples()],
+  plugins: [svelte(), libarchiveAssets(), factorySamples(), pwaServiceWorker()],
   // SPA statique : pas de SSR (build client uniquement, sortie dans dist/).
   clearScreen: false,
   server: {

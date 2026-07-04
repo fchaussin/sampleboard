@@ -1,10 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Bootstrap : composition root (asynchrone depuis M5 — hydratation) + montage Svelte (§5).
+import { isTauri } from '@tauri-apps/api/core';
 import { mount } from 'svelte';
 import App from './App.svelte';
 import { createApp } from './app/create-app';
 import { t } from './ui/i18n';
 import './app.css';
+
+// PWA (M10, §16) : service worker offline — distribution WEB uniquement (jamais dans la
+// WebView Tauri, qui a son propre empaquetage), et en build de prod seulement (le dev
+// Vite + un SW qui cache seraient un enfer de fraîcheur).
+if (import.meta.env.PROD && !isTauri() && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch((err) => {
+    console.warn('pwa: enregistrement du service worker refusé', err);
+  });
+}
 
 async function bootstrap(): Promise<void> {
   const target = document.getElementById('app');
