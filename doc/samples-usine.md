@@ -3,6 +3,17 @@
 
 Bibliothèque pré-remplie et board « Principal » pré-assigné au **premier lancement**.
 
+## Provenance (depuis le 2026-07-04, décision §16)
+
+**Banque de référence de 25 classiques de soundboard, exclusivement CC0 Freesound**
+(supersède le lot initial de 78 sons à provenance non tracée). Chaque entrée du manifest
+porte `source` (URL Freesound, titre, auteur, id) et `license: CC0-1.0`. Renouvellement /
+remplacement à l'unité : éditer `scripts/freesound-worklist.json` (label FR, tags, requête
+EN, bornes de durée, slot board) puis `FREESOUND_TOKEN=<clé> node scripts/freesound-rebank.mjs`
+(`--dry` pour prévisualiser les choix) — sélection automatique par réputation parmi les
+résultats CC0, previews HQ OGG à convertir en Opus 96k (ffmpeg dockerisé, voir le README du
+répertoire).
+
 ## Chaîne complète
 
 1. **Dépôt** — `public/factory-samples/` : fichiers **OGG/Opus uniquement** + `manifest.json`
