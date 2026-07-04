@@ -25,6 +25,8 @@ import {
 } from '../domain/invariants';
 import { newId } from '../domain/id';
 import { BankFactory } from './bank-factory';
+import { DEFAULT_ROUTE, type Route } from './navigation';
+import { createLoopbackRouter, type Router } from './router';
 import type { AppStore, BatchImportItem, LibraryFilter } from './store.svelte';
 
 /** Motif d'échec d'un import ou d'un retravail (voir §12, §13, M7, M8). */
@@ -61,6 +63,8 @@ export interface CommandDeps {
   now?: () => number;
   /** Fabrique des entités de la banque (défauts de création, §16). Partage `ids` par défaut. */
   factory?: BankFactory;
+  /** Routeur (#23) — sync URL ↔ vue. Défaut : boucle locale (tests, hors navigateur). */
+  router?: Router;
 }
 
 export interface Commands {
@@ -79,6 +83,8 @@ export interface Commands {
   closeDrawer(): void;
   openLibrary(): void;
   closeLibrary(): void;
+  /** Applique une route résolue depuis l'URL (routeur) — SEUL écrivain de `store.view` (#23). */
+  applyRoute(route: Route): void;
 
   // Réglages (§9)
   setLocale(locale: string): void;
@@ -205,7 +211,8 @@ export interface Commands {
  * (suite du flux ouvert par startAssigning, qui a déjà stoppé), applyBackgroundBehavior
  * (stop conditionné au masquage, géré dans son corps), hydratations et pipelines d'import
  * (importSample, importBatch : non interactifs — le semis d'usine ne stoppe jamais une
- * pré-écoute en cours).
+ * pré-écoute en cours), applyRoute (#23 : sync URL → store, pas une intention — les
+ * intentions de navigation closeLibrary/setLibraryFilter portent déjà la règle).
  */
 export const PREVIEW_STOPPING_COMMANDS = [
   'stopAllVoices',
@@ -244,6 +251,7 @@ export function createCommands({
   ids = () => newId(),
   now = () => Date.now(),
   factory = new BankFactory({ ids }),
+  router = createLoopbackRouter(),
 }: CommandDeps): Commands {
   function resolve(padId: string): { pad: Pad; page: Page } | null {
     const bank = store.bank;
@@ -275,6 +283,12 @@ export function createCommands({
   function stopPreview(): void {
     engine.stopPreview();
     store.previewingSampleId = null;
+  }
+
+  /** Pose le filtre et, si la bibliothèque est la vue courante, reflète le paramètre d'URL. */
+  function applyLibraryFilter(filter: LibraryFilter): void {
+    store.libraryFilter = filter;
+    if (store.view === 'library') router.replace({ view: 'library', filter });
   }
 
   /** Ajoute un sample au pool (idempotent) — partagé commande directe / option d'import. */
@@ -439,10 +453,16 @@ export function createCommands({
     },
     openLibrary(): void {
       store.drawer = null; // une seule surcouche à la fois
-      store.libraryOpen = true;
+      // L'URL pilote (#23) : navigation réelle (entrée d'historique), applyRoute matérialisera.
+      router.push({ view: 'library', filter: store.libraryFilter });
     },
     closeLibrary(): void {
-      store.libraryOpen = false;
+      if (store.view !== 'library') return;
+      router.pop(DEFAULT_ROUTE); // le bouton ✕ et le geste retour dépilent la même entrée
+    },
+    applyRoute(route: Route): void {
+      store.view = route.view;
+      if (route.view === 'library') store.libraryFilter = route.filter;
     },
 
     setLocale(locale: string): void {
@@ -885,7 +905,7 @@ export function createCommands({
         if (next.size > 0) map.set(sampleId, next);
       }
       store.sampleTags = map;
-      if (store.libraryFilter === tagId) store.libraryFilter = null;
+      if (store.libraryFilter === tagId) applyLibraryFilter(null); // le filtre visait ce tag
       tagRepository.remove(tagId).catch((err) => {
         console.error('tags: échec de suppression', err);
       });
@@ -906,13 +926,13 @@ export function createCommands({
       });
     },
     setLibraryFilter(filter: LibraryFilter): void {
-      store.libraryFilter = filter;
+      applyLibraryFilter(filter);
     },
     startAssigning(sampleId: string): void {
       if (!store.samples.some((s) => s.id === sampleId)) return;
       store.assigningSampleId = sampleId;
       // Le board doit être visible : toutes les surcouches se ferment.
-      store.libraryOpen = false;
+      if (store.view === 'library') router.pop(DEFAULT_ROUTE);
       store.drawer = null;
     },
     tapAssign(padId: string): void {
@@ -1003,6 +1023,11 @@ export function createCommands({
       return original(...args);
     };
   }
+
+  // Sync URL → affichage (#23) : la route de l'URL d'arrivée s'applique dès la construction,
+  // puis à chaque changement d'URL (retour/avance compris). Toute navigation de l'app passe
+  // par une ÉCRITURE d'URL (router.push/replace/pop) qui revient ici — jamais l'inverse.
+  router.start((route) => commands.applyRoute(route));
 
   return commands;
 }

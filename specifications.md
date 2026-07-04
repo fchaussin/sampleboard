@@ -410,8 +410,9 @@ Composants **« bêtes »** : ils rendent l'état et émettent des intentions. A
   `pad-input` (Jeu) ; en Édition, tap → tiroir pad.
 - Indicateur visuel **actif** piloté par `activePadIds`.
 
-L'état d'ouverture (`drawer`, `libraryOpen`) vit dans le store (état UI, §9) et n'est muté que
-par les commandes.
+L'état d'ouverture du tiroir (`drawer`) vit dans le store (état UI, §9) et n'est muté que par
+les commandes. La **vue de `<main>`** (`view` : board ↔ bibliothèque) est une **projection de
+l'URL** (#23, §16) : seul `applyRoute` l'écrit, la navigation passe par des écritures d'URL.
 
 ## 12. Cas limites & décisions de robustesse
 
@@ -514,9 +515,10 @@ Le ré-encodage se fait **côté frontend** (règle « pas de logique métier en
   le pool n'a plus à flotter au-dessus de la bibliothèque (sidebar en flux à côté,
   `--z-pool: 19` réservé au tiroir étroit), le tiroir contextuel revient à
   `--z-drawer: 20`.
-- **Navigation pilotée par l'URL** (2026-07-04, backlog #23 — décision figée, implémentation
-  à trier) : l'affichage de la vue courante devient une **projection de l'URL**, jamais une
-  variable d'état indépendante (supersède à terme le booléen `libraryOpen`). Quatre éléments :
+- **Navigation pilotée par l'URL** (2026-07-04, backlog #23 — livrée le jour même) :
+  l'affichage de la vue courante est une **projection de l'URL**, jamais une variable d'état
+  indépendante (`store.view` remplace le booléen `libraryOpen`, conservé en lecture dérivée).
+  Quatre éléments :
   table `identifiant de vue → composant` (structure de données, pas de branchements), fonction
   de résolution URL → composant avec **cas par défaut** (board), rendu dynamique du composant
   résolu, synchronisation bidirectionnelle (URL → affichage à l'init/`hashchange`/retour-avance ;
@@ -526,7 +528,10 @@ Le ré-encodage se fait **côté frontend** (règle « pas de logique métier en
   délibérée** : pile cohérente pour le geste retour Android/tactile (push pour une navigation
   réelle, `replace` pour les redirections par défaut et corrections d'URL) ; **cardinalité
   vue + paramètres** (ex. `#/library?tag=…`), la fonction de résolution porte le décodage des
-  paramètres variables. : étiquettes **n-à-n** (`tags` +
+  paramètres variables. Implémentation : `app/navigation.ts` (résolution pure) +
+  `app/router.ts` (`createHashRouter`, profondeur marquée dans `history.state` — le ✕ et le
+  geste retour dépilent la même entrée ; `createLoopbackRouter` par défaut hors navigateur),
+  table vue → composant et rendu dynamique dans `App.svelte`. : étiquettes **n-à-n** (`tags` +
   `sample_tags`, migration 4), personnalisables (CRUD) ; liste par défaut semée au premier
   lancement (SFX, Répliques, Jingle, Musique, Ambiance, Voix, Réaction, Meme, Alerte —
   libellés i18n injectés à la création). **« Non classé » = filtre virtuel** (samples sans

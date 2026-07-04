@@ -3,6 +3,7 @@
 // en import comme en retravail. Store, moteur, encodeur et dépôt factices.
 import { describe, it, expect, vi } from 'vitest';
 import { createCommands } from '../../src/app/commands';
+import type { ViewId } from '../../src/app/navigation';
 import type { AppStore } from '../../src/app/store.svelte';
 import type { Bank, Sample } from '../../src/domain/types';
 import { IMPORT_MAX_BYTES } from '../../src/domain/invariants';
@@ -34,7 +35,7 @@ function sample(id: string): Sample {
 }
 
 function fakeStore(samples: Sample[] = []): AppStore {
-  return {
+  const store = {
     bank: makeBank(),
     samples,
     settings: { backgroundBehavior: 'stopAll', maxVoices: 8, locale: 'fr' },
@@ -42,7 +43,10 @@ function fakeStore(samples: Sample[] = []): AppStore {
     editMode: true,
     selectedPadId: null,
     drawer: null,
-    libraryOpen: false,
+    view: 'board' as ViewId,
+    get libraryOpen() {
+      return store.view === 'library';
+    },
     audioEditor: null,
     tags: [],
     sampleTags: new Map<string, Set<string>>(),
@@ -51,7 +55,8 @@ function fakeStore(samples: Sample[] = []): AppStore {
     poolSampleIds: [],
     poolOpen: false,
     activePadIds: new Set<string>(),
-  } as unknown as AppStore;
+  };
+  return store as unknown as AppStore;
 }
 
 function setup(samples: Sample[] = []) {

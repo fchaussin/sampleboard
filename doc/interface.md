@@ -36,10 +36,35 @@ dans [`specifications.md` §11, §16](../specifications.md).
 
 ## État & commandes
 
-`drawer: 'pad' | 'page' | 'settings' | null` et `libraryOpen` vivent dans le store (état UI,
-§9), mutés uniquement par les commandes : `openPadDrawer` (Édition seulement — en Jeu un tap
-joue), `openPageDrawer`, `openSettingsDrawer`, `closeDrawer` (désélectionne le pad),
-`openLibrary` / `closeLibrary` (bascule de la vue de `main`, #22), `stopAllVoices`.
+`drawer: 'pad' | 'page' | 'settings' | null` vit dans le store (état UI, §9), muté uniquement
+par les commandes : `openPadDrawer` (Édition seulement — en Jeu un tap joue), `openPageDrawer`,
+`openSettingsDrawer`, `closeDrawer` (désélectionne le pad), `stopAllVoices`. La **vue de
+`<main>`** (`store.view`) suit la navigation par URL ci-dessous ; `openLibrary`/`closeLibrary`
+sont des écritures d'URL, `libraryOpen` reste lisible (dérivé de `view`).
+
+## Navigation pilotée par l'URL (#23)
+
+La vue de `<main>` est une **projection de l'URL** — jamais une variable indépendante :
+
+- **Encodage fragment** : `#/board` (défaut), `#/library`, `#/library?tag=<id|untagged>`
+  (le filtre de bibliothèque voyage en paramètre). URL vide/inconnue → normalisée vers
+  `#/board` par `location.replace` (aucune entrée d'historique parasite).
+- **Modules** : `app/navigation.ts` (pur — `parseHash`/`formatHash`, `DEFAULT_ROUTE`) ;
+  `app/router.ts` — `createHashRouter(window)` branché par `create-app.ts`,
+  `createLoopbackRouter()` par défaut hors navigateur (tests : application synchrone, pile
+  minimale). La table `vue → composant` et le rendu dynamique (`<View {app} />`) sont dans
+  `App.svelte`.
+- **Sens unique** : UI → commande → `router.push/replace/pop` (écriture d'URL) → `hashchange`
+  → `applyRoute` (**seul écrivain** de `store.view`, pose aussi le filtre). `applyRoute` est
+  exclu de `PREVIEW_STOPPING_COMMANDS` (sync, pas une intention).
+- **Historique délibéré** : `push` à l'ouverture de la bibliothèque (entrée marquée d'une
+  profondeur dans `history.state`) ; `replace` pour les ajustements (normalisation, changement
+  de filtre — pas d'entrée) ; `pop` à la fermeture — **le ✕ et le geste retour Android
+  dépilent la même entrée** ; sur une URL d'arrivée directe (rechargement sur `#/library`),
+  `pop` se replie en `replace` vers le board.
+
+Tests : `tests/app/navigation.test.ts`, `tests/app/router.test.ts` (fenêtre factice — pas de
+jsdom), e2e « navigation pilotée par l'URL » (`e2e/library-tags.spec.ts`).
 
 Enchaînements : `addPad` (case « + ») ouvre le tiroir du pad créé ; `deletePad` du pad
 sélectionné referme le tiroir ; `toggleEditMode` referme le tiroir (le contexte change).

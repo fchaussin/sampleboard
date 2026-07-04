@@ -3,6 +3,7 @@
 // = absence d'entrée (une seule représentation). Store & dépôts factices.
 import { describe, it, expect } from 'vitest';
 import { createCommands } from '../../src/app/commands';
+import type { ViewId } from '../../src/app/navigation';
 import type { AppStore } from '../../src/app/store.svelte';
 import type { Sample, Tag } from '../../src/domain/types';
 import { matchesFilter } from '../../src/app/tag-filter';
@@ -23,7 +24,7 @@ function sample(id: string): Sample {
 }
 
 function fakeStore(samples: Sample[] = [sample('s1')], tags: Tag[] = []): AppStore {
-  return {
+  const store = {
     bank: {
       id: 'b',
       name: 'b',
@@ -40,14 +41,18 @@ function fakeStore(samples: Sample[] = [sample('s1')], tags: Tag[] = []): AppSto
     assigningSampleId: null,
     poolSampleIds: [],
     poolOpen: false,
-    libraryOpen: true,
+    view: 'library' as ViewId,
+    get libraryOpen() {
+      return store.view === 'library';
+    },
     drawer: null,
     settings: { backgroundBehavior: 'stopAll', maxVoices: 8, locale: 'fr' },
     activePageId: null,
     editMode: false,
     selectedPadId: null,
     activePadIds: new Set<string>(),
-  } as unknown as AppStore;
+  };
+  return store as unknown as AppStore;
 }
 
 function setup(store = fakeStore()) {

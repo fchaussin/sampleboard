@@ -5,6 +5,7 @@ import { defaultSettings } from '../domain/invariants';
 import type { Bank, Page, Sample, Settings, Tag } from '../domain/types';
 import type { PcmData } from '../engine/encoder';
 import type { ImportError } from './commands';
+import type { ViewId } from './navigation';
 
 /** Contenu du tiroir contextuel (§11) : réglages du pad, de la page, généraux, ou tags (#20). */
 export type DrawerContent = 'pad' | 'page' | 'settings' | 'tags';
@@ -63,8 +64,8 @@ export class AppStore {
   selectedPadId = $state<string | null>(null);
   /** Tiroir contextuel ouvert (§11), ou null (fermé). */
   drawer = $state<DrawerContent | null>(null);
-  /** Panneau bibliothèque plein écran ouvert (§11). */
-  libraryOpen = $state(false);
+  /** Vue courante de <main> (#23) : PROJECTION de l'URL — écrite par `applyRoute` uniquement. */
+  view = $state<ViewId>('board');
   /** Éditeur audio ouvert (M7) — $state.raw : remplacé en bloc, le PCM n'est pas proxifié. */
   audioEditor = $state.raw<AudioEditorState | null>(null);
   /** Modale d'import ouverte (M8) — état « choix des fichiers » avant tout lot. */
@@ -89,6 +90,11 @@ export class AppStore {
   poolOpen = $state(false);
   /** Reflet minimal des voix actives émis par l'engine (jamais calculé ici). */
   activePadIds = $state<Set<string>>(new Set());
+
+  /** La bibliothèque est la vue courante (#22/#23) — lecture dérivée de `view`. */
+  get libraryOpen(): boolean {
+    return this.view === 'library';
+  }
 
   /** Raccourci pratique : langue courante de l'UI. */
   get locale(): string {

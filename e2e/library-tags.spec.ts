@@ -40,6 +40,35 @@ test('taguer, filtrer (tag et Non classé), assigner un pad depuis la bibliothè
   await expect(page.locator('.banner')).toHaveCount(0);
 });
 
+test("navigation pilotée par l'URL (#23) : hash source de vérité, retour navigateur cohérent", async ({ page }) => {
+  await gotoApp(page);
+
+  // URL d'arrivée normalisée vers la vue par défaut, sans entrée d'historique parasite.
+  await expect(page).toHaveURL(/#\/board$/);
+  await expect(page.locator('.grid')).toBeVisible();
+
+  // Ouvrir la bibliothèque = navigation réelle : l'URL change, la vue est sa projection.
+  await openLibrary(page);
+  await expect(page).toHaveURL(/#\/library$/);
+  await expect(page.locator('.library')).toBeVisible();
+
+  // Filtrer = ajustement de paramètre : le hash porte le filtre, sans nouvelle entrée.
+  await page.locator('.library .filters .chip', { hasText: 'Non classé' }).click();
+  await expect(page).toHaveURL(/#\/library\?tag=untagged$/);
+
+  // Retour navigateur (geste Android) : dépile l'entrée poussée → board, bibliothèque fermée.
+  await page.goBack();
+  await expect(page).toHaveURL(/#\/board$/);
+  await expect(page.locator('.grid')).toBeVisible();
+  await expect(page.locator('.library')).toHaveCount(0);
+
+  // Le ✕ dépile la même entrée que le geste retour : rouvrir puis fermer revient au board.
+  await openLibrary(page);
+  await page.locator('.close-library').click();
+  await expect(page).toHaveURL(/#\/board$/);
+  await expect(page.locator('.grid')).toBeVisible();
+});
+
 test('modale de choix de sample : la recherche filtre la liste (#12)', async ({ page }) => {
   await gotoApp(page);
   await importWav(page, 'kick.wav', 5); // 5 s : la pré-écoute couvre les assertions

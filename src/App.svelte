@@ -1,8 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- Agencement v1 (§11) : Topbar (infos page) / grille plein écran / Bottombar (actions),
-     tiroir contextuel à droite et bibliothèque en panneau plein écran. -->
+<!-- Agencement v1 (§11) : Topbar (infos page) / vue courante dans main / Bottombar (actions),
+     tiroir contextuel à droite. La vue de <main> est une PROJECTION de l'URL (#23). -->
 <script lang="ts">
+  import type { Component } from 'svelte';
   import type { App } from './app/create-app';
+  import type { ViewId } from './app/navigation';
   import Topbar from './ui/components/Topbar.svelte';
   import PadGrid from './ui/components/PadGrid.svelte';
   import Bottombar from './ui/components/Bottombar.svelte';
@@ -22,6 +24,14 @@
   wideQuery.addEventListener('change', (e) => (wide = e.matches));
 
   const poolVisible = $derived(app.store.editMode && (wide || app.store.poolOpen));
+
+  // Table vue → composant (#23) : structure de données, pas de branchements — la résolution
+  // URL → vue et la synchronisation vivent dans app/navigation.ts + app/router.ts.
+  const views: Record<ViewId, Component<{ app: App }>> = {
+    board: PadGrid,
+    library: LibraryPanel,
+  };
+  const View = $derived(views[app.store.view]);
 </script>
 
 <div class="shell">
@@ -33,13 +43,9 @@
       <PoolDrawer {app} overlay={!wide} closable={!wide} />
     {/if}
     <main>
-      <!-- La bibliothèque est une VUE du layout (#22) : elle remplace la grille dans main,
-           topbar et bottombar restent en place (Stop général, bascule de mode, pages). -->
-      {#if app.store.libraryOpen}
-        <LibraryPanel {app} />
-      {:else}
-        <PadGrid {app} />
-      {/if}
+      <!-- Rendu dynamique de la vue résolue (#22/#23) : bibliothèque ou grille remplacent
+           le contenu, topbar et bottombar restent en place (Stop, bascule de mode, pages). -->
+      <View {app} />
     </main>
   </div>
   <Bottombar {app} />

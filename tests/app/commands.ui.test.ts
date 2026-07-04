@@ -4,6 +4,8 @@
 import { describe, it, expect } from 'vitest';
 import { createCommands } from '../../src/app/commands';
 import { BankFactory } from '../../src/app/bank-factory';
+import type { Route, ViewId } from '../../src/app/navigation';
+import { createLoopbackRouter, type Router } from '../../src/app/router';
 import type { AppStore } from '../../src/app/store.svelte';
 import type { Bank } from '../../src/domain/types';
 import { fakeSampleRepository, fakeTagRepository } from './fake-sample-repository';
@@ -29,7 +31,10 @@ function fakeStore(bank: Bank | null = makeBank(), editMode = true): AppStore {
     editMode,
     selectedPadId: null as string | null,
     drawer: null as string | null,
-    libraryOpen: false,
+    view: 'board' as ViewId,
+    get libraryOpen() {
+      return this.view === 'library';
+    },
     tags: [],
     sampleTags: new Map<string, Set<string>>(),
     libraryFilter: null,
@@ -251,6 +256,43 @@ describe('panneau bibliothèque & Stop général', () => {
     commands.openLibrary();
     commands.closeLibrary();
     expect(store.libraryOpen).toBe(false);
+  });
+
+  it("la navigation passe par l'URL (#23) : openLibrary pousse la route avec le filtre courant", () => {
+    const store = fakeStore();
+    store.libraryFilter = 't9';
+    const pushed: Route[] = [];
+    const inner = createLoopbackRouter();
+    const router: Router = {
+      start: (fn) => inner.start(fn),
+      push: (route) => {
+        pushed.push(route);
+        inner.push(route);
+      },
+      replace: (route) => inner.replace(route),
+      pop: (fallback) => inner.pop(fallback),
+    };
+    const commands = createCommands({
+      store,
+      engine: asEngine(fakeEngine()),
+      encode: async () => new Uint8Array(),
+      sampleRepository: fakeSampleRepository(),
+      tagRepository: fakeTagRepository(),
+      router,
+    });
+    commands.openLibrary();
+    expect(pushed).toEqual([{ view: 'library', filter: 't9' }]);
+    expect(store.view).toBe('library'); // matérialisée par applyRoute, pas par openLibrary
+  });
+
+  it('applyRoute matérialise la vue ET le paramètre de filtre (URL → store)', () => {
+    const { store, commands } = setup();
+    commands.applyRoute({ view: 'library', filter: 'untagged' });
+    expect(store.view).toBe('library');
+    expect(store.libraryFilter).toBe('untagged');
+    commands.applyRoute({ view: 'board' });
+    expect(store.view).toBe('board');
+    expect(store.libraryFilter).toBe('untagged'); // mémoire de travail conservée hors bibliothèque
   });
 
   it('stopAllVoices délègue au moteur (panique)', () => {

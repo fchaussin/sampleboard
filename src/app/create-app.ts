@@ -13,6 +13,7 @@ import { createTagRepository } from '../storage/tag-repository';
 import { createMemoryRepositories, type Repositories } from '../storage/memory';
 import { createStore, type AppStore } from './store.svelte';
 import { createCommands, type Commands } from './commands';
+import { createHashRouter } from './router';
 import { createPersistence, type Persistence } from './persistence';
 import { createRunesWatch } from './watch.svelte';
 import { BankFactory } from './bank-factory';
@@ -80,6 +81,8 @@ export async function createApp(options: CreateAppOptions = {}): Promise<App> {
     tagRepository,
     extractArchive: createArchiveExtractor(),
     factory,
+    // L'URL est la source de vérité de la vue (#23) : fragment + historique délibéré.
+    router: createHashRouter(window),
   });
   const persistence = createPersistence({
     store,
