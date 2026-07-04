@@ -1,90 +1,69 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 # Sampleboard
 
-**Sampleboard** : application de **pads** déclencheurs de sons (façon soundboard),
-organisés en **pages**. Vous importez vos fichiers audio (→ **bibliothèque**) et
-configurez vos pads. C'est un *sampleboard*, **pas un sampler** : volontairement simple
-(pas de DSP, pas d'édition audio poussée). Cible de distribution : **F-Droid** (Android).
+**Pads, sounds, zero friction.** Sampleboard is a **soundboard** app: a grid of pads that
+trigger your sounds — reactions, jingles, ambiences — organized in pages. Import your audio
+files, assign them, play. Built for live moments (streams, tabletop games, radio,
+workshops), **fully offline**, and respectful of your data.
 
-## Stack
+It is a *sampleboard*, **not a sampler**: deliberately simple — no effects, no complex
+editing, just what you need to fire the right sound at the right time.
 
-Svelte 5 (runes) + Vite en **SPA** (pas de SSR, pas de routeur) · TypeScript **strict** ·
-**Tauri v2** (WebView système + noyau Rust minimal) · SQLite natif (`tauri-plugin-sql`) ·
-`tauri-plugin-fs` + `tauri-plugin-dialog` · **Web Audio API** · encodage **Opus via WASM
-libopus** embarqué. Aucune logique métier en Rust.
+| The board | Playing | The library |
+|---|---|---|
+| ![Board](fastlane/metadata/android/fr-FR/images/phoneScreenshots/1.png) | ![Playing](fastlane/metadata/android/fr-FR/images/phoneScreenshots/2.png) | ![Library](fastlane/metadata/android/fr-FR/images/phoneScreenshots/3.png) |
 
-Voir [`specifications.md`](./specifications.md) (spec technique + glossaire) et
-[`roadmap.md`](./roadmap.md) (jalons, versionnage).
+## Features
 
-## Architecture
+- **Pads in pages**: adjustable grid (up to 6×12), colors, multiple pages.
+- **MIDI-controller-style play modes**: **One-Shot** (plays through), **Gate** (while
+  pressed), **Loop** (until stopped); **Mono/Poly** polyphony per page.
+- **Library**: import your audio files (multi-select, **zip/rar** archives), automatic
+  OGG/Opus re-encoding, custom **tags**, search, preview.
+- **Trim**: cut the start/end of a sound at import time or later (waveform, undo/redo) —
+  the stored file is already trimmed.
+- **Starter bank**: 25 soundboard classics (buzzer, laugh track, tada, sad trombone,
+  applause…), all **CC0** from [Freesound](https://freesound.org) (full provenance in the
+  bundled manifest).
+- **Panic stop**, real-time visualizer, separate Edit and Play modes (no accidental
+  triggers on stage).
+- **Fully offline**: no network permission, no account, no telemetry — your sounds stay
+  yours.
 
-Dépendance à sens unique : `domain ← engine, storage ← app ← ui`. Le cœur
-(`domain`/`engine`/`storage`) ne dépend jamais de Svelte. Flux unidirectionnel
-`UI → intention → commande → (store + engine + persistance)`. La mutation d'état vit
-**uniquement** dans `src/app/commands.ts`. Composition root explicite
-(`src/app/create-app.ts`), pas de singletons.
+## Install
 
-```
-src/
-├─ domain/   # TS pur : types, enums, invariants
-├─ engine/   # Web Audio : moteur, voix, encodeur Opus
-├─ storage/  # accès données : db + repositories
-├─ app/      # orchestration : store (runes), commandes, persistance, composition root
-└─ ui/       # i18n, interactions pad, composants Svelte
-src-tauri/   # coquille Tauri v2 (Rust minimal + plugins)
-```
+### Android (F-Droid) — *in preparation*
 
-## Développement — via Docker (recommandé, hôte propre)
+The **F-Droid** submission is being finalized (reproducible build, WASM compiled from
+source, audited licenses). Until then, test APKs can be built from source (see
+[`doc/`](./doc/)).
 
-**Toute la toolchain (Node, Rust, dépendances Tauri) vit dans l'image Docker.**
-Rien ne s'installe sur l'hôte : `node_modules`, `src-tauri/target` et les caches cargo/npm
-sont des **volumes Docker**. Deux environnements séparés : **dev** et **prod**.
+### Self-hosting with Docker — *coming with the web/PWA release (`0.11.0`)*
 
-- **Rootless** : conçu pour Docker rootless ; le conteneur tourne en root‑conteneur = ton
-  user hôte **non privilégié**. Le non‑privilège vient du moteur rootless.
-- **Durci** : `cap_drop: ALL` + `no-new-privileges` partout ; source en lecture seule pour
-  la prod (build déterministe).
-- **Portable** : multi‑arch (amd64/arm64), UID/GID paramétrables, Docker rootful/rootless
-  ou Podman.
+The **web/PWA** flavor (data persisted in your browser, installable, offline) will be
+delivered as a static-server **Docker image** — also published on **Docker Hub**. The
+intended usage:
 
 ```bash
-cp .env.example .env    # optionnel (UID/GID) ; défaut 1000
-
-# Dev
-docker compose -f docker-compose.dev.yml build
-docker compose -f docker-compose.dev.yml run --rm dev npm run check   # types
-docker compose -f docker-compose.dev.yml up dev                       # Vite -> localhost:1420
-
-# Fenêtre Tauri desktop (serveur X requis ; sinon `xhost +local:`)
-docker compose -f docker-compose.dev.yml -f docker-compose.gui.yml run --rm dev npm run tauri dev
-
-# Prod (build release reproductible -> ./artifacts)
-mkdir -p artifacts && docker compose -f docker-compose.prod.yml run --rm prod
+# COMING SOON — the target command once the image is published:
+docker run -d --name sampleboard -p 8080:80 fchaussin/sampleboard
+# then open http://localhost:8080 and install the PWA from your browser
 ```
 
-Détails complets : **[`doc/environnement-docker.md`](./doc/environnement-docker.md)**.
+Track progress in the [roadmap](./roadmap.md) (milestone **M10 — Web distribution**).
 
-> Le développement se fait via `tauri dev` (frontend web dans la WebView native),
-> **jamais** dans un onglet de navigateur nu (c'est ce qui donne accès à SQLite natif).
+## Your data
 
-## Développement — sans Docker (hôte)
+Everything is local: sounds and settings live on your device (SQLite on Android, browser
+storage for the upcoming PWA). No network, no account, nothing leaves your machine.
 
-Si tu préfères outiller l'hôte : **Node.js** ≥ 20, **npm**, et **Rust** (stable) +
-dépendances système Tauri (WebKitGTK sur Linux) — voir
-<https://tauri.app/start/prerequisites/>. Puis `npm install` et `npm run tauri dev`.
+## License
 
-## i18n
+Code under **[GPL-3.0-or-later](./LICENSE)**. Starter-bank sounds: **CC0 1.0** (source and
+author of each sound in `public/factory-samples/manifest.json`).
 
-Application multilingue. **Zéro texte en dur** dans le code : uniquement des **clés**
-(`t('clé')`). Traductions en JSON par langue dans `src/ui/i18n/` ; **`fr.json` = défaut
-et fallback**. Le code et le schéma SQLite sont en anglais neutre.
+## Contributing & documentation
 
-## Icônes
-
-Les icônes de `src-tauri/icons/` sont des **placeholders**. Les régénérer à partir d'un
-vrai logo avec `npm run tauri icon <source.png>`.
-
-## Licence
-
-[GPL-3.0-or-later](./LICENSE). En-têtes `SPDX-License-Identifier: GPL-3.0-or-later`
-dans les fichiers source.
+Developer documentation (Docker-based toolchain, architecture, tests, specs, roadmap)
+lives in [`doc/`](./doc/), [`specifications.md`](./specifications.md) and
+[`roadmap.md`](./roadmap.md).
