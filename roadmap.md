@@ -282,8 +282,9 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 - [x] Métadonnées F-Droid (fastlane) : descriptions FR/EN ✓ ; changelogs par versionCode
   (6000/8000/9000, FR+EN) ✓ ; captures ✓ — 5 phoneScreenshots fr-FR REPRODUCTIBLES
   (`e2e/screenshots.fastlane.spec.ts`, `FASTLANE_SHOTS=1`, 393×852 @3x : board semé,
-  lecture Loop, bibliothèque, éditeur, Édition+tiroir), **validées par l'utilisateur le
-  2026-07-04**. (À regénérer avant soumission si l'UI évolue — pool #18, cartes #19.)
+  lecture Loop, bibliothèque, éditeur, Édition+tiroir), regénérées après #22/#23
+  (bibliothèque = vue, capture 5 : attente de fin d'animation du tiroir) et **re-validées
+  par l'utilisateur le 2026-07-04**. (À regénérer avant soumission si l'UI évolue encore.)
 - [ ] Soumission F-Droid (RFP / merge request metadata).
 - [ ] **Validation** : APK installable, app fonctionnelle hors Play Services.
 
