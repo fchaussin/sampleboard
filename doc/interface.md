@@ -21,7 +21,9 @@ dans [`specifications.md` §11, §16](../specifications.md).
 - **`Topbar`** — nom (ou numéro) de la page active + badges (chip **Édition** si actif,
   Polyphonie, `rows`×`cols`). Tout tap ouvre le **tiroir page**. En **vue bibliothèque**
   (#22), le contexte de page cède la place au titre « Bibliothèque » ; visualiseur et Stop
-  restent (globaux).
+  restent (globaux). Le **visualiseur** trace une onde par voix active (couleur du pad) et
+  l'onde de la **pré-écoute** en accent (#24 — `engine.previewWaveform()`, tap en dérivation
+  paresseuse) : tout ce qui sonne sur le main out s'affiche.
 - **`Bottombar`** — dans l'ordre : bascule **Jeu ↔ Édition** (crayon, accentué en Édition),
   **Stop général** (`stopAllVoices` → `engine.stopAll`), **onglets de pages** (défilables,
   « + » en Édition), **Import rapide** (input fichier direct, erreurs en snackbar),

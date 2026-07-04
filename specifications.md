@@ -581,6 +581,9 @@ Le ré-encodage se fait **côté frontend** (règle « pas de logique métier en
   dédié), l'arrière-plan stoppant la pré-écoute **quel que soit** le réglage (son de
   parcours, pas de jeu). Reflet : `store.previewingSampleId` ; mutation via `commands`
   uniquement ; le moteur ne notifie la fin que par **identité de source** (fin naturelle).
+  **La pré-écoute s'affiche dans le visualiseur topbar** (#24, 2026-07-04) : onde en couleur
+  accent aux côtés des ondes de voix (tap `previewWaveform` en dérivation paresseuse, même
+  règle que l'analyseur master) — tout ce qui sonne sur le main out se voit.
 - **Ordre de validation : web d'abord, Android ensuite.** Chaque jalon est d'abord développé et validé sur **web** (dev Vite http://localhost:1420 + fenêtre `tauri dev` bureau) ; la validation sur **appareil Android réel** est un **second temps**, jamais un prérequis pour avancer. La cible finale reste F-Droid/Android (§15) — c'est l'ordre de travail qui est fixé, pas la cible.
 
 ## 17. Évolutions futures (hors v1)

@@ -1,6 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- Visualiseur global de la topbar (M6/M8) : une onde PAR VOIX active, chacune à la couleur
-     de son pad ; au repos, des sinusoïdes basse fréquence défilent doucement (statut idle). -->
+<!-- Visualiseur global de la topbar (M6/M8, #24) : une onde PAR VOIX active, chacune à la
+     couleur de son pad, plus l'onde de la PRÉ-ÉCOUTE en accent (bibliothèque, pool, éditeur —
+     tout ce qui sonne sur le main out s'affiche) ; au repos, sinusoïdes lentes (statut idle). -->
 <script lang="ts">
   import type { App } from '../../app/create-app';
   import { findPad } from '../../domain/selectors';
@@ -52,15 +53,20 @@
       ctx.clearRect(0, 0, width, height);
       const bank = app.store.bank;
       const active = app.store.activePadIds;
-      if (active.size === 0) {
-        drawIdle(ctx, width, height, dpr);
-      } else {
-        for (const padId of active) {
-          if (!app.engine.waveform(padId, samples)) continue;
-          const pad = bank ? findPad(bank, padId) : undefined;
-          drawWave(ctx, samples, tintColor(pad?.color ?? null), width, height, 1.5 * dpr);
-        }
+      // Pré-écoute (#24) : elle sonne sur le main out, elle s'affiche donc aussi — en accent
+      // (son de parcours, pas une voix de pad). Sondée directement au moteur à chaque frame.
+      let playing = false;
+      if (app.engine.previewWaveform(samples)) {
+        drawWave(ctx, samples, themeColor('--accent'), width, height, 1.5 * dpr);
+        playing = true;
       }
+      for (const padId of active) {
+        if (!app.engine.waveform(padId, samples)) continue;
+        const pad = bank ? findPad(bank, padId) : undefined;
+        drawWave(ctx, samples, tintColor(pad?.color ?? null), width, height, 1.5 * dpr);
+        playing = true;
+      }
+      if (!playing) drawIdle(ctx, width, height, dpr);
       raf = requestAnimationFrame(render);
     });
     return () => cancelAnimationFrame(raf);

@@ -180,6 +180,7 @@ export class AudioEngine {
 
   #preview: AudioBufferSourceNode | null = null;
   #previewStartedAt = 0;
+  #previewAnalyser: AnalyserNode | null = null;
 
   /** Cœur commun : joue un buffer comme pré-écoute courante ; remplace la précédente. */
   #playPreview(ctx: AudioContext, buffer: AudioBuffer, onEnded?: () => void): void {
@@ -188,6 +189,9 @@ export class AudioEngine {
     const source = ctx.createBufferSource();
     source.buffer = buffer;
     source.connect(this.#ensureMaster(ctx));
+    // Tap du visualiseur (#24) : s'il existe déjà (quelqu'un lit la forme d'onde), chaque
+    // nouvelle lecture s'y branche aussi — sinon previewWaveform() le créera au premier appel.
+    if (this.#previewAnalyser) source.connect(this.#previewAnalyser);
     source.onended = () => {
       // Garde par IDENTITÉ : le onended (asynchrone) d'une lecture remplacée ou stoppée ne
       // notifie PAS — sinon il effacerait le reflet de la lecture suivante du même sample.
@@ -244,6 +248,26 @@ export class AudioEngine {
     const duration = source.buffer?.duration ?? 0;
     if (duration <= 0) return 0;
     return Math.min(1, (ctx.currentTime - this.#previewStartedAt) / duration);
+  }
+
+  /**
+   * Forme d'onde temps réel de la pré-écoute en cours (#24, visualiseur topbar — la
+   * pré-écoute sonne sur le main out, elle s'y affiche aussi). Remplit `out` et renvoie
+   * true ; false si rien n'est pré-écouté. Le tap est en DÉRIVATION (le son ne le traverse
+   * pas), créé paresseusement au premier appel — même règle que masterWaveform : zéro coût
+   * tant que personne ne consomme la forme d'onde.
+   */
+  previewWaveform(out: Float32Array<ArrayBuffer>): boolean {
+    const ctx = this.#ctx;
+    const source = this.#preview;
+    if (!ctx || !source) return false;
+    if (!this.#previewAnalyser) {
+      this.#previewAnalyser = ctx.createAnalyser();
+      this.#previewAnalyser.fftSize = WAVEFORM_SIZE;
+      source.connect(this.#previewAnalyser); // la lecture déjà en cours se branche au tap
+    }
+    this.#previewAnalyser.getFloatTimeDomainData(out);
+    return true;
   }
 
   /**

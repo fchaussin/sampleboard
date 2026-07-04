@@ -156,6 +156,32 @@ describe('bus master', () => {
   });
 });
 
+describe('previewWaveform (#24 — la pré-écoute s’affiche dans le visualiseur topbar)', () => {
+  it('tap en DÉRIVATION créé paresseusement au premier appel ; suit les remplacements', async () => {
+    const { engine, ctx } = makeEngine();
+    const out = new Float32Array(4);
+    expect(engine.previewWaveform(out)).toBe(false); // rien ne joue
+    await engine.resume();
+    await engine.load('s1', bytes());
+    engine.previewSample('s1');
+    expect(ctx.analysers).toHaveLength(0); // zéro coût tant que personne ne lit
+
+    expect(engine.previewWaveform(out)).toBe(true);
+    expect(out[0]).toBe(-1); // rampe reconnaissable du faux analyseur
+    const analyser = ctx.analysers[0]!;
+    expect(ctx.sources[0]!.connectedTo).toContain(analyser); // la lecture EN COURS est branchée
+    expect(analyser.connectedTo).toHaveLength(0); // dérivation : le son ne le traverse pas
+
+    engine.previewSample('s1'); // remplacement : la nouvelle lecture se branche au même tap
+    expect(engine.previewWaveform(out)).toBe(true);
+    expect(ctx.analysers).toHaveLength(1); // pas de second analyseur
+    expect(ctx.sources[1]!.connectedTo).toContain(analyser);
+
+    engine.stopPreview();
+    expect(engine.previewWaveform(out)).toBe(false); // plus rien à afficher
+  });
+});
+
 describe('previewProgress (#19 — progression des cartes de bibliothèque)', () => {
   it('null sans pré-écoute ; avancement borné à 1 pendant ; null après stop', async () => {
     const { engine, ctx } = makeEngine();
