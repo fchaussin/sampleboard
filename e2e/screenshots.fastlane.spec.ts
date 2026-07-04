@@ -55,5 +55,10 @@ test('captures fastlane : board, lecture, bibliothèque, éditeur, édition', as
   await page.locator('.bottombar .mode-toggle').click();
   await page.locator('.grid .pad').first().click();
   await expect(page.locator('.drawer')).toBeVisible();
+  // L'ouverture du tiroir est ANIMÉE (slide-in 160 ms, opacité 0,4 → 1) : attendre la fin
+  // des animations, sinon la capture fige un tiroir semi-transparent en plein vol.
+  await page
+    .locator('.drawer')
+    .evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
   await page.screenshot({ path: shot(5) });
 });
