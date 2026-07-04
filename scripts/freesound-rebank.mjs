@@ -6,8 +6,11 @@
 // public/factory-samples/README.md) et régénère manifest.json (source + license renseignés).
 //
 // Usage (dans le conteneur dev) :
-//   FREESOUND_TOKEN=xxx node scripts/freesound-rebank.mjs --dry   # montre les choix, ne télécharge rien
-//   FREESOUND_TOKEN=xxx node scripts/freesound-rebank.mjs         # écrit staging/ + manifest.json
+//   FREESOUND_TOKEN=xxx node scripts/freesound-rebank.mjs --dry           # montre les choix, ne télécharge rien
+//   FREESOUND_TOKEN=xxx node scripts/freesound-rebank.mjs                 # écrit staging/ + manifest.json
+//   FREESOUND_TOKEN=xxx node scripts/freesound-rebank.mjs --only=grillons # remplacement à l'unité
+//     (--only : le manifest de staging ne contient QUE ces slugs — à fusionner dans le
+//      manifest déposé, les autres entrées validées ne sont jamais re-tirées)
 //
 // Sortie : scripts/freesound-staging/fs-<slug>.src.ogg (Vorbis, à convertir) +
 // scripts/freesound-staging/manifest.json (prêt à déposer dans public/factory-samples/).
@@ -27,6 +30,9 @@ if (!token) {
   process.exit(1);
 }
 const dry = process.argv.includes('--dry');
+const only = process.argv
+  .filter((a) => a.startsWith('--only='))
+  .flatMap((a) => a.slice('--only='.length).split(','));
 
 /** Recherche CC0 bornée en durée, triée par pertinence — renvoie les candidats bruts. */
 async function search(query, [minS, maxS]) {
@@ -54,6 +60,7 @@ function pick(results) {
 }
 
 const worklist = JSON.parse(readFileSync(join(here, 'freesound-worklist.json'), 'utf8'));
+if (only.length) worklist.sounds = worklist.sounds.filter((s) => only.includes(s.slug));
 if (!dry) mkdirSync(STAGING, { recursive: true });
 
 const manifest = { samples: [], board: [] };
