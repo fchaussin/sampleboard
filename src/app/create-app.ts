@@ -10,6 +10,7 @@ import { createBankRepository } from '../storage/bank-repository';
 import { createSampleRepository } from '../storage/sample-repository';
 import { createSettingsRepository } from '../storage/settings-repository';
 import { createTagRepository } from '../storage/tag-repository';
+import { createIdbRepositories } from '../storage/idb';
 import { createMemoryRepositories, type Repositories } from '../storage/memory';
 import { createStore, type AppStore } from './store.svelte';
 import { createCommands, type Commands } from './commands';
@@ -42,11 +43,14 @@ export interface CreateAppOptions {
 }
 
 /**
- * Dépôts selon le runtime : SQLite natif + fichiers sous Tauri (la cible),
- * en mémoire dans le navigateur nu (:1420 en dev — session seulement, voir storage/memory.ts).
+ * Dépôts selon le runtime : SQLite natif + fichiers sous Tauri (la cible) ; IndexedDB dans
+ * le navigateur (distribution web/PWA, M10 §16) ; en mémoire en dernier recours (doublure
+ * de test, environnement sans IndexedDB).
  */
 async function createRepositories(): Promise<Repositories> {
-  if (!isTauri()) return createMemoryRepositories();
+  if (!isTauri()) {
+    return typeof indexedDB !== 'undefined' ? createIdbRepositories() : createMemoryRepositories();
+  }
   // Import dynamique : le module des plugins Tauri n'est chargé que dans la WebView native.
   const { createTauriSqlExecutor, createTauriAudioFileStore } = await import('../storage/tauri');
   const db = await createTauriSqlExecutor();

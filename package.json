@@ -27,6 +27,7 @@
     "@playwright/test": "^1.61.1",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@tauri-apps/cli": "^2.11.4",
+    "fake-indexeddb": "^6.2.5",
     "svelte": "^5.56.4",
     "svelte-check": "^4.7.1",
     "typescript": "^6.0.3",
