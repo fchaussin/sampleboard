@@ -13,6 +13,7 @@
   const locale = $derived(app.store.locale);
   const page = $derived(app.store.activePage);
   const editMode = $derived(app.store.editMode);
+  const libraryView = $derived(app.store.libraryOpen);
   const playing = $derived(app.store.activePadIds.size > 0);
   const pageNumber = $derived(
     page && app.store.bank ? pagesSorted(app.store.bank).findIndex((p) => p.id === page.id) + 1 : 0,
@@ -21,14 +22,20 @@
 
 {#if page}
   <header class="topbar">
-    <button
-      class="page-info"
-      type="button"
-      title={t('topbar.pageInfo', locale)}
-      onclick={() => app.commands.openPageDrawer()}
-    >
-      <span class="name">{page.name || pageNumber}</span>
-    </button>
+    <!-- Vue bibliothèque (#22) : la topbar affiche le titre de la VUE — le contexte de page
+         (nom, badges) n'a pas de sens ici. Visualiseur et Stop restent : ils sont globaux. -->
+    {#if libraryView}
+      <h1 class="view-title">{t('library.title', locale)}</h1>
+    {:else}
+      <button
+        class="page-info"
+        type="button"
+        title={t('topbar.pageInfo', locale)}
+        onclick={() => app.commands.openPageDrawer()}
+      >
+        <span class="name">{page.name || pageNumber}</span>
+      </button>
+    {/if}
 
     <TopbarWaveform {app} />
 
@@ -44,18 +51,20 @@
       </button>
     {/if}
 
-    <button
-      class="page-badges"
-      type="button"
-      title={t('topbar.pageInfo', locale)}
-      onclick={() => app.commands.openPageDrawer()}
-    >
-      {#if editMode}
-        <span class="badge edit">{t('nav.edit', locale)}</span>
-      {/if}
-      <span class="badge">{t(`voice.${page.voiceMode}`, locale)}</span>
-      <span class="badge">{page.rows}×{page.cols}</span>
-    </button>
+    {#if !libraryView}
+      <button
+        class="page-badges"
+        type="button"
+        title={t('topbar.pageInfo', locale)}
+        onclick={() => app.commands.openPageDrawer()}
+      >
+        {#if editMode}
+          <span class="badge edit">{t('nav.edit', locale)}</span>
+        {/if}
+        <span class="badge">{t(`voice.${page.voiceMode}`, locale)}</span>
+        <span class="badge">{page.rows}×{page.cols}</span>
+      </button>
+    {/if}
   </header>
 {/if}
 
@@ -95,6 +104,16 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  /* Titre de la vue bibliothèque (#22) — même gabarit que le nom de page. */
+  .view-title {
+    margin: 0;
+    padding: 0.25rem 0.4rem;
+    font-weight: 700;
+    font-size: 1.05rem;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .badge {

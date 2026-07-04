@@ -72,9 +72,8 @@ no-op (§12) ; un signalement visuel dédié est au backlog.
   renommer, supprimer — la suppression épure affectations et filtre). Neuf tags **semés au
   premier lancement uniquement** (libellés i18n injectés par le bootstrap). La gestion vit
   dans le **tiroir droit** (#20, `TagSettings` dans `Drawer`, vue `tags`,
-  `openTagsDrawer`) : ouvert depuis l'en-tête de la bibliothèque, le tiroir passe
-  **au-dessus du panneau** (`--z-drawer` > `--z-panel`) — la liste et les filtres se
-  mettent à jour derrière, en direct.
+  `openTagsDrawer`) : ouvert depuis la barre d'outils de la bibliothèque — la liste et
+  les filtres se mettent à jour derrière, en direct.
 - **« Non classé »** : filtre **virtuel** = samples sans affectation (décision §16 — une
   seule représentation de l'absence ; un ensemble vidé disparaît de `sampleTags`).
 - **Filtres** : chips (Tous / tags / Non classé) au-dessus de la liste ; logique pure
@@ -107,8 +106,8 @@ d'**Édition exclusivement** :
 - **Écran large (≥ 48 rem)** : **sidebar systématique** en flux (`App.svelte` : `.body` =
   sidebar + grille, détection `matchMedia`) — ni bouton d'ouverture, ni fermeture.
 - **Écran étroit** : **tiroir gauche** flottant (`overlay`), ouvert/fermé par le bouton
-  pool de la bottombar (`poolOpen`). Le tiroir passe aussi en flottant quand la
-  **bibliothèque est ouverte** (au-dessus d'elle, `--z-pool`) pour recevoir ses lignes.
+  pool de la bottombar (`poolOpen`). En large, la sidebar reste en place à côté de la
+  **vue bibliothèque** (#22) — le glisser ligne → pool se fait en flux.
 - **Alimentation** : bouton par ligne de bibliothèque, option d'import (#13), bouton
   **« + »** de l'en-tête (ouvre la bibliothèque), ou **glisser-déposer** d'une ligne de
   bibliothèque sur le pool. **« 🗑 Vider »** (`clearPool`) vide d'un coup (désarme si

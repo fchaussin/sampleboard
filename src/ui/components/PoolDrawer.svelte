@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <!-- Pool (M8, revu #18) : liste de travail de samples, disponible en Édition SEULEMENT.
-     Sidebar SYSTÉMATIQUE en flux sur écran large (ni bouton ni fermeture) ; tiroir
-     par-dessus (`overlay`) en étroit — refermable (`closable`) — ou quand la bibliothèque
-     est ouverte, pour y déposer des lignes glissées. Toucher un élément l'ARME
+     Sidebar SYSTÉMATIQUE en flux sur écran large (ni bouton ni fermeture), y compris à
+     côté de la vue bibliothèque (#22) — le glisser ligne → pool se fait en flux ; tiroir
+     par-dessus (`overlay`) refermable (`closable`) en étroit. Toucher un élément l'ARME
      (assignation à la volée) ; un élément se glisse aussi directement sur un pad. -->
 <script lang="ts">
   import type { App } from '../../app/create-app';
@@ -138,9 +138,8 @@
     overflow-y: auto;
   }
 
-  /* Tiroir (`overlay`, écran étroit ou bibliothèque ouverte) : GAUCHE fixé, sans voile —
-     les pads restent touchables pendant l'assignation, et il flotte AU-DESSUS de la
-     bibliothèque ouverte pour recevoir ses lignes glissées (--z-pool). */
+  /* Tiroir (`overlay`, écran étroit) : GAUCHE fixé, sans voile — les pads (ou la vue
+     bibliothèque #22) restent touchables pendant l'assignation et le dépôt. */
   .pool.overlay {
     position: fixed;
     top: 0;

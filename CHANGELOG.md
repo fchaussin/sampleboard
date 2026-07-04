@@ -15,9 +15,14 @@ versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
   waveform de progression derrière le libellé.
 
 ### Modifié
+- **La bibliothèque devient une VUE du layout** (#22, exit la popin plein écran) : elle
+  s'affiche dans la zone principale à la place de la grille — topbar (titre de vue,
+  visualiseur, Stop) et bottombar (Stop général, bascule Jeu/Édition, pages) restent
+  accessibles. En Édition sur écran large, la sidebar pool est à côté de la bibliothèque :
+  glisser une ligne vers le pool se fait naturellement.
 - **Gestion des tags dans le tiroir droit** (#20) : « Gérer les tags » ouvre désormais le
-  tiroir contextuel PAR-DESSUS la bibliothèque (exit la modale) — la liste et les filtres
-  se mettent à jour derrière, en direct.
+  tiroir contextuel (exit la modale) — la liste et les filtres se mettent à jour derrière,
+  en direct.
 - **Curseur main** (`grab`/`grabbing`) sur les éléments glissables (lignes de
   bibliothèque, éléments du pool).
 - **Pool revu** (#18) : outil d'**Édition exclusivement** — **sidebar systématique** sur

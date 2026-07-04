@@ -1,5 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- Bibliothèque en panneau PLEIN ÉCRAN (§11) : en-tête + contenu Library. -->
+<!-- Bibliothèque en VUE du layout (#22, supersède le panneau plein écran §11) : rendue
+     dans <main> à la place de la grille — topbar (titre de vue) et bottombar restent.
+     L'en-tête se réduit à une barre d'outils : Gérer les tags + fermeture (retour board). -->
 <script lang="ts">
   import type { App } from '../../app/create-app';
   import { t } from '../i18n';
@@ -10,10 +12,9 @@
   const locale = $derived(app.store.locale);
 </script>
 
-<div class="panel" role="dialog" aria-label={t('library.title', locale)}>
+<section class="panel" aria-label={t('library.title', locale)}>
   <header>
-    <h2>{t('library.title', locale)}</h2>
-    <!-- Gestion des tags dans le TIROIR droit (#20), qui passe au-dessus du panneau. -->
+    <!-- Gestion des tags dans le TIROIR droit (#20). -->
     <button class="manage-tags" type="button" onclick={() => app.commands.openTagsDrawer()}>
       {t('library.manageTags', locale)}
     </button>
@@ -29,32 +30,25 @@
   <div class="content">
     <Library {app} />
   </div>
-</div>
+</section>
 
 <style>
+  /* Vue en FLUX dans <main> (#22) : remplit l'espace de la grille, aucune surcouche. */
   .panel {
-    position: fixed;
-    inset: 0;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     background: var(--bg);
-    z-index: var(--z-panel);
   }
 
   header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1rem;
-    padding-top: calc(0.75rem + env(safe-area-inset-top));
-    border-bottom: 1px solid var(--border);
-    background: var(--panel);
-  }
-
-  h2 {
-    margin: 0;
-    font-size: 1rem;
-    flex: 1;
+    justify-content: flex-end;
+    gap: 0.4rem;
+    padding: 0.25rem 0.5rem;
   }
 
   .manage-tags {

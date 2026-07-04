@@ -22,30 +22,30 @@
   wideQuery.addEventListener('change', (e) => (wide = e.matches));
 
   const poolVisible = $derived(app.store.editMode && (wide || app.store.poolOpen));
-  // Tiroir flottant : écran étroit, ou bibliothèque ouverte (le pool flotte AU-DESSUS
-  // pour recevoir les lignes glissées) ; sinon sidebar en flux.
-  const poolOverlay = $derived(!wide || app.store.libraryOpen);
 </script>
 
 <div class="shell">
   <Topbar {app} />
   <div class="body">
-    <!-- Pool (#18) : Édition seulement — sidebar systématique en large, tiroir en étroit. -->
+    <!-- Pool (#18) : Édition seulement — sidebar systématique en large (y compris à côté
+         de la bibliothèque : le glisser ligne → pool se fait en flux), tiroir en étroit. -->
     {#if poolVisible}
-      <PoolDrawer {app} overlay={poolOverlay} closable={!wide} />
+      <PoolDrawer {app} overlay={!wide} closable={!wide} />
     {/if}
     <main>
-      <PadGrid {app} />
+      <!-- La bibliothèque est une VUE du layout (#22) : elle remplace la grille dans main,
+           topbar et bottombar restent en place (Stop général, bascule de mode, pages). -->
+      {#if app.store.libraryOpen}
+        <LibraryPanel {app} />
+      {:else}
+        <PadGrid {app} />
+      {/if}
     </main>
   </div>
   <Bottombar {app} />
 </div>
 
 <Drawer {app} />
-
-{#if app.store.libraryOpen}
-  <LibraryPanel {app} />
-{/if}
 
 {#if app.store.assigningSampleId}
   <AssignBanner {app} />

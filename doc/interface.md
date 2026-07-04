@@ -19,16 +19,19 @@ dans [`specifications.md` §11, §16](../specifications.md).
 ```
 
 - **`Topbar`** — nom (ou numéro) de la page active + badges (chip **Édition** si actif,
-  Polyphonie, `rows`×`cols`). Tout tap ouvre le **tiroir page**.
+  Polyphonie, `rows`×`cols`). Tout tap ouvre le **tiroir page**. En **vue bibliothèque**
+  (#22), le contexte de page cède la place au titre « Bibliothèque » ; visualiseur et Stop
+  restent (globaux).
 - **`Bottombar`** — dans l'ordre : bascule **Jeu ↔ Édition** (crayon, accentué en Édition),
   **Stop général** (`stopAllVoices` → `engine.stopAll`), **onglets de pages** (défilables,
   « + » en Édition), **Import rapide** (input fichier direct, erreurs en snackbar),
-  **Bibliothèque** (panneau plein écran), **Réglages** (tiroir).
+  **Bibliothèque** (bascule de VUE dans `main`, #22), **Réglages** (tiroir).
 - **`Drawer`** — panneau droit (min(340px, 88vw)) + voile ; fermeture ✕ ou tap sur le voile.
-  Trois contenus : `PadSettings`, `PageSettings`, `Settings` (styles de formulaire partagés
-  via `.drawer-form` dans `app.css`).
-- **`LibraryPanel`** — plein écran, contenu `Library` (import, renommage, pré-écoute,
-  suppression avec avertissement).
+  Quatre contenus : `PadSettings`, `PageSettings`, `Settings`, `TagSettings` (#20) —
+  styles de formulaire partagés via `.drawer-form` dans `app.css`.
+- **`LibraryPanel`** — VUE du layout (#22, supersède le plein écran M6) : rendue dans
+  `<main>` à la place de la grille, topbar/bottombar restent. Contenu `Library` (import,
+  renommage, pré-écoute, suppression avec avertissement).
 - Icônes : `Icon.svelte` (SVG inline, tracés style Material, zéro dépendance).
 
 ## État & commandes
@@ -36,7 +39,7 @@ dans [`specifications.md` §11, §16](../specifications.md).
 `drawer: 'pad' | 'page' | 'settings' | null` et `libraryOpen` vivent dans le store (état UI,
 §9), mutés uniquement par les commandes : `openPadDrawer` (Édition seulement — en Jeu un tap
 joue), `openPageDrawer`, `openSettingsDrawer`, `closeDrawer` (désélectionne le pad),
-`openLibrary` / `closeLibrary` (une surcouche à la fois), `stopAllVoices`.
+`openLibrary` / `closeLibrary` (bascule de la vue de `main`, #22), `stopAllVoices`.
 
 Enchaînements : `addPad` (case « + ») ouvre le tiroir du pad créé ; `deletePad` du pad
 sélectionné referme le tiroir ; `toggleEditMode` referme le tiroir (le contexte change).
@@ -48,7 +51,7 @@ sélectionné referme le tiroir ; `toggleEditMode` referme le tiroir (le context
 | `Editor.svelte` (panneau inline) | `PadSettings` + `PageSettings` dans le tiroir |
 | `PageTabs.svelte` | onglets intégrés à la `Bottombar` |
 | `Settings.svelte` en `<details>` | contenu du tiroir Réglages |
-| `Library` au-dessus de la grille | `LibraryPanel` plein écran |
+| `Library` au-dessus de la grille | `LibraryPanel` (vue de `main` depuis #22) |
 
 ## Couleurs (palette OKLCH)
 

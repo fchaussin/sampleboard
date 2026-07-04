@@ -26,10 +26,8 @@
   /* Empilement des surcouches (§11) — couche 0 : app (topbar/grille/bottombar).
      Les MODALES (<dialog>.showModal) vivent dans le top-layer natif, TOUJOURS au-dessus
      de ces z-index, et s'empilent entre elles dans l'ordre d'ouverture (import → crop…). */
-  --z-panel: 25;    /* couche 1 : panneau plein écran (bibliothèque) */
-  --z-pool: 26;     /* pool en tiroir : AU-DESSUS de la bibliothèque (dépôt par glissement #18) */
-  --z-drawer: 27;   /* tiroir contextuel (voile + panneau) : au-dessus de tout hors snackbar —
-                       la gestion des tags (#20) s'ouvre PAR-DESSUS la bibliothèque */
+  --z-pool: 19;     /* pool en tiroir (écran étroit) : au-dessus du contenu, sous le tiroir contextuel */
+  --z-drawer: 20;   /* couche 1 : tiroir contextuel (voile + panneau) */
   --z-snackbar: 30; /* notifications transitoires au-dessus de la couche 1 */
 
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
