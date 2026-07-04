@@ -1,130 +1,130 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
-# Interface (jalon M6)
+# Interface (milestone M6)
 
-Le **comment** de l'agencement UI v1. Le **quoi/pourquoi** (décisions du tri backlog #2) est
-dans [`specifications.md` §11, §16](../specifications.md).
+The **how** of the v1 UI layout. The **what/why** (decisions from backlog triage #2) is
+in [`specifications.md` §11, §16](../specifications.md).
 
-## Agencement
+## Layout
 
 ```
 ┌──────────────────────────────┐
-│ Topbar : page · badges       │ ← tap → tiroir page
+│ Topbar : page · badges       │ ← tap → page drawer
 ├──────────────────────────────┤
 │                              │
-│        PadGrid (centrée)     │ ← Jeu : tap joue · Édition : tap → tiroir pad
+│        PadGrid (centered)    │ ← Play: tap plays · Edit: tap → pad drawer
 │                              │
 ├──────────────────────────────┤
 │ ✎  ⏹  [1][2][+]   ⤓  ♪  ⚙  │ ← Bottombar
 └──────────────────────────────┘
 ```
 
-- **`Topbar`** — nom (ou numéro) de la page active + badges (chip **Édition** si actif,
-  Polyphonie, `rows`×`cols`). Tout tap ouvre le **tiroir page**. En **vue bibliothèque**
-  (#22), le contexte de page cède la place au titre « Bibliothèque » ; visualiseur et Stop
-  restent (globaux). Le **visualiseur** trace une onde par voix active (couleur du pad) et
-  l'onde de la **pré-écoute** en accent (#24 — `engine.previewWaveform()`, tap en dérivation
-  paresseuse) : tout ce qui sonne sur le main out s'affiche.
-- **`Bottombar`** — dans l'ordre : bascule **Jeu ↔ Édition** (crayon, accentué en Édition),
-  **Stop général** (`stopAllVoices` → `engine.stopAll`), **onglets de pages** (défilables,
-  « + » en Édition), **Import rapide** (input fichier direct, erreurs en snackbar),
-  **Bibliothèque** (bascule de VUE dans `main`, #22), **Réglages** (tiroir).
-- **`Drawer`** — panneau droit (min(340px, 88vw)) + voile ; fermeture ✕ ou tap sur le voile.
-  Quatre contenus : `PadSettings`, `PageSettings`, `Settings`, `TagSettings` (#20) —
-  styles de formulaire partagés via `.drawer-form` dans `app.css`.
-- **`LibraryPanel`** — VUE du layout (#22, supersède le plein écran M6) : rendue dans
-  `<main>` à la place de la grille, topbar/bottombar restent. Contenu `Library` (import,
-  renommage, pré-écoute, suppression avec avertissement).
-- Icônes : `Icon.svelte` (SVG inline, tracés style Material, zéro dépendance).
+- **`Topbar`** — name (or number) of the active page + badges (**Edit** chip when active,
+  Polyphony, `rows`×`cols`). Any tap opens the **page drawer**. In **library view**
+  (#22), the page context gives way to the « Bibliothèque » (library) title; visualizer and Stop
+  remain (global). The **visualizer** draws one waveform per active voice (pad color) and
+  the **preview** waveform in accent (#24 — `engine.previewWaveform()`, lazy side-tap):
+  everything sounding on the main out is displayed.
+- **`Bottombar`** — in order: **Play ↔ Edit** toggle (pencil, accented in Edit),
+  **Stop all** (`stopAllVoices` → `engine.stopAll`), **page tabs** (scrollable,
+  "+" in Edit), **Quick import** (direct file input, errors as snackbar),
+  **Library** (VIEW toggle in `main`, #22), **Settings** (drawer).
+- **`Drawer`** — right panel (min(340px, 88vw)) + scrim; closed via ✕ or a tap on the scrim.
+  Four contents: `PadSettings`, `PageSettings`, `Settings`, `TagSettings` (#20) —
+  form styles shared via `.drawer-form` in `app.css`.
+- **`LibraryPanel`** — a VIEW of the layout (#22, supersedes the M6 full-screen): rendered in
+  `<main>` in place of the grid, topbar/bottombar remain. `Library` content (import,
+  rename, preview, deletion with a warning).
+- Icons: `Icon.svelte` (inline SVG, Material-style paths, zero dependencies).
 
-## État & commandes
+## State & commands
 
-`drawer: 'pad' | 'page' | 'settings' | null` vit dans le store (état UI, §9), muté uniquement
-par les commandes : `openPadDrawer` (Édition seulement — en Jeu un tap joue), `openPageDrawer`,
-`openSettingsDrawer`, `closeDrawer` (désélectionne le pad), `stopAllVoices`. La **vue de
-`<main>`** (`store.view`) suit la navigation par URL ci-dessous ; `openLibrary`/`closeLibrary`
-sont des écritures d'URL, `libraryOpen` reste lisible (dérivé de `view`).
+`drawer: 'pad' | 'page' | 'settings' | null` lives in the store (UI state, §9), mutated only
+by the commands: `openPadDrawer` (Edit only — in Play a tap plays), `openPageDrawer`,
+`openSettingsDrawer`, `closeDrawer` (deselects the pad), `stopAllVoices`. The **view of
+`<main>`** (`store.view`) follows the URL-driven navigation below; `openLibrary`/`closeLibrary`
+are URL writes, `libraryOpen` remains readable (derived from `view`).
 
-## Navigation pilotée par l'URL (#23)
+## URL-driven navigation (#23)
 
-La vue de `<main>` est une **projection de l'URL** — jamais une variable indépendante :
+The view of `<main>` is a **projection of the URL** — never an independent variable:
 
-- **Encodage fragment** : `#/board` (défaut), `#/library`, `#/library?tag=<id|untagged>`
-  (le filtre de bibliothèque voyage en paramètre). URL vide/inconnue → normalisée vers
-  `#/board` par `location.replace` (aucune entrée d'historique parasite).
-- **Modules** : `app/navigation.ts` (pur — `parseHash`/`formatHash`, `DEFAULT_ROUTE`) ;
-  `app/router.ts` — `createHashRouter(window)` branché par `create-app.ts`,
-  `createLoopbackRouter()` par défaut hors navigateur (tests : application synchrone, pile
-  minimale). La table `vue → composant` et le rendu dynamique (`<View {app} />`) sont dans
+- **Fragment encoding**: `#/board` (default), `#/library`, `#/library?tag=<id|untagged>`
+  (the library filter travels as a parameter). Empty/unknown URL → normalized to
+  `#/board` via `location.replace` (no stray history entry).
+- **Modules**: `app/navigation.ts` (pure — `parseHash`/`formatHash`, `DEFAULT_ROUTE`);
+  `app/router.ts` — `createHashRouter(window)` wired by `create-app.ts`,
+  `createLoopbackRouter()` by default outside the browser (tests: synchronous application,
+  minimal stack). The `view → component` table and dynamic rendering (`<View {app} />`) are in
   `App.svelte`.
-- **Sens unique** : UI → commande → `router.push/replace/pop` (écriture d'URL) → `hashchange`
-  → `applyRoute` (**seul écrivain** de `store.view`, pose aussi le filtre). `applyRoute` est
-  exclu de `PREVIEW_STOPPING_COMMANDS` (sync, pas une intention).
-- **Historique délibéré** : `push` à l'ouverture de la bibliothèque (entrée marquée d'une
-  profondeur dans `history.state`) ; `replace` pour les ajustements (normalisation, changement
-  de filtre — pas d'entrée) ; `pop` à la fermeture — **le ✕ et le geste retour Android
-  dépilent la même entrée** ; sur une URL d'arrivée directe (rechargement sur `#/library`),
-  `pop` se replie en `replace` vers le board.
-- **Filtre périmé** : un `?tag=` dont l'id n'existe plus (tag supprimé hors session, ids
-  re-générés à chaque chargement en dev mémoire) **retombe sur « Tous »** — assaini par
-  `hydrateTags` (boot) et `applyRoute` (retour/avance), URL corrigée par `replace`. Sans ça,
-  recharger un onglet resté sur un vieux `?tag=` filtrait sur un tag fantôme : bibliothèque
-  « vide » alors que les 78 samples d'usine sont bien là.
+- **One-way flow**: UI → command → `router.push/replace/pop` (URL write) → `hashchange`
+  → `applyRoute` (**sole writer** of `store.view`, also sets the filter). `applyRoute` is
+  excluded from `PREVIEW_STOPPING_COMMANDS` (sync, not an intention).
+- **Deliberate history**: `push` when opening the library (entry tagged with a
+  depth in `history.state`); `replace` for adjustments (normalization, filter
+  change — no entry); `pop` on close — **the ✕ and the Android back gesture
+  pop the same entry**; on a direct-landing URL (reload on `#/library`),
+  `pop` falls back to a `replace` toward the board.
+- **Stale filter**: a `?tag=` whose id no longer exists (tag deleted outside the session, ids
+  regenerated on every load in memory dev) **falls back to « Tous » (all)** — sanitized by
+  `hydrateTags` (boot) and `applyRoute` (back/forward), URL corrected via `replace`. Without
+  this, reloading a tab left on an old `?tag=` filtered on a ghost tag: an "empty" library
+  even though the 78 factory samples are indeed there.
 
-Tests : `tests/app/navigation.test.ts`, `tests/app/router.test.ts` (fenêtre factice — pas de
-jsdom), e2e « navigation pilotée par l'URL » (`e2e/library-tags.spec.ts`).
+Tests: `tests/app/navigation.test.ts`, `tests/app/router.test.ts` (fake window — no
+jsdom), "URL-driven navigation" e2e (`e2e/library-tags.spec.ts`).
 
-Enchaînements : `addPad` (case « + ») ouvre le tiroir du pad créé ; `deletePad` du pad
-sélectionné referme le tiroir ; `toggleEditMode` referme le tiroir (le contexte change).
+Chained flows: `addPad` ("+" cell) opens the drawer of the created pad; `deletePad` of the
+selected pad closes the drawer; `toggleEditMode` closes the drawer (the context changes).
 
-## Remplacements (M3/M5 → M6)
+## Replacements (M3/M5 → M6)
 
-| Avant | Après |
+| Before | After |
 |---|---|
-| `Editor.svelte` (panneau inline) | `PadSettings` + `PageSettings` dans le tiroir |
-| `PageTabs.svelte` | onglets intégrés à la `Bottombar` |
-| `Settings.svelte` en `<details>` | contenu du tiroir Réglages |
-| `Library` au-dessus de la grille | `LibraryPanel` (vue de `main` depuis #22) |
+| `Editor.svelte` (inline panel) | `PadSettings` + `PageSettings` in the drawer |
+| `PageTabs.svelte` | tabs integrated into the `Bottombar` |
+| `Settings.svelte` as `<details>` | content of the Settings drawer |
+| `Library` above the grid | `LibraryPanel` (view of `main` since #22) |
 
-## Couleurs (palette OKLCH)
+## Colors (OKLCH palette)
 
-Pages et pads portent un **token** de palette (`color`, domaine `COLORS`, persisté —
-migrations 2). Les valeurs visuelles vivent dans `app.css` : thème entier en **oklch()** et
-8 teintes `--c-<token>` à L/C constants (contrastes homogènes, maintenance par rotation de
-teinte). `ui/tint.ts` produit le style `--tint`, consommé en CSS via `var(--tint, var(--accent))`
-(pads : bordure idle / fond actif ; onglets : bordure, fond quand actif). `ColorPicker`
-(pastilles + « neutre ») est partagé par les tiroirs pad et page. Token inconnu relu en base →
-neutralisé (`sanitizeColor`).
+Pages and pads carry a palette **token** (`color`, `COLORS` domain, persisted —
+migration 2). Visual values live in `app.css`: entire theme in **oklch()** and
+8 hues `--c-<token>` at constant L/C (uniform contrasts, maintenance by hue
+rotation). `ui/tint.ts` produces the `--tint` style, consumed in CSS via `var(--tint, var(--accent))`
+(pads: idle border / active background; tabs: border, background when active). `ColorPicker`
+(swatches + "neutral") is shared by the pad and page drawers. Unknown token read back from
+the database → neutralized (`sanitizeColor`).
 
-## Modale de choix de sample & empilement
+## Sample picker modal & stacking
 
-`SamplePicker` (`<dialog>` natif, `showModal`) : liste de la bibliothèque + pré-écoute +
-« aucun » + **import direct** (le sample importé est assigné dans la foulée). Empilement des
-surcouches : **couche 0** app → **couche 1** tiroir (`--z-drawer`) et panneau (`--z-panel`),
-snackbar au-dessus (`--z-snackbar`) → **modales** dans le *top-layer* natif du navigateur,
-toujours au-dessus et empilées dans l'ordre d'ouverture (la future modale de crop — backlog
-#4 — se posera naturellement sur celle d'import).
+`SamplePicker` (native `<dialog>`, `showModal`): library list + preview +
+"none" + **direct import** (the imported sample is assigned right away). Overlay
+stacking: **layer 0** app → **layer 1** drawer (`--z-drawer`) and panel (`--z-panel`),
+snackbar above (`--z-snackbar`) → **modals** in the browser's native *top-layer*,
+always on top and stacked in opening order (the future crop modal — backlog
+#4 — will naturally sit on top of the import one).
 
-## Board complet dès l'init (`BankFactory`)
+## Complete board from init (`BankFactory`)
 
-Décision §16 : **jamais de page vierge ni de pad sans couleur**. La classe `BankFactory`
-(app, injectée dans les commandes et la composition root — style OO §16) porte tous les
-défauts de création : banque du premier lancement (page « Principal » colorée, grille 4×4
-**remplie**), `addPage` (page complète), `setPageGrid` (cases exposées comblées), `addPad`.
-Couleurs : cycle de palette par position (pads) et par rang (pages). Style pad : **contour
-plein + fond teinté en transparence** ; nom au-dessus du mode — gras si sample affecté,
-italique semi-transparent si vide.
+Decision §16: **never a blank page nor a colorless pad**. The `BankFactory` class
+(app, injected into the commands and the composition root — OO style §16) carries all
+creation defaults: first-launch bank (colored « Principal » (main) page, **filled** 4×4
+grid), `addPage` (complete page), `setPageGrid` (exposed cells filled in), `addPad`.
+Colors: palette cycle by position (pads) and by rank (pages). Pad style: **solid outline
++ transparency-tinted background**; name above the mode — bold if a sample is assigned,
+semi-transparent italic if empty.
 
-## Noms par défaut
+## Default names
 
-Page initiale « Principal », pages ajoutées « Page N » : générateurs **injectés** depuis
-`main.ts` (`CreateAppOptions`) car la couche app ne peut pas importer `ui/i18n` (§4) — ce sont
-des données utilisateur localisées à la création, éditables ensuite. Un pad **sans nom**
-prend le label du sample qu'on lui assigne (`defaultPadName` : extension retirée, 12 caractères
-max) ; un nom choisi n'est jamais écrasé.
+Initial page « Principal », added pages « Page N »: generators **injected** from
+`main.ts` (`CreateAppOptions`) because the app layer cannot import `ui/i18n` (§4) — these are
+user data localized at creation time, editable afterwards. A pad **without a name**
+takes the label of the sample assigned to it (`defaultPadName`: extension stripped, 12
+characters max); a chosen name is never overwritten.
 
-## Parcours e2e couverts
+## Covered e2e journeys
 
-Import rapide (bottombar) → vérification au panneau Bibliothèque → Édition → « + » → tiroir
-(Loop + assignation) → Jeu → pad actif → **Stop général**. Sélecteurs stables : `.bottombar`,
+Quick import (bottombar) → verification in the Library panel → Edit → "+" → drawer
+(Loop + assignment) → Play → active pad → **Stop all**. Stable selectors: `.bottombar`,
 `.mode-toggle`, `.stop`, `.import input`, `.open-library`, `.close-library`, `.drawer`,
 `.topbar`, `.cell-add`.

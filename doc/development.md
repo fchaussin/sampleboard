@@ -24,7 +24,7 @@ mkdir -p artifacts && docker compose -f docker-compose.prod.yml run --rm prod
 ```
 
 Full details (Android toolchain, GUI overlay, volumes, hardening):
-[`environnement-docker.md`](./environnement-docker.md).
+[`docker-environment.md`](./docker-environment.md).
 
 > Development happens through `tauri dev` (web frontend inside the native WebView), never
 > in a bare browser tab — that is what provides native SQLite. The bare-browser dev server

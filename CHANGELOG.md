@@ -1,413 +1,413 @@
 # Changelog
 
-Toutes les évolutions notables de **Sampleboard** sont consignées ici.
+All notable changes to **Sampleboard** are recorded here.
 
-Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) ;
-versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
-`1.0.0` n'est pas planifiée : elle sanctionne la première version **stable et complète**.
+Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
+**SemVer** versioning (see [`roadmap.md`](./roadmap.md) §1).
+`1.0.0` is not planned: it marks the first **stable and complete** release.
 
 ## [Unreleased]
 
-### Ajouté
-- **Waveform sur les cartes de bibliothèque** (#19) : pics statiques du sample toujours
-  visibles sous le nom ; pendant la pré-écoute, la partie jouée se remplit (progression).
-- **Aperçu rapide depuis le pool** (#21) : bouton ▶/■ en tête de chaque élément +
-  waveform de progression derrière le libellé.
+### Added
+- **Waveform on library cards** (#19): static sample peaks always visible
+  below the name; during preview, the played part fills in (progress).
+- **Quick preview from the pool** (#21): ▶/■ button at the head of each item +
+  progress waveform behind the label.
 
-### Modifié
-- **La bibliothèque devient une VUE du layout** (#22, exit la popin plein écran) : elle
-  s'affiche dans la zone principale à la place de la grille — topbar (titre de vue,
-  visualiseur, Stop) et bottombar (Stop général, bascule Jeu/Édition, pages) restent
-  accessibles. En Édition sur écran large, la sidebar pool est à côté de la bibliothèque :
-  glisser une ligne vers le pool se fait naturellement.
-- **Gestion des tags dans le tiroir droit** (#20) : « Gérer les tags » ouvre désormais le
-  tiroir contextuel (exit la modale) — la liste et les filtres se mettent à jour derrière,
-  en direct.
-- **Curseur main** (`grab`/`grabbing`) sur les éléments glissables (lignes de
-  bibliothèque, éléments du pool).
-- **Pool revu** (#18) : outil d'**Édition exclusivement** — **sidebar systématique** sur
-  écran large (≥ 48 rem, ni bouton ni fermeture), **tiroir gauche** à bouton (bottombar)
-  en étroit, flottant au-dessus de la bibliothèque ouverte pour le dépôt.
-  **Glisser-déposer** : ligne de bibliothèque → pool, élément du pool → pad (assignation
-  immédiate) ; le tactile « armer puis toucher » reste le chemin mobile. En-tête :
-  **Ajouter** (ouvre la bibliothèque) + **Vider**.
+### Changed
+- **The library becomes a VIEW of the layout** (#22, exit the full-screen popin): it
+  is displayed in the main area in place of the grid — topbar (view title,
+  visualizer, Stop) and bottombar (global Stop, Play/Edit switch, pages) remain
+  accessible. In Edit mode on wide screens, the pool sidebar sits next to the library:
+  dragging a row to the pool happens naturally.
+- **Tag management in the right drawer** (#20): « Gérer les tags » (Manage tags) now opens
+  the contextual drawer (exit the modal) — the list and the filters update behind,
+  live.
+- **Hand cursor** (`grab`/`grabbing`) on draggable items (library rows,
+  pool items).
+- **Pool reworked** (#18): an **Edit-only** tool — **always-on sidebar** on
+  wide screens (≥ 48 rem, no button, no closing), button-driven **left drawer** (bottombar)
+  in narrow, floating above the open library for dropping.
+  **Drag and drop**: library row → pool, pool item → pad (immediate
+  assignment); the "arm then touch" touch path remains the mobile route. Header:
+  **Add** (opens the library) + **Clear**.
 
-## [0.9.0] - 2026-07-03 — M8 (Bibliothèque avancée)
+## [0.9.0] - 2026-07-03 — M8 (Advanced library)
 
-> Backlog #10-16. Validé sur web : 283 unitaires + 13 E2E, revue visuelle utilisateur.
+> Backlog #10-16. Validated on web: 283 unit + 13 E2E, user visual review.
 
-### Ajouté
-- **Import multiple & archives** (#13) : sélection multifichier + archives **zip/rar**
-  dépliées via **libarchive WASM** (`libarchive.js` MIT, lecteurs rar clean-room — décision
-  §16). UN fichier audio → éditeur (flux M7) ; sinon **lot direct** avec **modale de
-  progression** (barre, statut par fichier, interruption, agrégation des échecs, option
-  « ajouter au pool »). Assets worker+wasm servis à chemin stable (plugin Vite).
-- **Samples d'usine** (#14) : 78 OGG/Opus curatés (18,3 Mo) embarqués dans chaque dist
-  (`public/factory-samples/` + `manifest.json` : libellés, tags, provenance/licence).
-  **Semés au premier lancement uniquement** (même garde que banque/tags : supprimés, ils
-  ne repoussent jamais), **sans réencodage** (`seedFactorySample`), non bloquant. Sélection
-  **`board`** pré-assignée à la page « Principal » (16 pads, 2 ambiances en Loop).
-  **Validation à chaque build** (plugin `factory-samples-manifest`) : manifest ↔ fichiers
-  1:1, OGG uniquement, tags admis, board cohérent — build en échec sinon ; provenance ou
-  licence manquante = avertissement (à renseigner AVANT soumission F-Droid).
+### Added
+- **Multiple import & archives** (#13): multi-file selection + **zip/rar** archives
+  unpacked via **libarchive WASM** (`libarchive.js` MIT, clean-room rar readers — decision
+  §16). ONE audio file → editor (M7 flow); otherwise **direct batch** with **progress
+  modal** (bar, per-file status, interruption, failure aggregation, "add to pool"
+  option). Worker+wasm assets served at a stable path (Vite plugin).
+- **Factory samples** (#14): 78 curated OGG/Opus (18.3 MB) embedded in every dist
+  (`public/factory-samples/` + `manifest.json`: labels, tags, provenance/license).
+  **Seeded on first launch only** (same guard as bank/tags: once deleted, they
+  never grow back), **without re-encoding** (`seedFactorySample`), non-blocking. The
+  **`board`** selection pre-assigned to the « Principal » page (16 pads, 2 ambiences in Loop).
+  **Validation at every build** (`factory-samples-manifest` plugin): manifest ↔ files
+  1:1, OGG only, admitted tags, coherent board — build fails otherwise; missing provenance
+  or license = warning (to be filled in BEFORE F-Droid submission).
 
-- **Tags de samples** (migration 4 : `tags` + `sample_tags`, cascades) : n-à-n,
-  personnalisables (créer/renommer/supprimer dans la bibliothèque), **semés au premier
-  lancement** (SFX, Répliques, Jingle, Musique, Ambiance, Voix, Réaction, Meme, Alerte —
-  i18n injecté). **« Non classé » = filtre virtuel** (absence d'affectation, jamais stocké).
-- **Bibliothèque** : barre de **filtres en chips** (Tous / tags / Non classé), ligne
-  dépliable par sample — chips de tags à bascule + **assignation À LA VOLÉE** : « Assigner
-  à des pads » arme le sample, chaque pad touché le reçoit (toutes pages, multi-pads),
-  bannière + Terminer.
-- **Modale de choix de sample = combobox** : recherche texte + filtre par tags (locaux à la
-  modale) — `app/tag-filter.ts` pur partagé.
-- **Banque d'init multi-pages** : 3 pages aux layouts contrastés (4×4, 2×2, 8×6), toutes
-  complètes et colorées — le concept de page évident sans explication.
-- **Visualiseur global : statut idle** — sinusoïdes basse fréquence défilant doucement
-  quand rien ne joue.
-- **Mode Édition : coloration franche façon MIDI-map (Ableton)** — aplats violets saturés
-  uniformes sur tous les pads, le mode est immanquable.
-- **Pool** (tiroir GAUCHE, session) : liste de travail de samples — « Ajouter au pool »
-  depuis la bibliothèque, toucher un élément l'ARME (assignation à la volée), le tiroir
-  reste ouvert pendant qu'on touche les pads. Le glossaire « pool » réservé est débloqué.
-- **Gestion des tags relocalisée** : modale standard « Gérer les tags » ouverte depuis
-  l'en-tête du panneau Bibliothèque (le `<details>` disparaît).
-- Conventions figées (§16) : **CSS sans `px`** hors épaisseurs de trait (tout en rem) ;
-  **éléments UI standard uniquement** ; toggle Jeu/Édition segmenté (curseur glissant,
-  segment inactif grisé).
-- **Recherche dans la bibliothèque** (#15) : champ texte sur le label (casse/espaces
-  ignorés) **combiné (ET)** aux filtres par tag (`filterSamples` partagé avec le picker),
-  barre d'outils **sticky**, état « aucun résultat » avec bouton **Tout afficher**.
-  **Layout adaptatif** : grille de cartes ≥ 48 rem, actions sous le nom en étroit,
-  cibles ≥ 44 px en tactile.
-- **Pré-écoute stoppable + bus master** (#16) : ▶ bascule en ■ pendant la lecture, re-tap
-  ou **toute autre action** stoppe (liste `PREVIEW_STOPPING_COMMANDS` mécanique) ; UN
-  comportement unifié (bibliothèque, modale de sample, éditeur — composant partagé
-  `PreviewButton`). **Bus master** `gain → analyseur → destination` : passage unique de
-  tout le son (voix + pré-écoutes), `masterWaveform` pour le visualiseur global,
-  analyseur en dérivation paresseuse.
+- **Sample tags** (migration 4: `tags` + `sample_tags`, cascades): n-to-n,
+  customizable (create/rename/delete in the library), **seeded on first
+  launch** (SFX, Répliques, Jingle, Musique, Ambiance, Voix, Réaction, Meme, Alerte —
+  injected i18n). **« Non classé » (Unclassified) = virtual filter** (absence of assignment, never stored).
+- **Library**: **chip filter bar** (« Tous » (All) / tags / « Non classé »), expandable
+  row per sample — toggleable tag chips + **ON-THE-FLY assignment**: "Assign
+  to pads" arms the sample, each touched pad receives it (all pages, multi-pad),
+  banner + Done.
+- **Sample picker modal = combobox**: text search + tag filter (local to the
+  modal) — shared pure `app/tag-filter.ts`.
+- **Multi-page init bank**: 3 pages with contrasting layouts (4×4, 2×2, 8×6), all
+  complete and colored — the page concept obvious without explanation.
+- **Global visualizer: idle status** — low-frequency sine waves scrolling gently
+  when nothing is playing.
+- **Edit mode: bold MIDI-map-style coloring (Ableton)** — uniform saturated purple
+  fills on all pads, the mode is unmissable.
+- **Pool** (LEFT drawer, session): working list of samples — "Add to pool"
+  from the library, touching an item ARMS it (on-the-fly assignment), the drawer
+  stays open while touching pads. The reserved "pool" glossary term is unlocked.
+- **Tag management relocated**: standard « Gérer les tags » (Manage tags) modal opened from
+  the Library panel header (the `<details>` disappears).
+- Locked conventions (§16): **CSS without `px`** except stroke widths (everything in rem);
+  **standard UI elements only**; segmented Play/Edit toggle (sliding cursor,
+  inactive segment grayed out).
+- **Library search** (#15): text field on the label (case/spaces
+  ignored) **combined (AND)** with tag filters (`filterSamples` shared with the picker),
+  **sticky** toolbar, "no results" state with a **Show all** button.
+  **Adaptive layout**: card grid ≥ 48 rem, actions under the name in narrow,
+  targets ≥ 44 px on touch.
+- **Stoppable preview + master bus** (#16): ▶ toggles to ■ during playback, re-tap
+  or **any other action** stops (mechanical `PREVIEW_STOPPING_COMMANDS` list); ONE
+  unified behavior (library, sample modal, editor — shared
+  `PreviewButton` component). **Master bus** `gain → analyser → destination`: single passage of
+  all sound (voices + previews), `masterWaveform` for the global visualizer,
+  analyser as a lazy branch.
 
-### Corrigé
-- **Encodeur : les 80 derniers ms des samples ne sont plus perdus** — le codec Opus retient
-  un délai interne (pre-skip, 3 840 éch.) que le worker ne vide pas : la fin de l'audio
-  restait dans le tampon. Remède : coussin de silence poussé en queue d'entrée, la granule
-  restant bornée à la durée réelle (`trimOggTail`). Durée restituée fidèle à ±0,03 ms ;
-  la **traîne de silence** des samples encodés est éliminée au passage.
+### Fixed
+- **Encoder: the last 80 ms of samples are no longer lost** — the Opus codec holds an
+  internal delay (pre-skip, 3,840 samples) that the worker does not flush: the end of the audio
+  stayed in the buffer. Remedy: a cushion of silence pushed at the input tail, the granule
+  remaining bounded to the real duration (`trimOggTail`). Restored duration faithful to ±0.03 ms;
+  the **trailing silence** of encoded samples is eliminated along the way.
 
-## [0.8.0] - 2026-07-02 — M7 (Éditeur audio « Découper »)
+## [0.8.0] - 2026-07-02 — M7 (Audio editor « Découper », trim)
 
-> Backlog #4/#5 rapatriés de v2 (décision §16). Validé sur web : 197 unitaires + 6 E2E
-> (drag réel, undo, durée persistée réduite, retravail), revue visuelle utilisateur.
+> Backlog #4/#5 pulled back from v2 (decision §16). Validated on web: 197 unit + 6 E2E
+> (real drag, undo, reduced persisted duration, rework), user visual review.
 
-### Ajouté
-- **Éditeur audio plein écran** (`AudioEditor`, `<dialog>` top-layer) : waveform du PCM
-  décodé (pics en cache), **poignées start/end** au pointeur, sélection pleine vs estompée,
-  temps `start – end · durée`, **pré-écoute de la sélection** (`previewPcm`), **undo/redo**
-  (`SelectionHistory`), Annuler/Valider (échec → éditeur ouvert + message).
-- **Tout import ouvre l'éditeur** (Import rapide, Bibliothèque, modale de choix de sample —
-  le pad à assigner est mémorisé et assigné à la validation). Le fichier stocké est **déjà
-  rogné** (trim du PCM avant encodage Opus).
-- **Retravail** : « ✂ Découper » sur chaque sample de la bibliothèque — re-décode l'OGG,
-  ré-encode la sélection, **id et fichier conservés** (`SampleRepository.replace`),
-  restauration meilleur-effort du buffer en cas d'échec.
-- `engine/pcm.ts` pur : `trimPcm`, `clampSelection` (durée min 10 ms), `computePeaks`
-  (partagé avec `engine.peaks`, DRY), `pcmDuration` — `durationMs` persistée désormais
-  dérivée du PCM réel.
+### Added
+- **Full-screen audio editor** (`AudioEditor`, `<dialog>` top-layer): waveform of the decoded
+  PCM (cached peaks), **start/end handles** by pointer, solid vs dimmed selection,
+  times `start – end · duration`, **selection preview** (`previewPcm`), **undo/redo**
+  (`SelectionHistory`), Cancel/Confirm (failure → editor stays open + message).
+- **Every import opens the editor** (quick Import, Library, sample picker modal —
+  the pad to assign is remembered and assigned on confirmation). The stored file is **already
+  trimmed** (PCM trim before Opus encoding).
+- **Rework**: « ✂ Découper » (trim) on every library sample — re-decodes the OGG,
+  re-encodes the selection, **id and file preserved** (`SampleRepository.replace`),
+  best-effort buffer restore on failure.
+- Pure `engine/pcm.ts`: `trimPcm`, `clampSelection` (min duration 10 ms), `computePeaks`
+  (shared with `engine.peaks`, DRY), `pcmDuration` — the persisted `durationMs` now
+  derived from the real PCM.
 
 ## [0.7.0] - 2026-07-02 — M6 (Interface)
 
-> Refonte complète de l'agencement (tri backlog #2, décisions §11/§16) + trois passes de
-> retours UX le jour même. **Validé** : 172 unitaires + 4 E2E, captures 390×844, revue
-> visuelle utilisateur OK.
+> Complete layout overhaul (backlog triage #2, decisions §11/§16) + three UX feedback
+> passes the same day. **Validated**: 172 unit + 4 E2E, 390×844 screenshots, user
+> visual review OK.
 
-### Ajouté
-- **Topbar** : infos de la page active (nom/numéro, chip Édition, Polyphonie, grille) —
-  tap → tiroir page.
-- **Bottombar** : bascule Jeu ↔ Édition, **Stop général** (`stopAllVoices`, panique),
-  onglets de pages défilables (+ ajout en Édition), **Import rapide** (erreurs en snackbar),
-  Bibliothèque, Réglages. Icônes SVG inline (`Icon.svelte`, zéro dépendance).
-- **Drawer** (tiroir droit + voile) : `PadSettings` / `PageSettings` / `Settings` ;
-  fermeture ✕ ou tap hors ; tiroir **pad en Édition seulement** (en Jeu, un tap joue) ;
-  créer un pad (« + ») ouvre son tiroir.
-- **LibraryPanel** : bibliothèque en panneau plein écran.
-- État UI dans le store (`drawer`, `libraryOpen`), muté par les commandes uniquement
+### Added
+- **Topbar**: active page info (name/number, Edit chip, Polyphony, grid) —
+  tap → page drawer.
+- **Bottombar**: Play ↔ Edit switch, **global Stop** (`stopAllVoices`, panic),
+  scrollable page tabs (+ add in Edit mode), **quick Import** (errors via snackbar),
+  Library, Settings. Inline SVG icons (`Icon.svelte`, zero dependencies).
+- **Drawer** (right drawer + veil): `PadSettings` / `PageSettings` / `Settings`;
+  close via ✕ or tap outside; **pad drawer in Edit mode only** (in Play, a tap plays);
+  creating a pad ("+") opens its drawer.
+- **LibraryPanel**: library as a full-screen panel.
+- UI state in the store (`drawer`, `libraryOpen`), mutated by commands only
   (`openPadDrawer`, `openPageDrawer`, `openSettingsDrawer`, `closeDrawer`, `openLibrary`,
   `closeLibrary`, `stopAllVoices`).
-- Thème retravaillé : palette (`--panel`, `--border`, `--danger`), cibles tactiles ≥ 44 px,
-  grille centrée `100dvh`, safe-areas Android, formulaires de tiroir mutualisés.
+- Reworked theme: palette (`--panel`, `--border`, `--danger`), touch targets ≥ 44 px,
+  centered `100dvh` grid, Android safe-areas, shared drawer forms.
 
-### Retiré / remplacé
-- `Editor.svelte` → éclaté en `PadSettings` + `PageSettings` (tiroir) ; `PageTabs.svelte` →
-  onglets intégrés à la bottombar ; `Settings` quitte son `<details>` pour le tiroir.
+### Removed / replaced
+- `Editor.svelte` → split into `PadSettings` + `PageSettings` (drawer); `PageTabs.svelte` →
+  tabs integrated into the bottombar; `Settings` leaves its `<details>` for the drawer.
 
-### Ajouté (2ᵉ passe)
-- **Couleurs de pages et de pads** : prop `color` (token de palette), **palette OKLCH**
-  (8 teintes homogènes en L/C, thème entier converti en oklch()), `ColorPicker` partagé,
-  onglets/pads teintés (`--tint`), **migration 2** ; token inconnu neutralisé au chargement.
-- **Noms par défaut** : page initiale « Principal », pages ajoutées « Page N » (générateurs
-  i18n injectés via `CreateAppOptions` — la couche app n'importe jamais ui/i18n, §4) ; pad
-  sans nom nommé d'après le sample assigné (`defaultPadName`, extension retirée, 12 car. max).
-- **Modale de choix de sample** (`SamplePicker`, `<dialog>` natif) : liste + pré-écoute +
-  « aucun » + **import direct assigné dans la foulée**. Empilement des surcouches formalisé
-  (couche 0 app / couche 1 tiroir & panneau `--z-*` / modales en top-layer natif).
-- **Bibliothèque** : méta par sample (taille Mo, durée s, localisées).
-- **Grille réductible à 1×1** : bornes `rows [1,12]` / `cols [1,6]` — **migration 3**
-  (reconstruction de `pages` selon la procédure SQLite, FK/cascades vérifiées).
-- DRY : helpers partagés `ui/import-file.ts` (chemin d'import unique) et `ui/tint.ts`.
+### Added (2nd pass)
+- **Page and pad colors**: `color` prop (palette token), **OKLCH palette**
+  (8 hues homogeneous in L/C, entire theme converted to oklch()), shared `ColorPicker`,
+  tinted tabs/pads (`--tint`), **migration 2**; unknown token neutralized at load.
+- **Default names**: initial page « Principal » (Main), added pages « Page N » (i18n
+  generators injected via `CreateAppOptions` — the app layer never imports ui/i18n, §4); an
+  unnamed pad named after the assigned sample (`defaultPadName`, extension removed, 12 chars max).
+- **Sample picker modal** (`SamplePicker`, native `<dialog>`): list + preview +
+  "none" + **direct import assigned right away**. Overlay stacking formalized
+  (layer 0 app / layer 1 drawer & panel `--z-*` / modals in native top-layer).
+- **Library**: per-sample metadata (size MB, duration s, localized).
+- **Grid shrinkable to 1×1**: bounds `rows [1,12]` / `cols [1,6]` — **migration 3**
+  (`pages` rebuilt per the SQLite procedure, FK/cascades verified).
+- DRY: shared helpers `ui/import-file.ts` (single import path) and `ui/tint.ts`.
 
-### Ajouté (3ᵉ passe — board complet dès l'init)
-- **`BankFactory`** (classe injectée — décision §16 « style OO ») : responsabilité unique des
-  défauts de création. **Un board naît COMPLET** : page « Principal » colorée + grille
-  **remplie de pads tous colorés** (cycle de palette par position) au premier lancement ;
-  pages ajoutées complètes ; agrandissement de grille comblé automatiquement.
-- **Style pad** : contour **plein** + fond teinté en **transparence** (color-mix oklab) ;
-  nom au-dessus du mode, plus opaque — **gras** si sample affecté, *italique
-  semi-transparent* si vide.
-- Rigueur de types (décision §16) : `color` **requis** (`Color | null` — une seule
-  représentation de l'absence), statut de pad typé `PadStatus`.
-- **Grille full adaptatif** : les pads occupent tout l'espace disponible (pistes `1fr`).
-- **Stop par pad** : bouton en évidence en bas à droite pendant la lecture One-Shot/Loop.
-- Substituts de nom distincts : « (vide) » (sans sample) ≠ « (sans nom) » (sample sans nom).
-- **Créer une page** (bouton « + » bottombar) ouvre le tiroir de la nouvelle page.
-- **État de lecture = intensité** : pad en lecture à fond plein + halo (montée instantanée,
-  retombée douce) ; pads affectés nettement plus opaques (45 %) que les vides.
-- **Visualiseurs temps réel** : `AnalyserNode` par voix (moteur : `waveform()`, `progress()`,
-  `peaks()` — pics statiques du sample, calcul paresseux en cache) — dans le pad en lecture,
-  **progression en forme d'onde du fichier** (partie jouée pleine, reste estompé) ;
-  **visualiseur global multi-voix dans la topbar** (une onde temps réel par voix, à la
-  couleur de son pad) avec **Stop général contextuel** à côté des ondes (`ui/waveform.ts`
-  partagé : résolution des couleurs CSS en cache + utilitaires de tracé).
+### Added (3rd pass — complete board from init)
+- **`BankFactory`** (injected class — §16 "OO style" decision): single responsibility for
+  creation defaults. **A board is born COMPLETE**: colored « Principal » page + grid
+  **filled with all-colored pads** (palette cycle by position) on first launch;
+  added pages complete; grid enlargement backfilled automatically.
+- **Pad style**: **solid** outline + tinted background in **transparency** (color-mix oklab);
+  name above the mode, more opaque — **bold** if a sample is assigned, *semi-transparent
+  italic* if empty.
+- Type rigor (§16 decision): `color` **required** (`Color | null` — a single
+  representation of absence), pad status typed `PadStatus`.
+- **Fully adaptive grid**: pads occupy all available space (`1fr` tracks).
+- **Per-pad stop**: prominent button at the bottom right during One-Shot/Loop playback.
+- Distinct name placeholders: « (vide) » (empty, no sample) ≠ « (sans nom) » (unnamed sample).
+- **Creating a page** ("+" bottombar button) opens the new page's drawer.
+- **Playback state = intensity**: playing pad with solid background + halo (instant rise,
+  soft decay); assigned pads clearly more opaque (45 %) than empty ones.
+- **Real-time visualizers**: `AnalyserNode` per voice (engine: `waveform()`, `progress()`,
+  `peaks()` — static sample peaks, lazy cached computation) — in the playing pad,
+  **file-waveform-shaped progress** (played part solid, rest dimmed);
+  **global multi-voice visualizer in the topbar** (one real-time wave per voice, in its
+  pad's color) with **contextual global Stop** next to the waves (shared `ui/waveform.ts`:
+  cached CSS color resolution + drawing utilities).
 
-### Nommage (arbitré)
-- Renommage temporaire en « audio-sample-board » le jour même, puis **arbitrage : le projet
-  reste `Sampleboard`** (un mot, distinctif, descriptif ; identifiant Android
-  **`org.sampleboard.app`**, figé avant toute publication F-Droid). Le répertoire local
-  reste `ambianceur` (historique Claude).
-
-### Tests
-- `commands.ui.test.ts` (drawer/bibliothèque/stop + couleurs + noms + fabrique),
-  `bank-factory.test.ts`, `colors-naming.test.ts`, migrations 2-3 ; e2e adaptés (modale de
-  sample, board complet). Total : **172 unitaires + 4 E2E**.
-
-## [0.6.0] - 2026-07-02 — M5 (Persistance & réglages)
-
-> **Validé** : 128 tests unitaires (storage exercé contre un **vrai SQLite** via `node:sqlite`)
-> + 4 E2E + build + `cargo check` en Docker rootless ; persistance vérifiée dans la fenêtre
-> `tauri dev` (banque écrite par la transaction réelle du plugin, relue après relance).
-> Son dans la fenêtre WSLg encore muet (environnement dev, suivi backlog #3) ; Android =
-> 2ᵉ temps (spec §16).
-
-### Ajouté
-- **Persistance SQLite** (`storage/`) : `db.ts` (contrat `SqlExecutor`, **migrations** par
-  `user_version`, schéma §8 complet en migration 1), `bank-repository` (**transaction** +
-  **upsert-puis-élagage** : une sauvegarde interrompue ne détruit rien ; référence de sample
-  pendante écrite `NULL`), `sample-repository` (fichiers `{appDataDir}/audio/{sampleId}.ogg` +
-  métadonnées, jamais de BLOB), `settings-repository` (ligne unique `id = 0`).
-- **Adaptateurs Tauri** (`storage/tauri.ts`, seul module touchant les plugins, chargé
-  dynamiquement) + **fallback mémoire** (`storage/memory.ts`) pour le navigateur nu :1420
-  (session seulement ; mode navigateur pur persistant = v2 §17).
-- **Verrou d'écriture partagé** (`createWriteLock`) : le pool sqlx de tauri-plugin-sql ouvre une
-  connexion par requête concurrente — les écritures des trois dépôts sont sérialisées pour que
-  `BEGIN`/`COMMIT` restent sur une connexion et qu'aucune écriture ne s'entrelace.
-- **Autosave** (`persistence.ts`, décision A §9) : abonné réactif unique, **débounce 400 ms**
-  (banque, dernier état gagne), réglages **immédiats**, file d'écritures (jamais concurrentes,
-  échec absorbé), `flush()` au passage en arrière-plan. Réactivité **injectée** (contrat `Watch`) ;
-  implémentation runes dans `watch.svelte.ts` (`$effect.root`, premier passage ignoré).
-- **Hydratation au démarrage** (`create-app.ts` asynchrone) : réglages → bibliothèque (+ buffers
-  moteur ; fichier illisible = no-op §12) → banque ; **banque par défaut** au premier lancement
-  (`default-bank.ts` : 1 page 4×4 Poly vide). `main.ts` attend le boot (`app.bootError` sinon).
-- **`Settings.svelte`** : Arrière-plan, Nombre maximum de voix (≥ 1), langue — persistés
-  immédiatement. Commandes `setBackgroundBehavior`, `setMaxVoices`, `hydrateSettings`.
-- **Arrière-plan (§12)** : `visibilitychange → hidden` applique le réglage — `stopAll` (tout +
-  suspension du contexte), `stopSustained` (voix **entretenues** Gate/Loop, les One-Shot
-  finissent), `keepPlaying`. Moteur : marquage `sustained` des voix, `stopAll()`,
-  `stopSustained()`, `suspend()` ; reprise au prochain geste (jamais automatique).
-- **Import** : écriture disque **immédiate** (hors debounce) — fichier + ligne `samples` ; nouvel
-  échec typé `writeFailed` (buffer déchargé, rien en bibliothèque) ; `createdAt` réel.
-- Capabilities : `sql:allow-execute`, `fs:allow-appdata-write-recursive`.
-
-### Modifié
-- **`deleteSample`** aligné sur la décision §8 : après confirmation, le `sampleId` des pads
-  impactés passe à **`null`** (état *vide*), miroir du `ON DELETE SET NULL` — l'état
-  *introuvable* reste pour les données altérées hors app. Renommage/suppression écrivent
-  immédiatement via le dépôt.
-- **Seed dev retirée** (`dev-seed.ts`) : l'app démarre sur la banque par défaut, vide (§2).
-
-### Outillage
-- **Volume `app-home`** (`docker-compose.dev.yml`) : les données de l'app Tauri
-  (`~/.config`/`~/.local/share` du conteneur) survivent aux `run --rm` — sans lui, fermer la
-  fenêtre `tauri dev` emportait base et bibliothèque.
-- **`PULSE_SERVER`** activé dans l'overlay GUI (socket PulseAudio WSLg) — prérequis au son
-  dans la fenêtre dev (résolution complète suivie en backlog #3).
+### Naming (arbitrated)
+- Temporary rename to "audio-sample-board" the same day, then **arbitration: the project
+  stays `Sampleboard`** (one word, distinctive, descriptive; Android identifier
+  **`org.sampleboard.app`**, locked before any F-Droid publication). The local directory
+  remains `ambianceur` (Claude history).
 
 ### Tests
-- **Storage contre un vrai SQLite en mémoire** (`node:sqlite` du Node 22 du conteneur, exécuteur
-  de test dédié, types ambiants minimaux — pas de dépendance ajoutée) : migrations
-  (ordre, idempotence, CHECK, clés étrangères), aller-retour banque, élagage/cascades,
-  `ON DELETE SET NULL`, bibliothèque (fichier + ligne, échecs), réglages, verrou d'écriture.
-- Persistance aux **timers simulés** (debounce, rafale → un save, flush, stop, résilience) ;
-  commandes réglages/arrière-plan ; moteur M5. Total : **128 unitaires + 4 E2E**.
+- `commands.ui.test.ts` (drawer/library/stop + colors + names + factory),
+  `bank-factory.test.ts`, `colors-naming.test.ts`, migrations 2-3; e2e adapted (sample
+  modal, complete board). Total: **172 unit + 4 E2E**.
 
-### Corrigé
-- **Import silencieux** (rien ajouté, aucun message) : `crypto.randomUUID` n'existe qu'en
-  **contexte sécurisé** (https / localhost) ; ailleurs (http via IP LAN) la génération d'ID jetait
-  et l'import était abandonné sans trace. `newId` retombe désormais sur `crypto.getRandomValues`
-  (UUID v4) — fonctionne partout. C'était le seul chemin d'échec silencieux ; toute erreur d'import
-  restante est maintenant **affichée**.
-- **Encodeur** : filet anti-blocage (timeout 60 s) — un worker qui ne rend jamais la main échoue
-  proprement au lieu de figer l'import.
+## [0.6.0] - 2026-07-02 — M5 (Persistence & settings)
+
+> **Validated**: 128 unit tests (storage exercised against a **real SQLite** via `node:sqlite`)
+> + 4 E2E + build + `cargo check` in rootless Docker; persistence verified in the
+> `tauri dev` window (bank written by the plugin's real transaction, re-read after relaunch).
+> Sound in the WSLg window still muted (dev environment, tracked in backlog #3); Android =
+> 2nd stage (spec §16).
+
+### Added
+- **SQLite persistence** (`storage/`): `db.ts` (`SqlExecutor` contract, **migrations** via
+  `user_version`, full §8 schema in migration 1), `bank-repository` (**transaction** +
+  **upsert-then-prune**: an interrupted save destroys nothing; dangling sample
+  reference written `NULL`), `sample-repository` (files `{appDataDir}/audio/{sampleId}.ogg` +
+  metadata, never BLOBs), `settings-repository` (single row `id = 0`).
+- **Tauri adapters** (`storage/tauri.ts`, the only module touching the plugins, dynamically
+  loaded) + **memory fallback** (`storage/memory.ts`) for the bare browser :1420
+  (session only; persistent pure browser mode = v2 §17).
+- **Shared write lock** (`createWriteLock`): tauri-plugin-sql's sqlx pool opens one
+  connection per concurrent query — the three repositories' writes are serialized so that
+  `BEGIN`/`COMMIT` stay on one connection and no writes interleave.
+- **Autosave** (`persistence.ts`, decision A §9): single reactive subscriber, **400 ms
+  debounce** (bank, last state wins), settings **immediate**, write queue (never concurrent,
+  failure absorbed), `flush()` when going to background. Reactivity **injected** (`Watch` contract);
+  runes implementation in `watch.svelte.ts` (`$effect.root`, first pass ignored).
+- **Hydration at startup** (async `create-app.ts`): settings → library (+ engine buffers;
+  unreadable file = no-op §12) → bank; **default bank** on first launch
+  (`default-bank.ts`: 1 empty 4×4 Poly page). `main.ts` awaits the boot (`app.bootError` otherwise).
+- **`Settings.svelte`**: Background behavior, Maximum voice count (≥ 1), language — persisted
+  immediately. Commands `setBackgroundBehavior`, `setMaxVoices`, `hydrateSettings`.
+- **Background (§12)**: `visibilitychange → hidden` applies the setting — `stopAll` (everything +
+  context suspension), `stopSustained` (**sustained** Gate/Loop voices, One-Shots
+  finish), `keepPlaying`. Engine: voices flagged `sustained`, `stopAll()`,
+  `stopSustained()`, `suspend()`; resume on the next gesture (never automatic).
+- **Import**: **immediate** disk write (outside the debounce) — file + `samples` row; new
+  typed failure `writeFailed` (buffer unloaded, nothing in the library); real `createdAt`.
+- Capabilities: `sql:allow-execute`, `fs:allow-appdata-write-recursive`.
+
+### Changed
+- **`deleteSample`** aligned with decision §8: after confirmation, the `sampleId` of impacted
+  pads becomes **`null`** (*empty* state), mirroring `ON DELETE SET NULL` — the
+  *missing* state remains for data altered outside the app. Rename/delete write
+  immediately via the repository.
+- **Dev seed removed** (`dev-seed.ts`): the app starts on the default, empty bank (§2).
+
+### Tooling
+- **`app-home` volume** (`docker-compose.dev.yml`): the Tauri app's data
+  (`~/.config`/`~/.local/share` of the container) survives `run --rm` — without it, closing
+  the `tauri dev` window took the database and library away.
+- **`PULSE_SERVER`** enabled in the GUI overlay (WSLg PulseAudio socket) — prerequisite for
+  sound in the dev window (full resolution tracked in backlog #3).
 
 ### Tests
-- Régression unitaire (`newId` sans `randomUUID`) + **E2E** (import en contexte non sécurisé simulé
-  via `addInitScript`). E2E d'import étendus au **WAV stéréo & plus long**. Total : 70 unitaires,
+- **Storage against a real in-memory SQLite** (`node:sqlite` from the container's Node 22,
+  dedicated test executor, minimal ambient types — no dependency added): migrations
+  (order, idempotence, CHECK, foreign keys), bank round-trip, pruning/cascades,
+  `ON DELETE SET NULL`, library (file + row, failures), settings, write lock.
+- Persistence with **simulated timers** (debounce, burst → one save, flush, stop, resilience);
+  settings/background commands; M5 engine. Total: **128 unit + 4 E2E**.
+
+### Fixed
+- **Silent import** (nothing added, no message): `crypto.randomUUID` only exists in a
+  **secure context** (https / localhost); elsewhere (http via LAN IP) the ID generation threw
+  and the import was abandoned without a trace. `newId` now falls back on `crypto.getRandomValues`
+  (UUID v4) — works everywhere. It was the only silent failure path; any remaining import error
+  is now **displayed**.
+- **Encoder**: anti-hang safety net (60 s timeout) — a worker that never yields fails
+  cleanly instead of freezing the import.
+
+### Tests
+- Unit regression (`newId` without `randomUUID`) + **E2E** (import in a simulated insecure context
+  via `addInitScript`). Import E2E extended to **stereo & longer WAV**. Total: 70 unit,
   4 E2E.
 
-## [0.5.0] - 2026-07-01 — M4 (Bibliothèque & import)
+## [0.5.0] - 2026-07-01 — M4 (Library & import)
 
-> **Validé sur web** (navigateur réel, E2E) : import → OGG/Opus → re-décodage → bibliothèque, et
-> lecture d'un sample assigné. Chaîne sur appareil Android = 2ᵉ temps (spec §16).
+> **Validated on web** (real browser, E2E): import → OGG/Opus → re-decode → library, and
+> playback of an assigned sample. Chain on an Android device = 2nd stage (spec §16).
 
-### Ajouté
-- **Encodeur Opus/WASM** (`engine/encoder.ts`) : socle **opus-recorder** (MIT, libopus + ogg en
-  WASM, worker embarqué), 96 kbps ; `Encoder` injectable. Émet OpusHead + OpusTags + audio.
-- **Pipeline d'import** (`commands.importSample`) : garde 20 Mo → `decodeAudioData` → encode Opus →
-  **re-décodage garde-fou** → entrée `Sample`. Erreurs typées (`tooLarge` / `undecodable` /
+### Added
+- **Opus/WASM encoder** (`engine/encoder.ts`): **opus-recorder** foundation (MIT, libopus + ogg in
+  WASM, embedded worker), 96 kbps; injectable `Encoder`. Emits OpusHead + OpusTags + audio.
+- **Import pipeline** (`commands.importSample`): 20 MB guard → `decodeAudioData` → Opus encode →
+  **re-decode safeguard** → `Sample` entry. Typed errors (`tooLarge` / `undecodable` /
   `encodeFailed`).
-- **Bibliothèque** (`Library.svelte`) : import (API File), pré-écoute (`previewSample`), renommage,
-  suppression avec **avertissement des pads impactés** (qui passent *introuvable*, §12).
-- Moteur : `decode` (PCM + durée) et `previewSample` (voix transitoire).
-- **État de pad *introuvable*** (sample assigné puis supprimé) en plus de actif / vide.
+- **Library** (`Library.svelte`): import (File API), preview (`previewSample`), rename,
+  deletion with **warning about impacted pads** (which become *missing*, §12).
+- Engine: `decode` (PCM + duration) and `previewSample` (transient voice).
+- **Pad state *missing*** (sample assigned then deleted) in addition to active / empty.
 
-### Tests — couche E2E (nouveau, durable)
-- **Playwright / Chromium** en Docker (image officielle version-alignée, `docker-compose.e2e.yml`,
-  `npm run test:e2e`). Exerce le **vrai** navigateur : Web Audio + Worker WASM (encodeur), import
-  et lecture réels — ce que les mocks Vitest ne peuvent pas voir.
-- `e2e/import.spec.ts` (encodage OGG/Opus réel), `e2e/play.spec.ts` (assignation + lecture Loop →
-  pad actif).
-- Hook `tests-gate` étendu : lance l'E2E et **bloque le commit** si un fichier `src/`/`e2e/` est
-  touché et que l'E2E échoue (garantit que la dette « encodeur cassé qui passe les mocks » ne
-  revienne pas).
+### Tests — E2E layer (new, lasting)
+- **Playwright / Chromium** in Docker (official version-aligned image, `docker-compose.e2e.yml`,
+  `npm run test:e2e`). Exercises the **real** browser: Web Audio + WASM Worker (encoder), real
+  import and playback — what the Vitest mocks cannot see.
+- `e2e/import.spec.ts` (real OGG/Opus encoding), `e2e/play.spec.ts` (assignment + Loop playback →
+  active pad).
+- `tests-gate` hook extended: runs the E2E and **blocks the commit** if a `src/`/`e2e/` file is
+  touched and the E2E fails (guarantees the "broken encoder that passes the mocks" debt never
+  comes back).
 
-### Corrigé
-- Encodeur Opus : les en-têtes **OpusHead/OpusTags** manquaient (OGG indécodable) — ajout de la
-  requête `getHeaderPages`. Bug invisible aux tests mockés, attrapé par l'E2E.
-- Dev : HMR Vite (`ws://0.0.0.0:1421` injoignable) → HMR sur le port de l'app ; serveur en
+### Fixed
+- Opus encoder: the **OpusHead/OpusTags** headers were missing (undecodable OGG) — added the
+  `getHeaderPages` request. Bug invisible to the mocked tests, caught by the E2E.
+- Dev: Vite HMR (`ws://0.0.0.0:1421` unreachable) → HMR on the app's port; server with
   `host: true`.
 
-### Retiré
-- Loader dev M3 (`DevLibrary`, commandes `devAddSample`/`attachSampleBuffer`) remplacé par la
-  Bibliothèque réelle + le pipeline d'import.
+### Removed
+- M3 dev loader (`DevLibrary`, `devAddSample`/`attachSampleBuffer` commands) replaced by the
+  real Library + the import pipeline.
 
-## [0.4.0] - 2026-07-01 — M3 (Édition)
+## [0.4.0] - 2026-07-01 — M3 (Editing)
 
-> **Validé sur web** : une banque se configure de A à Z sans toucher au code (63 tests).
-> Validation Android = 2ᵉ temps (spec §16).
+> **Validated on web**: a bank can be configured from A to Z without touching the code (63 tests).
+> Android validation = 2nd stage (spec §16).
 
-### Ajouté
-- **Mode Édition** : bascule Jeu ↔ Édition, sélection de pad (`selectedPadId`).
-- **Commandes pads** : `addPad` (1ʳᵉ case libre / position donnée), `renamePad`, `setPadPlayMode`,
-  `setPadGainDb` (borné [-60, +6]), `assignSample` (depuis la bibliothèque, ou vider), `deletePad`
-  (stoppe la voix), `reorderPads` (échange de position).
-- **Commandes pages** : `addPage`, `renamePage`, `deletePage` (refuse la dernière ; stoppe +
-  renumérote), `setPageVoiceMode`, `setPageGrid` (**invariant de réduction** : refus si un pad
-  tomberait hors grille), `reorderPages`.
-- **Bibliothèque** : `hydrateLibrary`, et le pont dev `devAddSample` / `attachSampleBuffer`
-  (le loader dev alimente `store.samples` ; remplacé par l'import réel en M4).
-- **UI** : `Editor.svelte` (réglages page + pad : mode, gain slider dB, renommage, assignation,
-  suppression, redimensionnement de grille avec gardes), sélection de pad et cases « + » dans
-  `PadGrid`, ajout de page dans `PageTabs`, bouton bascule Jeu/Édition. `DevLibrary.svelte`
-  remplace le loader M2.
-- **Domaine** : `id.ts` (`newId`, Web Crypto, injectable), `firstFreePosition`.
+### Added
+- **Edit mode**: Play ↔ Edit switch, pad selection (`selectedPadId`).
+- **Pad commands**: `addPad` (first free cell / given position), `renamePad`, `setPadPlayMode`,
+  `setPadGainDb` (bounded [-60, +6]), `assignSample` (from the library, or clear), `deletePad`
+  (stops the voice), `reorderPads` (position swap).
+- **Page commands**: `addPage`, `renamePage`, `deletePage` (refuses the last one; stops +
+  renumbers), `setPageVoiceMode`, `setPageGrid` (**shrink invariant**: refused if a pad
+  would fall off the grid), `reorderPages`.
+- **Library**: `hydrateLibrary`, and the dev bridge `devAddSample` / `attachSampleBuffer`
+  (the dev loader feeds `store.samples`; replaced by the real import in M4).
+- **UI**: `Editor.svelte` (page + pad settings: mode, dB gain slider, rename, assignment,
+  deletion, grid resizing with guards), pad selection and "+" cells in
+  `PadGrid`, page addition in `PageTabs`, Play/Edit toggle button. `DevLibrary.svelte`
+  replaces the M2 loader.
+- **Domain**: `id.ts` (`newId`, Web Crypto, injectable), `firstFreePosition`.
 
 ### Tests
-- 63 tests (Vitest), dont 16 dédiés à l'édition : CRUD pads/pages, invariant de réduction de
-  grille, bibliothèque (pont dev), sélection.
+- 63 tests (Vitest), including 16 dedicated to editing: pad/page CRUD, grid shrink
+  invariant, library (dev bridge), selection.
 
-## [0.3.0] - 2026-07-01 — M2 (Cœur)
+## [0.3.0] - 2026-07-01 — M2 (Core)
 
-> **Validé sur web** : matrice de comportement §7 couverte par 47 tests + grille jouable en dev
-> (banque seed). Validation Android = 2ᵉ temps (spec §16).
+> **Validated on web**: §7 behavior matrix covered by 47 tests + playable grid in dev
+> (seed bank). Android validation = 2nd stage (spec §16).
 
-### Ajouté
-- **Moteur audio (M2)** : Gate (`press`/`release`), Loop (`toggleLoop` start/stop), **choke Mono**
-  (démarrer un pad arrête les autres voix de la page), re-déclenchement self, plafond de voix en
-  **FIFO** (lu depuis `Settings.maxVoices`), `stopPad` / `stopPage`. Une voix porte désormais sa
+### Added
+- **Audio engine (M2)**: Gate (`press`/`release`), Loop (`toggleLoop` start/stop), **Mono choke**
+  (starting a pad stops the page's other voices), self re-trigger, voice cap as
+  **FIFO** (read from `Settings.maxVoices`), `stopPad` / `stopPage`. A voice now carries its
   `pageId`.
-- **Domaine** : `selectors.ts` (lectures pures de l'arbre banque : `pagesSorted`, `padsOfPage`,
+- **Domain**: `selectors.ts` (pure reads of the bank tree: `pagesSorted`, `padsOfPage`,
   `padAtPosition`, `findPad`, `findPage`).
-- **Store** : arbre banque + `activePageId` + getter dérivé `activePage`.
-- **Commandes de jeu** : `firePad`, `pressPad`/`releasePad`, `toggleLoopPad`, `stopPad`,
-  `stopPage`, `setActivePage`, `hydrateBank` (chargement d'une banque — réutilisé par la
-  persistance M5).
-- **Entrée** : `pad-input.ts` (Pointer Events → intentions par Mode de lecture, `setPointerCapture`
-  pour Gate, relâchement de sécurité au détachement).
-- **UI** : `PageTabs` (navigation), `PadGrid` + `Pad` (grille `rows`×`cols`, état actif/vide,
-  indicateur de lecture piloté par `activePadIds`). Libellés de mode via i18n (`mode.*`).
-- **Seed dev (temporaire)** : `dev-seed.ts` (2 pages Poly/Mono couvrant les 3 modes) +
-  `M2SampleLoader.svelte` (charge des sons dans les slots via l'API File). Remplacés par
-  l'édition (M3) / l'import (M4) / la persistance (M5).
+- **Store**: bank tree + `activePageId` + derived `activePage` getter.
+- **Play commands**: `firePad`, `pressPad`/`releasePad`, `toggleLoopPad`, `stopPad`,
+  `stopPage`, `setActivePage`, `hydrateBank` (loading a bank — reused by the
+  M5 persistence).
+- **Input**: `pad-input.ts` (Pointer Events → intents per Play mode, `setPointerCapture`
+  for Gate, safety release on detach).
+- **UI**: `PageTabs` (navigation), `PadGrid` + `Pad` (`rows`×`cols` grid, active/empty state,
+  playback indicator driven by `activePadIds`). Mode labels via i18n (`mode.*`).
+- **Dev seed (temporary)**: `dev-seed.ts` (2 Poly/Mono pages covering the 3 modes) +
+  `M2SampleLoader.svelte` (loads sounds into the slots via the File API). Replaced by
+  editing (M3) / import (M4) / persistence (M5).
 
 ### Tests
-- 47 tests (Vitest) : bornes/invariants, sélecteurs, moteur One-Shot + matrice §7 (Gate, Loop,
-  choke Mono, FIFO, stop), couche commandes, mappage `pad-input`. `AudioContext` factice partagé
+- 47 tests (Vitest): bounds/invariants, selectors, One-Shot engine + §7 matrix (Gate, Loop,
+  Mono choke, FIFO, stop), commands layer, `pad-input` mapping. Shared fake `AudioContext`
   (`tests/engine/fake-audio-context.ts`).
 
-### Retiré
-- Harnais de démo M1 (`M1AudioDemo.svelte` + commandes `loadDemoSound`/`fireDemoPad`) remplacé par
-  la grille réelle.
+### Removed
+- M1 demo harness (`M1AudioDemo.svelte` + `loadDemoSound`/`fireDemoPad` commands) replaced by
+  the real grid.
 
 ## [0.2.0] - 2026-07-01 — M1 (Audio)
 
-> **Validé sur web** (1er temps) : son émis + `resume()` en dev, tests verts, `svelte-check` +
-> build OK. La **validation sur Android réel** est le **2ᵉ temps** (web d'abord, Android ensuite —
-> spec §16), suivie hors de ce tag.
+> **Validated on web** (1st stage): sound emitted + `resume()` in dev, tests green, `svelte-check` +
+> build OK. The **validation on real Android** is the **2nd stage** (web first, Android second —
+> spec §16), tracked outside this tag.
 
-### Ajouté
-- **Moteur audio** (`engine/audio-engine.ts`, Web Audio) : création/reprise de l'`AudioContext`
-  (`resume()` idempotent, politique autoplay ; reprend aussi depuis `interrupted`), cache de
-  buffers (`load` / `unload` / `isLoaded`), lecture **One-Shot** (`AudioBufferSourceNode` →
-  `GainNode` → sortie, gain **dB → amplitude**), re-tap = relance depuis 0 avec fade anti-clic
-  (~8 ms), et reflet des voix actives via `onPlayingChanged` (no-op silencieux si pad vide /
-  buffer absent).
-- Commandes `resumeAudio` (reprise sur geste) + harnais **temporaire** de démo M1
-  (`loadDemoSound`, `fireDemoPad`, composant `ui/dev/M1AudioDemo.svelte`) : un pad codé en dur
-  qui joue un fichier audio chargé via l'API File (testable en Vite nu ET WebView Tauri).
-- **Tests** : Vitest ajouté ; suite du cœur audio (`voice.test.ts`, `audio-engine.test.ts`,
-  18 tests) — Web Audio simulé par injection, aucune dépendance navigateur.
+### Added
+- **Audio engine** (`engine/audio-engine.ts`, Web Audio): `AudioContext` creation/resume
+  (idempotent `resume()`, autoplay policy; also resumes from `interrupted`), buffer cache
+  (`load` / `unload` / `isLoaded`), **One-Shot** playback (`AudioBufferSourceNode` →
+  `GainNode` → output, **dB → amplitude** gain), re-tap = restart from 0 with anti-click fade
+  (~8 ms), and active-voice mirror via `onPlayingChanged` (silent no-op if pad empty /
+  buffer missing).
+- `resumeAudio` command (resume on gesture) + **temporary** M1 demo harness
+  (`loadDemoSound`, `fireDemoPad`, component `ui/dev/M1AudioDemo.svelte`): one hard-coded pad
+  playing an audio file loaded via the File API (testable in bare Vite AND Tauri WebView).
+- **Tests**: Vitest added; audio core suite (`voice.test.ts`, `audio-engine.test.ts`,
+  18 tests) — Web Audio simulated by injection, no browser dependency.
 
-### Outillage
-- Conteneur Docker **dev permanent** (`docker-compose.dev.yml up dev`) — Vite sur
-  http://localhost:1420, HMR, pour observer l'évolution en continu.
-- Hook `.claude/hooks/tests-gate.sh` (PreToolUse `git commit`) : avertit si du code est commité
-  sans test, **exécute la suite en Docker et bloque le commit si elle échoue** (règle projet :
-  tests écrits → exécutés → validés, puis doc).
+### Tooling
+- **Permanent dev** Docker container (`docker-compose.dev.yml up dev`) — Vite at
+  http://localhost:1420, HMR, to watch progress continuously.
+- Hook `.claude/hooks/tests-gate.sh` (PreToolUse `git commit`): warns if code is committed
+  without tests, **runs the suite in Docker and blocks the commit if it fails** (project rule:
+  tests written → run → validated, then doc).
 
-### Validé (dev)
-- `npm run test` : 18/18 verts · `svelte-check` : 0 erreur / 0 warning · `vite build` : OK
-  (le tout exécuté en Docker rootless).
+### Validated (dev)
+- `npm run test`: 18/18 green · `svelte-check`: 0 errors / 0 warnings · `vite build`: OK
+  (all run in rootless Docker).
 
-## [0.1.0] - 2026-07-01 — M0 (Socle)
+## [0.1.0] - 2026-07-01 — M0 (Foundation)
 
-### Ajouté
-- Scaffold Vite + Svelte 5 (runes) + TypeScript **strict**, SPA statique (SSR off, sans routeur).
-- Coquille **Tauri v2** (`src-tauri/`, Rust minimal) + plugins `sql`, `fs`, `dialog` (config + capabilities).
-- Arborescence `domain / engine / storage / app / ui` avec stubs par jalon.
-- Composition root explicite `create-app.ts` (injection de dépendances, pas de singletons).
-- Store réactif (runes) + couche de commandes (seul point de mutation).
-- i18n minimal : loader + `t()`, `fr.json` (défaut & fallback), langue réactive dans le store.
-- `LICENSE` GPL-3.0-or-later + en-têtes SPDX + `README.md` ; icônes placeholder Tauri.
+### Added
+- Vite + Svelte 5 (runes) + **strict** TypeScript scaffold, static SPA (SSR off, no router).
+- **Tauri v2** shell (`src-tauri/`, minimal Rust) + `sql`, `fs`, `dialog` plugins (config + capabilities).
+- `domain / engine / storage / app / ui` tree with per-milestone stubs.
+- Explicit composition root `create-app.ts` (dependency injection, no singletons).
+- Reactive store (runes) + command layer (sole mutation point).
+- Minimal i18n: loader + `t()`, `fr.json` (default & fallback), reactive language in the store.
+- `LICENSE` GPL-3.0-or-later + SPDX headers + `README.md`; Tauri placeholder icons.
 
-### Environnement de développement
-- Docker **rootless** dev/prod séparés (`docker-compose.dev.yml` / `docker-compose.prod.yml`),
-  durci (`cap_drop: ALL`, `no-new-privileges`), toolchain isolée en image/volumes.
-- Doc vivante `doc/` (séparée des specs) + mécanisme **doc-sync** (`.claude/`).
+### Development environment
+- **Rootless** Docker, dev/prod separated (`docker-compose.dev.yml` / `docker-compose.prod.yml`),
+  hardened (`cap_drop: ALL`, `no-new-privileges`), toolchain isolated in image/volumes.
+- Living doc `doc/` (separate from the specs) + **doc-sync** mechanism (`.claude/`).
 
-### Validé
-- `svelte-check` 0 erreur, `vite build` OK, texte `t()` présent dans le bundle.
-- Compilation complète de la coquille Tauri (Rust + plugins + front embarqué) en Docker rootless :
-  binaire `target/debug/sampleboard` produit.
+### Validated
+- `svelte-check` 0 errors, `vite build` OK, `t()` text present in the bundle.
+- Full compilation of the Tauri shell (Rust + plugins + embedded front) in rootless Docker:
+  `target/debug/sampleboard` binary produced.
 
 ### Documentation
-- Spécification technique figée — `specifications.md` (vocabulaire, architecture, décisions).
-- Roadmap & gestion de projet — `roadmap.md` (phases, jalons, versionnage, backlog).
-- Onboarding projet — `CLAUDE.md`.
+- Technical specification locked — `specifications.md` (vocabulary, architecture, decisions).
+- Roadmap & project management — `roadmap.md` (phases, milestones, versioning, backlog).
+- Project onboarding — `CLAUDE.md`.

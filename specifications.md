@@ -1,185 +1,185 @@
-# Sampleboard — Spécification technique
+# Sampleboard — Technical specification
 
-> Document de référence pour l'implémentation. Destiné à être repris dans Claude Code pour la gestion de projet et le découpage en tâches.
-> Statut : spec figée sur l'architecture et le vocabulaire ; toutes les décisions structurantes sont tranchées (voir §16).
+> Reference document for the implementation. Meant to be picked up in Claude Code for project management and task breakdown.
+> Status: spec frozen on architecture and vocabulary; all structural decisions are settled (see §16).
 
 ---
 
-## Glossaire (source de vérité du vocabulaire)
+## Glossary (source of truth for vocabulary)
 
-Le produit est **multilingue** (i18n). **Convention** :
-- Le **code et le schéma SQLite sont en anglais neutre** — stable, indépendant de la langue, et **plus facile à arbitrer** (moins ambigu que le français).
-- Le code ne contient **aucun texte en dur** : uniquement des **clés (tokens) i18n**.
-- Les libellés visibles vivent dans des **fichiers de traduction JSON** (`src/ui/i18n/*.json`), **un par langue** ; le **français (`fr.json`) est la langue par défaut et le fallback**.
+The product is **multilingual** (i18n). **Convention**:
+- The **code and the SQLite schema are in neutral English** — stable, language-independent, and **easier to arbitrate** (less ambiguous than French).
+- The code contains **no hard-coded text**: only **i18n keys (tokens)**.
+- Visible labels live in **JSON translation files** (`src/ui/i18n/*.json`), **one per language**; **French (`fr.json`) is the default language and the fallback**.
 
-Le tableau ci-dessous est la référence : `Concept ↔ identifiant code / clé i18n ↔ libellé FR`.
+The table below is the reference: `Concept ↔ code identifier / i18n key ↔ FR label`.
 
-Les termes de comportement empruntent la **terminologie des contrôleurs MIDI / MPC** (One-Shot, Gate, Loop, Mono, Poly).
+Behavior terms borrow the **MIDI controller / MPC terminology** (One-Shot, Gate, Loop, Mono, Poly).
 
-> ⚠️ **Mot banni : « couper ».** Réservé à la future fonction **« découper »** (rognage de sample, v2). Partout ailleurs on dit **« stopper »** / **« arrêter »**.
+> ⚠️ **Banned word: « couper » (to cut).** Reserved for the future **« découper »** feature (sample trimming, v2). Everywhere else say **« stopper »** / **« arrêter »** (stop).
 
-| Concept | Code / clé i18n | Libellé FR | Définition |
+| Concept | Code / i18n key | FR label | Definition |
 |---|---|---|---|
-| Le produit | `sampleboard` | Sampleboard | Application de pads déclencheurs de sons (façon soundboard). **Pas un sampler** : volontairement simple. |
-| Banque | `Bank` | banque | La configuration complète (toutes les pages + pads). **Une seule en v1** ; multi-banques en v2. |
-| Page | `Page` | page | Un écran contenant une grille de pads. |
-| Pad | `Pad` | pad | La case cliquable qui déclenche un sample. |
-| Grille | `grid` (`rows`×`cols`) | grille | Disposition en lignes × colonnes des pads d'une page. |
-| Sample | `Sample` | sample | Un fichier audio importé (ré-encodé en Opus). |
-| Bibliothèque | `Library` | bibliothèque | La collection de samples, gérée à part (CRUD). |
-| Pool | `pool` | pool | Liste de travail de samples (session), outil d'Édition : sidebar en large, tiroir gauche en étroit. Élément touché = armé (assignation à la volée) ; glissable sur un pad. |
-| Mode de lecture | `PlayMode` | Mode de lecture | Le comportement de déclenchement d'un pad. |
-| → One-Shot | `'oneShot'` | One-Shot | Tap → joue le sample **en entier** ; re-tap → relance depuis 0. |
-| → Gate | `'gate'` | Gate | Joue **tant que le pad est maintenu** ; stop au relâchement. |
-| → Loop | `'loop'` | Loop | Tap → **boucle** ; re-tap → arrête. |
-| Polyphonie | `voiceMode` | Polyphonie | Réglage **de page** : voix superposées ou non. |
-| → Mono | `'mono'` | Mono | Une seule voix à la fois sur la page. |
-| → Poly | `'poly'` | Poly | Superposition des voix. |
-| Voix | `Voice` | voix | Une instance de son **en train de jouer**. |
-| Gain | `gainDb` | gain | Niveau **par pad**, en dB `[-60, +6]`, `0` = niveau d'origine. |
-| Réglages | `Settings` | Réglages | Les paramètres globaux de l'app. |
-| Arrière-plan | `backgroundBehavior` | Arrière-plan | Réglage : que faire quand l'app passe en arrière-plan. |
-| → Tout stopper | `'stopAll'` | Tout stopper | Suspend l'audio + arrête toutes les voix (défaut). |
-| → Stopper les sons en cours | `'stopSustained'` | Stopper les sons en cours | Arrête Gate & Loop ; laisse finir les One-Shot. |
-| → Laisser jouer | `'keepPlaying'` | Laisser jouer | L'audio continue en arrière-plan. |
-| Nombre maximum de voix | `maxVoices` | Nombre maximum de voix | Plafond global de voix simultanées (défaut 8 ; dépassement = FIFO). |
-| Édition | `editMode` | Édition | État où l'on **configure** (CRUD, gain, assignation…). |
-| Jeu | `editMode` = off | Jeu | État où l'on **joue** (la grille déclenche les sons). |
-| introuvable | `missing` | introuvable | Pad dont le sample a disparu (supprimé / fichier manquant). |
-| vide | `empty` | vide | Pad sans aucun sample assigné. |
-| actif | `active` | actif | Pad **en train de jouer** (indicateur visuel). |
-| assigner | `assign` | assigner | Rattacher un sample à un pad. |
-| importer | `import` | importer | Faire entrer un fichier audio dans la bibliothèque. |
-| pré-écoute | `preview` | pré-écoute | Écouter un sample dans la bibliothèque avant de l'assigner. |
-| Barre du haut | `Topbar` | barre du haut | Infos de la page active (nom, Polyphonie, grille) ; tap → tiroir page. |
-| Barre d'actions | `Bottombar` | barre d'actions | Actions principales + pages + accès Réglages (bas d'écran). |
-| Tiroir | `Drawer` | tiroir | Panneau contextuel à droite : réglages du pad, de la page ou généraux. |
-| Stop général | `stopAllVoices` | Stop général | Arrête toutes les voix d'un tap (bouton panique de la barre d'actions). |
-| Tag | `Tag` | tag | Étiquette libre affectée aux samples (n-à-n) ; filtre la bibliothèque. |
-| → Non classé | `'untagged'` | Non classé | **Filtre virtuel** : les samples sans aucun tag (jamais stocké). |
-| Import multiple | `importBatch` / `BatchImport` | import multiple | Import séquentiel d'un **lot** de fichiers et/ou d'archives, suivi dans une modale de progression. |
-| Archive | `archive` (`zip`, `rar`) | archive | Conteneur zip/rar déplié à l'import : ses fichiers audio rejoignent le lot. |
+| The product | `sampleboard` | Sampleboard | Application of pads that trigger sounds (soundboard style). **Not a sampler**: deliberately simple. |
+| Bank | `Bank` | banque | The complete configuration (all pages + pads). **A single one in v1**; multi-bank in v2. |
+| Page | `Page` | page | A screen containing a grid of pads. |
+| Pad | `Pad` | pad | The tappable cell that triggers a sample. |
+| Grid | `grid` (`rows`×`cols`) | grille | Rows × columns layout of a page's pads. |
+| Sample | `Sample` | sample | An imported audio file (re-encoded to Opus). |
+| Library | `Library` | bibliothèque | The collection of samples, managed separately (CRUD). |
+| Pool | `pool` | pool | Working list of samples (session-scoped), an Edit-mode tool: sidebar on wide screens, left drawer on narrow ones. Tapped item = armed (on-the-fly assignment); draggable onto a pad. |
+| Play mode | `PlayMode` | Mode de lecture | A pad's trigger behavior. |
+| → One-Shot | `'oneShot'` | One-Shot | Tap → plays the sample **in full**; re-tap → restarts from 0. |
+| → Gate | `'gate'` | Gate | Plays **as long as the pad is held**; stops on release. |
+| → Loop | `'loop'` | Loop | Tap → **loops**; re-tap → stops. |
+| Polyphony | `voiceMode` | Polyphonie | **Page-level** setting: voices stack or not. |
+| → Mono | `'mono'` | Mono | A single voice at a time on the page. |
+| → Poly | `'poly'` | Poly | Voices stack. |
+| Voice | `Voice` | voix | A sound instance **currently playing**. |
+| Gain | `gainDb` | gain | **Per-pad** level, in dB `[-60, +6]`, `0` = original level. |
+| Settings | `Settings` | Réglages | The app's global settings. |
+| Background | `backgroundBehavior` | Arrière-plan | Setting: what to do when the app goes to the background. |
+| → Stop everything | `'stopAll'` | Tout stopper | Suspends audio + stops all voices (default). |
+| → Stop sustained sounds | `'stopSustained'` | Stopper les sons en cours | Stops Gate & Loop; lets One-Shots finish. |
+| → Keep playing | `'keepPlaying'` | Laisser jouer | Audio keeps playing in the background. |
+| Maximum number of voices | `maxVoices` | Nombre maximum de voix | Global cap on simultaneous voices (default 8; overflow = FIFO). |
+| Edit | `editMode` | Édition | State where you **configure** (CRUD, gain, assignment…). |
+| Play | `editMode` = off | Jeu | State where you **play** (the grid triggers the sounds). |
+| missing | `missing` | introuvable | Pad whose sample has disappeared (deleted / missing file). |
+| empty | `empty` | vide | Pad with no sample assigned. |
+| active | `active` | actif | Pad **currently playing** (visual indicator). |
+| assign | `assign` | assigner | Attach a sample to a pad. |
+| import | `import` | importer | Bring an audio file into the library. |
+| preview | `preview` | pré-écoute | Listen to a sample in the library before assigning it. |
+| Top bar | `Topbar` | barre du haut | Active page info (name, Polyphony, grid); tap → page drawer. |
+| Action bar | `Bottombar` | barre d'actions | Main actions + pages + Settings access (bottom of screen). |
+| Drawer | `Drawer` | tiroir | Contextual panel on the right: pad, page or global settings. |
+| Stop all | `stopAllVoices` | Stop général | Stops all voices in one tap (panic button in the action bar). |
+| Tag | `Tag` | tag | Free-form label attached to samples (n-to-n); filters the library. |
+| → Untagged | `'untagged'` | Non classé | **Virtual filter**: samples with no tag at all (never stored). |
+| Batch import | `importBatch` / `BatchImport` | import multiple | Sequential import of a **batch** of files and/or archives, tracked in a progress modal. |
+| Archive | `archive` (`zip`, `rar`) | archive | Zip/rar container unpacked on import: its audio files join the batch. |
 
 ---
 
-## 1. Objectif
+## 1. Goal
 
-**Sampleboard** : une grille de **pads** déclenche des bruitages et répliques audio, organisés en **pages**. L'utilisateur **importe ses propres fichiers audio** (qui alimentent la **bibliothèque**) et configure ses pads. Cible de distribution : **F-Droid** (Android).
+**Sampleboard**: a grid of **pads** triggers sound effects and audio quotes, organized into **pages**. The user **imports their own audio files** (which feed the **library**) and configures their pads. Distribution target: **F-Droid** (Android).
 
-C'est un **board de samples** (façon soundboard), **pas un sampler** : pas de DSP, pas d'édition audio poussée, gestion des voix volontairement minimale.
+It is a **sample board** (soundboard style), **not a sampler**: no DSP, no advanced audio editing, deliberately minimal voice management.
 
-## 2. Portée
+## 2. Scope
 
-### Dans le périmètre v1
-- Pages multiples, navigation entre pages.
-- **Grille** de pads par page : **4×4 par défaut, redimensionnable par page** (cols 1–6 × lignes 1–12), déclenchement audio faible latence.
-- Trois **Modes de lecture** de pad : One-Shot, Gate, Loop.
-- **Polyphonie** par page : Mono (une voix à la fois) ou Poly (superposition).
-- **Bibliothèque** de samples : fichiers audio importés, gérée séparément (CRUD propre) ; les pads s'y rattachent par référence.
-- Mode **Édition** complet : CRUD pads et pages, assignation d'un sample, gain par pad (**en dB**).
-- **Import** de fichiers audio depuis le stockage de l'appareil, avec **ré-encodage Opus** (voir §13).
-- **Réglages** globaux (Arrière-plan, Nombre maximum de voix, langue), persistés.
-- **Interface multilingue (i18n)**, **français par défaut**.
-- Persistance locale fiable (config + bibliothèque de fichiers audio), rechargée au démarrage.
+### In scope for v1
+- Multiple pages, navigation between pages.
+- Pad **grid** per page: **4×4 by default, resizable per page** (cols 1–6 × rows 1–12), low-latency audio triggering.
+- Three pad **Play modes**: One-Shot, Gate, Loop.
+- Per-page **Polyphony**: Mono (one voice at a time) or Poly (stacking).
+- Sample **library**: imported audio files, managed separately (clean CRUD); pads attach to it by reference.
+- Full **Edit** mode: pad and page CRUD, sample assignment, per-pad gain (**in dB**).
+- **Import** of audio files from device storage, with **Opus re-encoding** (see §13).
+- Global **Settings** (Background, Maximum number of voices, language), persisted.
+- **Multilingual interface (i18n)**, **French by default**.
+- Reliable local persistence (config + audio file library), reloaded on startup.
 
-### Hors périmètre (v1) — voir §17
-Multi-banques, raccourcis clavier, enregistrement, effets/DSP, MIDI, synchro cloud,
-**accès réseau / import par URL** (v1 hors-ligne, voir §16), iOS.
-_(« Découper » — rognage start/end — et waveform : **rapatriés en v1** le 2026-07-02,
-jalon dédié « Éditeur audio », voir §16 et roadmap.)_
+### Out of scope (v1) — see §17
+Multi-bank, keyboard shortcuts, recording, effects/DSP, MIDI, cloud sync,
+**network access / URL import** (v1 is offline, see §16), iOS.
+_(« Découper » — start/end trimming — and waveform: **brought back into v1** on 2026-07-02,
+dedicated "Audio editor" milestone, see §16 and roadmap.)_
 
-### Contenu
-L'application est livrée **vide** : aucun extrait audio n'est embarqué. Les répliques et bruitages sont fournis par l'utilisateur via import. Aucun contenu sous droit d'auteur n'est distribué avec l'app (contrainte produit **et** contrainte F-Droid).
+### Content
+The application ships **empty**: no audio clip is bundled. Quotes and sound effects are supplied by the user via import. No copyrighted content is distributed with the app (a product constraint **and** an F-Droid constraint).
 
-## 3. Cible & contraintes
+## 3. Target & constraints
 
-| Élément | Choix |
+| Element | Choice |
 |---|---|
-| Frontend | Svelte 5 (runes) + Vite, en **SPA** (`adapter-static`, SSR désactivé) |
-| Langage | TypeScript, mode `strict` |
-| Empaquetage | **Tauri v2** (WebView système + noyau Rust) |
-| Persistance | **SQLite natif** via `tauri-plugin-sql` |
-| Fichiers | `tauri-plugin-fs` + `tauri-plugin-dialog` pour l'import |
-| Audio | **Web Audio API** ; encodage Opus via **WASM libopus** embarqué |
-| i18n | **Traductions en JSON** par langue (`fr.json` défaut & fallback) ; le code ne porte **que des clés** (tokens), zéro texte en dur |
+| Frontend | Svelte 5 (runes) + Vite, as an **SPA** (`adapter-static`, SSR disabled) |
+| Language | TypeScript, `strict` mode |
+| Packaging | **Tauri v2** (system WebView + Rust core) |
+| Persistence | **Native SQLite** via `tauri-plugin-sql` |
+| Files | `tauri-plugin-fs` + `tauri-plugin-dialog` for import |
+| Audio | **Web Audio API**; Opus encoding via embedded **WASM libopus** |
+| i18n | **JSON translations** per language (`fr.json` default & fallback); the code carries **only keys** (tokens), zero hard-coded text |
 | Distribution | F-Droid (APK) |
 
-**Contraintes F-Droid** (structurantes, à respecter dès le départ — voir §15) : 100 % FOSS, aucune dépendance Google (Firebase/Play Services), aucun tracker ni pub, build reproductible, licence libre.
+**F-Droid constraints** (structural, to be honored from the start — see §15): 100% FOSS, no Google dependency (Firebase/Play Services), no trackers or ads, reproducible build, free license.
 
-**Note dev** : le développement se fait via `tauri dev` (frontend web dans la WebView native), et **non** dans un onglet de navigateur nu — c'est ce qui donne accès à SQLite natif pendant le dev. Le Rust reste cantonné à la coquille et aux plugins ; aucune logique métier en Rust.
+**Dev note**: development happens through `tauri dev` (web frontend in the native WebView), **not** in a bare browser tab — that is what provides access to native SQLite during dev. Rust stays confined to the shell and the plugins; no business logic in Rust.
 
-## 4. Principes d'architecture
+## 4. Architecture principles
 
-**Règle de dépendance (sens unique)** :
+**Dependency rule (one-way)**:
 
 ```
 domain  ←  engine, storage  ←  app  ←  ui
 ```
 
-Le domaine ne connaît rien. Le moteur audio et la persistance ne connaissent que le domaine. La couche `app` orchestre. L'`ui` ne fait que rendre l'état et émettre des intentions. **Le cœur (`domain`, `engine`, `storage`) ne dépend jamais de Svelte** et reste testable isolément.
+The domain knows nothing. The audio engine and persistence know only the domain. The `app` layer orchestrates. The `ui` only renders state and emits intentions. **The core (`domain`, `engine`, `storage`) never depends on Svelte** and remains testable in isolation.
 
-Règles transverses :
-- **Une responsabilité = un module** clairement nommé. Pas d'abstraction décorative (pas d'event-bus maison, pas d'interfaces sans seconde implémentation, pas de routeur).
-- **Flux unidirectionnel** : `UI → intention → commande → (mutation store + appel engine + persistance)`.
-- **Mutation d'état en un seul endroit** : la couche de commandes. Les composants ne mutent jamais le store directement.
-- **Concerns transverses centralisés** : la gestion des interactions pad (un module unique) et la persistance (un abonné débouncé unique).
-- **Injection de dépendances explicite** via une composition root ; pas de singletons importés à la volée.
+Cross-cutting rules:
+- **One responsibility = one clearly named module.** No decorative abstraction (no homegrown event bus, no interfaces without a second implementation, no router).
+- **Unidirectional flow**: `UI → intention → command → (store mutation + engine call + persistence)`.
+- **State mutation in a single place**: the command layer. Components never mutate the store directly.
+- **Centralized cross-cutting concerns**: pad interaction handling (a single module) and persistence (a single debounced subscriber).
+- **Explicit dependency injection** via a composition root; no singletons imported on the fly.
 
-## 5. Arborescence
+## 5. Directory tree
 
 ```
 sampleboard/
 ├─ src/
-│  ├─ domain/            # TS pur, zéro dépendance
+│  ├─ domain/            # pure TS, zero dependencies
 │  │  ├─ types.ts        # Bank, Page, Pad, Sample, Settings
 │  │  ├─ enums.ts        # PlayMode, VoiceMode, BackgroundBehavior
-│  │  └─ invariants.ts   # validations pures
-│  ├─ engine/            # TS pur (Web Audio)
-│  │  ├─ audio-engine.ts # AudioContext, cache buffers, gestion des voix (FIFO)
-│  │  ├─ voice.ts        # représentation d'une voix active
-│  │  ├─ encoder.ts      # ré-encodage Opus (WASM libopus)
+│  │  └─ invariants.ts   # pure validations
+│  ├─ engine/            # pure TS (Web Audio)
+│  │  ├─ audio-engine.ts # AudioContext, buffer cache, voice management (FIFO)
+│  │  ├─ voice.ts        # representation of an active voice
+│  │  ├─ encoder.ts      # Opus re-encoding (WASM libopus)
 │  │  └─ types.ts        # EngineEvents, callbacks
-│  ├─ storage/           # TS pur (accès données)
-│  │  ├─ db.ts           # wrapper tauri-plugin-sql + migrations
+│  ├─ storage/           # pure TS (data access)
+│  │  ├─ db.ts           # tauri-plugin-sql wrapper + migrations
 │  │  ├─ bank-repository.ts
-│  │  ├─ sample-repository.ts   # bibliothèque : fichiers sur disque + métadonnées
-│  │  ├─ settings-repository.ts # réglages globaux (ligne unique)
+│  │  ├─ sample-repository.ts   # library: on-disk files + metadata
+│  │  ├─ settings-repository.ts # global settings (single row)
 │  │  └─ types.ts
 │  ├─ app/               # orchestration
-│  │  ├─ store.svelte.ts # état réactif (runes) — source de vérité config + UI
-│  │  ├─ commands.ts     # seul point de mutation ; coordonne store/engine/storage
-│  │  ├─ persistence.ts  # coordinateur autosave débouncé (abonné unique)
+│  │  ├─ store.svelte.ts # reactive state (runes) — source of truth for config + UI
+│  │  ├─ commands.ts     # sole mutation point; coordinates store/engine/storage
+│  │  ├─ persistence.ts  # debounced autosave coordinator (single subscriber)
 │  │  └─ create-app.ts   # composition root
 │  ├─ ui/
-│  │  ├─ i18n/           # traductions JSON : fr.json (défaut), en.json… + index.ts (loader + t())
-│  │  ├─ interaction/pad-input.ts   # module unique pointer→intention
+│  │  ├─ i18n/           # JSON translations: fr.json (default), en.json… + index.ts (loader + t())
+│  │  ├─ interaction/pad-input.ts   # single pointer→intention module
 │  │  ├─ components/
 │  │  │  ├─ PadGrid.svelte
 │  │  │  ├─ Pad.svelte
 │  │  │  ├─ PageTabs.svelte
 │  │  │  ├─ Editor.svelte
-│  │  │  ├─ Library.svelte     # gestionnaire de la bibliothèque
-│  │  │  ├─ Settings.svelte    # réglages globaux
+│  │  │  ├─ Library.svelte     # library manager
+│  │  │  ├─ Settings.svelte    # global settings
 │  │  │  └─ ...
 │  │  └─ styles/
-│  ├─ main.ts            # bootstrap : create-app + montage Svelte
+│  ├─ main.ts            # bootstrap: create-app + Svelte mount
 │  └─ app.css
-├─ src-tauri/            # coquille Tauri v2 (Rust minimal + config plugins)
+├─ src-tauri/            # Tauri v2 shell (minimal Rust + plugin config)
 ├─ static/
 ├─ svelte.config.js      # adapter-static, SSR off
 ├─ vite.config.ts
 ├─ tsconfig.json         # strict
-├─ LICENSE               # GPL-3.0-or-later (voir §15)
+├─ LICENSE               # GPL-3.0-or-later (see §15)
 └─ README.md
 ```
 
-## 6. Modèle de domaine
+## 6. Domain model
 
 ```ts
 // enums.ts
-export type PlayMode = 'oneShot' | 'gate' | 'loop';        // Mode de lecture du pad
-export type VoiceMode = 'mono' | 'poly';                   // Polyphonie de la page
-// Arrière-plan : tout stopper / seulement les sons en cours (Gate+Loop) / laisser jouer
+export type PlayMode = 'oneShot' | 'gate' | 'loop';        // Pad play mode
+export type VoiceMode = 'mono' | 'poly';                   // Page polyphony
+// Background: stop everything / only sustained sounds (Gate+Loop) / keep playing
 export type BackgroundBehavior = 'stopAll' | 'stopSustained' | 'keepPlaying';
 
 // types.ts
@@ -187,73 +187,73 @@ export interface Pad {
   id: string;
   pageId: string;
   name: string;
-  sampleId: string | null;  // référence un Sample de la bibliothèque ; null = pad vide
-  playMode: PlayMode;       // défaut: 'oneShot'
-  gainDb: number;           // dB, défaut 0.0 (niveau d'origine) ; plage [-60, +6], -60 = muet
-  position: number;         // index dans la grille : 0 .. rows*cols-1
+  sampleId: string | null;  // references a library Sample; null = empty pad
+  playMode: PlayMode;       // default: 'oneShot'
+  gainDb: number;           // dB, default 0.0 (original level); range [-60, +6], -60 = muted
+  position: number;         // index in the grid: 0 .. rows*cols-1
 }
 
 export interface Page {
   id: string;
   name: string;
-  voiceMode: VoiceMode;     // Polyphonie ; défaut: 'poly'
-  rows: number;             // défaut: 4  (plage 1..12)
-  cols: number;             // défaut: 4  (plage 1..6)
+  voiceMode: VoiceMode;     // Polyphony; default: 'poly'
+  rows: number;             // default: 4  (range 1..12)
+  cols: number;             // default: 4  (range 1..6)
   position: number;
 }
 
-// Un sample de la bibliothèque : entité gérée indépendamment des pads (CRUD propre).
-// Un Sample peut exister sans être rattaché à aucun pad.
+// A library sample: entity managed independently of pads (clean CRUD).
+// A Sample can exist without being attached to any pad.
 export interface Sample {
   id: string;
-  label: string;            // nom affiché, éditable ; défaut = nom de fichier d'origine
-  fileName: string;         // nom sur disque ({sampleId}.ogg)
+  label: string;            // displayed name, editable; default = original file name
+  fileName: string;         // name on disk ({sampleId}.ogg)
   originalName: string;
-  mime: string;             // 'audio/ogg' après ré-encodage
+  mime: string;             // 'audio/ogg' after re-encoding
   sizeBytes: number;
   durationMs: number | null;
   createdAt: number;
 }
 
-// Réglages globaux (app-level, hors banque).
+// Global settings (app-level, outside the bank).
 export interface Settings {
-  backgroundBehavior: BackgroundBehavior; // défaut: 'stopAll'
-  maxVoices: number;                       // Nombre maximum de voix, défaut 8
-  locale: string;                          // langue UI, défaut 'fr'
+  backgroundBehavior: BackgroundBehavior; // default: 'stopAll'
+  maxVoices: number;                       // Maximum number of voices, default 8
+  locale: string;                          // UI language, default 'fr'
 }
 
 export interface Bank {
   id: string;
   name: string;
   pages: Page[];
-  pads: Pad[];              // aplati ; regroupé par pageId à la lecture
-  // La bibliothèque n'est PAS incluse ici : c'est une collection partagée,
-  // chargée à part (voir §8).
+  pads: Pad[];              // flattened; grouped by pageId on read
+  // The library is NOT included here: it is a shared collection,
+  // loaded separately (see §8).
 }
 ```
 
-**Invariants** (dans `invariants.ts`, purs, testables) :
+**Invariants** (in `invariants.ts`, pure, testable):
 - `gainDb ∈ [-60, +6]`.
-- `cols ∈ [1, 6]`, `rows ∈ [1, 12]` ; `position ∈ [0, rows*cols-1]` et unique dans la page.
-- Réduire la grille sous une `position` occupée est refusé tant que le pad concerné n'est pas déplacé/supprimé (voir §12).
-- `position` des pages : unique et contigu dans la banque.
-- Un `Pad.sampleId` non nul référence un `Sample` existant ; sinon le pad est *introuvable* (état affiché, non bloquant — voir §12).
-- Une banque a au moins une page.
+- `cols ∈ [1, 6]`, `rows ∈ [1, 12]`; `position ∈ [0, rows*cols-1]` and unique within the page.
+- Shrinking the grid below an occupied `position` is refused until the affected pad is moved/deleted (see §12).
+- Page `position`: unique and contiguous within the bank.
+- A non-null `Pad.sampleId` references an existing `Sample`; otherwise the pad is *missing* (displayed state, non-blocking — see §12).
+- A bank has at least one page.
 
-## 7. Moteur audio (`engine`)
+## 7. Audio engine (`engine`)
 
-Responsabilité unique : produire du son à faible latence et gérer les voix. **Autoritatif** sur l'état de jeu éphémère (quelles voix jouent) ; il ne le duplique pas dans le store, il le *notifie* (voir §9, décision B).
+Single responsibility: produce sound at low latency and manage voices. **Authoritative** over ephemeral playback state (which voices are playing); it does not duplicate it into the store, it *notifies* it (see §9, decision B).
 
-### Contrat public (esquisse)
+### Public contract (sketch)
 ```ts
 class AudioEngine {
-  resume(): Promise<void>;                 // à appeler sur 1er geste utilisateur
-  load(sampleId: string, bytes: ArrayBuffer): Promise<void>; // décode + cache
+  resume(): Promise<void>;                 // to call on the 1st user gesture
+  load(sampleId: string, bytes: ArrayBuffer): Promise<void>; // decode + cache
   unload(sampleId: string): void;
 
-  oneShot(pad: Pad, page: Page): void;     // Mode One-Shot
-  press(pad: Pad, page: Page): void;       // Gate — début (gate on)
-  release(pad: Pad): void;                 // Gate — fin (gate off)
+  oneShot(pad: Pad, page: Page): void;     // One-Shot mode
+  press(pad: Pad, page: Page): void;       // Gate — start (gate on)
+  release(pad: Pad): void;                 // Gate — end (gate off)
   toggleLoop(pad: Pad, page: Page): void;  // Loop — start/stop
   stopPad(padId: string): void;
   stopPage(pageId: string): void;
@@ -262,37 +262,37 @@ class AudioEngine {
 }
 ```
 
-### Détails d'implémentation
-- **AudioContext** : créé/repris sur le premier geste (politique autoplay mobile). `resume()` idempotent, rappelé aussi au retour de veille Android (voir §12).
-- **Buffers** : décodés une fois, mis en cache par `sampleId` (`Map<string, AudioBuffer>`).
-- **Voix** : chaque lecture crée un `AudioBufferSourceNode` (jetable) → `GainNode` par voix → destination. Le `GainNode` applique l'amplitude linéaire dérivée de `pad.gainDb` (`amp = gainDb <= -60 ? 0 : 10^(gainDb/20)`). Une voix = `{ padId, source, gain, startedAt }`.
-- **Anti-clic** : rampe linéaire de gain courte (~8 ms) à l'arrêt de toute voix (Gate, Loop, choke Mono).
-- **Re-déclenchement (self)** : re-jouer un pad arrête d'abord sa propre voix — jamais deux copies simultanées du même pad.
-- **Choke Mono** : sur une page Mono, démarrer un pad arrête toutes les autres voix de **cette page**.
-- **Nombre maximum de voix** : plafond global lu depuis `Settings.maxVoices` ; au dépassement, la voix **la plus ancienne** est retirée (**FIFO**, fade court). Gestion purement interne, non exposée.
+### Implementation details
+- **AudioContext**: created/resumed on the first gesture (mobile autoplay policy). `resume()` is idempotent, also called again when Android wakes from sleep (see §12).
+- **Buffers**: decoded once, cached by `sampleId` (`Map<string, AudioBuffer>`).
+- **Voices**: each playback creates an `AudioBufferSourceNode` (disposable) → per-voice `GainNode` → destination. The `GainNode` applies the linear amplitude derived from `pad.gainDb` (`amp = gainDb <= -60 ? 0 : 10^(gainDb/20)`). A voice = `{ padId, source, gain, startedAt }`.
+- **Anti-click**: short linear gain ramp (~8 ms) when stopping any voice (Gate, Loop, Mono choke).
+- **Re-trigger (self)**: replaying a pad first stops its own voice — never two simultaneous copies of the same pad.
+- **Mono choke**: on a Mono page, starting a pad stops all other voices of **that page**.
+- **Maximum number of voices**: global cap read from `Settings.maxVoices`; on overflow, the **oldest** voice is evicted (**FIFO**, short fade). Handled purely internally, not exposed.
 
-### Matrice de comportement
+### Behavior matrix
 
 | | One-Shot | Gate | Loop |
 |---|---|---|---|
-| **Action** | tap → joue 1 fois | appui maintenu → joue tant que tenu | tap → boucle ; re-tap → stop |
-| **Re-tap même pad** | redémarre à 0 | (géré par press/release) | bascule stop |
-| **Relâchement** | — | stop (fade court) | — |
-| **Page Poly** | superposition avec autres pads | idem | idem |
-| **Page Mono** | stoppe les autres voix de la page | stoppe les autres voix de la page | garde la voix unique jusqu'à autre pad ou re-tap |
+| **Action** | tap → plays once | press and hold → plays while held | tap → loops; re-tap → stop |
+| **Re-tap same pad** | restarts from 0 | (handled by press/release) | toggles stop |
+| **Release** | — | stop (short fade) | — |
+| **Poly page** | stacks with other pads | same | same |
+| **Mono page** | stops the page's other voices | stops the page's other voices | keeps the single voice until another pad or re-tap |
 
-## 8. Persistance (`storage`)
+## 8. Persistence (`storage`)
 
-**Tout accès aux données passe par cette couche.** Aucun composant ne touche `tauri-plugin-sql` ni le système de fichiers directement.
+**All data access goes through this layer.** No component touches `tauri-plugin-sql` or the file system directly.
 
-### Trois dépôts
-- **`BankRepository`** : config sérialisable (banque, pages, pads) en SQLite.
-- **`SampleRepository`** (bibliothèque) : gère la collection de samples. Les **octets audio sont stockés comme fichiers** dans le répertoire de données de l'app (`{appDataDir}/audio/{sampleId}.ogg` — tout est ré-encodé en OGG/Opus à l'import, voir §13), **jamais en colonnes `BLOB`**. La table `samples` ne stocke que les métadonnées + le nom de fichier. CRUD indépendant des pads.
-- **`SettingsRepository`** : réglages globaux (ligne unique dans `settings`).
+### Three repositories
+- **`BankRepository`**: serializable config (bank, pages, pads) in SQLite.
+- **`SampleRepository`** (library): manages the sample collection. **Audio bytes are stored as files** in the app's data directory (`{appDataDir}/audio/{sampleId}.ogg` — everything is re-encoded to OGG/Opus on import, see §13), **never as `BLOB` columns**. The `samples` table stores only metadata + the file name. CRUD independent of pads.
+- **`SettingsRepository`**: global settings (single row in `settings`).
 
-### Schéma SQLite
+### SQLite schema
 ```sql
-PRAGMA user_version = 1;   -- versionnage pour migrations
+PRAGMA user_version = 1;   -- versioning for migrations
 
 CREATE TABLE bank (
   id          TEXT PRIMARY KEY,
@@ -309,11 +309,11 @@ CREATE TABLE pages (
   position    INTEGER NOT NULL
 );
 
--- La bibliothèque : collection partagée, indépendante des pads.
+-- The library: shared collection, independent of pads.
 CREATE TABLE samples (
   id            TEXT PRIMARY KEY,
-  label         TEXT NOT NULL,        -- nom affiché, éditable
-  file_name     TEXT NOT NULL,        -- nom sur disque
+  label         TEXT NOT NULL,        -- displayed name, editable
+  file_name     TEXT NOT NULL,        -- name on disk
   original_name TEXT NOT NULL,
   mime          TEXT NOT NULL,        -- 'audio/ogg'
   size_bytes    INTEGER NOT NULL,
@@ -331,7 +331,7 @@ CREATE TABLE pads (
   position    INTEGER NOT NULL
 );
 
--- Réglages globaux : ligne unique (id = 0).
+-- Global settings: single row (id = 0).
 CREATE TABLE settings (
   id                  INTEGER PRIMARY KEY CHECK (id = 0),
   background_behavior TEXT NOT NULL DEFAULT 'stopAll'
@@ -342,275 +342,276 @@ CREATE TABLE settings (
 ```
 
 ### Migrations
-Wrapper `db.ts` applique les migrations en séquence selon `user_version`. Chaque évolution de schéma = une migration numérotée, jamais de modification destructive silencieuse.
+The `db.ts` wrapper applies migrations in sequence according to `user_version`. Every schema evolution = one numbered migration, never a silent destructive change.
 
-### Gestion de la bibliothèque (décision verrouillée)
-La bibliothèque est **gérée séparément** : on importe, renomme (`label`) et supprime des samples indépendamment des pads. Les pads ne font que **référencer** un sample.
+### Library management (locked decision)
+The library is **managed separately**: samples are imported, renamed (`label`) and deleted independently of pads. Pads only **reference** a sample.
 
-Suppression d'un sample encore référencé : opération autorisée depuis le gestionnaire de bibliothèque. L'UI **avertit** du nombre de pads impactés, puis à confirmation `sample_id` de ces pads passe à `NULL` (`ON DELETE SET NULL` → pad *introuvable*, non bloquant) **et** le fichier disque est supprimé. Pas de blocage dur : la bibliothèque reste pilotable en toute circonstance.
+Deleting a sample that is still referenced: allowed from the library manager. The UI **warns** about the number of impacted pads, then on confirmation those pads' `sample_id` becomes `NULL` (`ON DELETE SET NULL` → *missing* pad, non-blocking) **and** the file on disk is deleted. No hard block: the library remains manageable under all circumstances.
 
-## 9. Couche application (`app`)
+## 9. Application layer (`app`)
 
 ### Store (`store.svelte.ts`)
-Source de vérité **de la config et de l'état UI**, en runes Svelte 5 (`$state` / `$derived`) :
-- arbre banque (pages, pads) ;
-- `samples: Sample[]` — la bibliothèque chargée ;
-- `settings: Settings` ;
-- `activePageId`, `editMode` ;
-- `activePadIds: Set<string>` — **reflet** minimal de l'engine, jamais calculé côté store.
+Source of truth **for config and UI state**, in Svelte 5 runes (`$state` / `$derived`):
+- bank tree (pages, pads);
+- `samples: Sample[]` — the loaded library;
+- `settings: Settings`;
+- `activePageId`, `editMode`;
+- `activePadIds: Set<string>` — minimal **reflection** of the engine, never computed store-side.
 
-### Couche de commandes (`commands.ts`) — seul point de mutation
-Chaque commande coordonne, de façon atomique, store + engine + persistance. Liste :
+### Command layer (`commands.ts`) — sole mutation point
+Each command atomically coordinates store + engine + persistence. List:
 
-- **Pages** : `addPage`, `renamePage`, `deletePage`, `setPageVoiceMode`, `setPageGrid(rows, cols)`, `reorderPages`, `selectPage`.
-- **Pads** : `addPad`, `renamePad`, `setPadPlayMode`, `setPadGainDb`, `assignSample(padId, sampleId | null)`, `deletePad`, `reorderPads`.
-- **Bibliothèque** : `importSample(file) → sampleId`, `renameSample(sampleId, label)`, `deleteSample(sampleId)`.
-- **Jeu** : `firePad` (One-Shot), `pressPad` / `releasePad` (Gate), `toggleLoopPad` (Loop), `stopPad`, `stopPage`.
-- **Réglages** : `setBackgroundBehavior`, `setMaxVoices`, `setLocale`.
-- **App** : `toggleEditMode`.
+- **Pages**: `addPage`, `renamePage`, `deletePage`, `setPageVoiceMode`, `setPageGrid(rows, cols)`, `reorderPages`, `selectPage`.
+- **Pads**: `addPad`, `renamePad`, `setPadPlayMode`, `setPadGainDb`, `assignSample(padId, sampleId | null)`, `deletePad`, `reorderPads`.
+- **Library**: `importSample(file) → sampleId`, `renameSample(sampleId, label)`, `deleteSample(sampleId)`.
+- **Play**: `firePad` (One-Shot), `pressPad` / `releasePad` (Gate), `toggleLoopPad` (Loop), `stopPad`, `stopPage`.
+- **Settings**: `setBackgroundBehavior`, `setMaxVoices`, `setLocale`.
+- **App**: `toggleEditMode`.
 
-### Coordinateur de persistance (`persistence.ts`)
-- **Décision A (verrouillée) : autosave débouncé.** Un abonné réactif **unique** persiste la config (~300–500 ms de debounce) quand l'arbre change. Aucun `save()` dispersé dans l'UI.
-- L'import écrit immédiatement (fichier ré-encodé + ligne `samples`), hors debounce.
-- Les **Réglages** (peu fréquents) sont persistés immédiatement à chaque changement, hors debounce.
+### Persistence coordinator (`persistence.ts`)
+- **Decision A (locked): debounced autosave.** A **single** reactive subscriber persists the config (~300–500 ms debounce) when the tree changes. No `save()` scattered through the UI.
+- Import writes immediately (re-encoded file + `samples` row), outside the debounce.
+- **Settings** (infrequent) are persisted immediately on every change, outside the debounce.
 
-### Décision B (verrouillée) : état de jeu non dupliqué
-L'engine est autoritatif sur les voix actives ; le store n'en reflète que `activePadIds` via `onPlayingChanged`. Aucune logique de jeu dans le store.
+### Decision B (locked): playback state not duplicated
+The engine is authoritative over active voices; the store only reflects `activePadIds` via `onPlayingChanged`. No playback logic in the store.
 
-## 10. Gestion des interactions (`ui/interaction/pad-input.ts`)
+## 10. Interaction handling (`ui/interaction/pad-input.ts`)
 
-**Module unique** mappant les Pointer Events vers les intentions, selon le **Mode de lecture** du pad. Centralisé pour ne pas dupliquer/oublier la gestion du gate.
+**Single module** mapping Pointer Events to intentions, according to the pad's **Play mode**. Centralized so gate handling is never duplicated/forgotten.
 
-- **Pointer Events** uniquement (souris + tactile unifiés) ; `preventDefault` pour éviter les événements souris synthétiques et le double-déclenchement.
-- **One-Shot** : `pointerdown` → `firePad`.
-- **Gate** : `pointerdown` → `pressPad` (+ `setPointerCapture`) ; `pointerup` / `pointercancel` → `releasePad`. La capture garantit le `release` même si le doigt sort du pad.
-- **Loop** : `pointerdown` → `toggleLoopPad` (stop si en cours, sinon start).
-- Garde contre les événements fantômes (un seul chemin d'entrée par geste).
+- **Pointer Events** only (unified mouse + touch); `preventDefault` to avoid synthetic mouse events and double triggering.
+- **One-Shot**: `pointerdown` → `firePad`.
+- **Gate**: `pointerdown` → `pressPad` (+ `setPointerCapture`); `pointerup` / `pointercancel` → `releasePad`. Capture guarantees the `release` even if the finger leaves the pad.
+- **Loop**: `pointerdown` → `toggleLoopPad` (stop if playing, otherwise start).
+- Guard against ghost events (a single entry path per gesture).
 
-## 11. UI / composants
+## 11. UI / components
 
-Composants **« bêtes »** : ils rendent l'état et émettent des intentions. Aucune logique audio ni DB. Tout texte visible passe par `t(clé)` (i18n, §3).
+**"Dumb" components**: they render state and emit intentions. No audio or DB logic. All visible text goes through `t(key)` (i18n, §3).
 
-**Agencement (décision 2026-07-02, v1)** — mobile-first, la grille au centre de l'écran :
-- **`Topbar`** (barre du haut) — infos de la page active : nom/numéro, Polyphonie, dimensions
-  de grille. **Tap → tiroir page** (dans les deux modes).
-- **`Bottombar`** (barre d'actions, bas d'écran) — bascule **Jeu ↔ Édition**, **Stop général**
-  (`stopAllVoices`, panique), **pages** (onglets défilables + ajout en Édition), **Import
-  rapide** (sélecteur de fichier direct), **Bibliothèque** (ouvre le panneau), **Réglages**
-  (tiroir réglages généraux).
-- **`Drawer`** (tiroir contextuel, à droite, avec voile) — trois contenus : `PadSettings`
-  (renommage, Mode de lecture, gain **dB**, assignation depuis la bibliothèque, suppression),
-  `PageSettings` (renommage, Polyphonie, grille `rows`×`cols`, ordre, suppression), `Settings`
-  (réglages globaux : Arrière-plan, Nombre maximum de voix, langue). Fermeture : ✕ ou tap hors.
-  **Tiroir pad : Édition seulement** (en Jeu, un tap sur un pad joue — zéro faux geste) ;
-  la création d'un pad (case « + », Édition) ouvre son tiroir.
-- **`LibraryPanel`** — bibliothèque en **panneau plein écran** : import, renommage (`label`),
-  suppression (avec avertissement des pads impactés), **pré-écoute** (contenu `Library`).
-- `PadGrid` / `Pad` — grille `rows`×`cols`, état *actif / introuvable / vide*, branchement sur
-  `pad-input` (Jeu) ; en Édition, tap → tiroir pad.
-- Indicateur visuel **actif** piloté par `activePadIds`.
+**Layout (decision 2026-07-02, v1)** — mobile-first, the grid at the center of the screen:
+- **`Topbar`** (top bar) — active page info: name/number, Polyphony, grid
+  dimensions. **Tap → page drawer** (in both modes).
+- **`Bottombar`** (action bar, bottom of screen) — **Play ↔ Edit** toggle, **Stop all**
+  (`stopAllVoices`, panic), **pages** (scrollable tabs + add in Edit), **Quick import**
+  (direct file picker), **Library** (opens the panel), **Settings**
+  (global settings drawer).
+- **`Drawer`** (contextual drawer, on the right, with scrim) — three contents: `PadSettings`
+  (rename, Play mode, gain **dB**, assignment from the library, deletion),
+  `PageSettings` (rename, Polyphony, `rows`×`cols` grid, ordering, deletion), `Settings`
+  (global settings: Background, Maximum number of voices, language). Closing: ✕ or tap outside.
+  **Pad drawer: Edit only** (in Play, tapping a pad plays — zero accidental gestures);
+  creating a pad (the « + » cell, Edit) opens its drawer.
+- **`LibraryPanel`** — library as a **full-screen panel**: import, rename (`label`),
+  deletion (with a warning about impacted pads), **preview** (`Library` content).
+- `PadGrid` / `Pad` — `rows`×`cols` grid, *active / missing / empty* state, wired to
+  `pad-input` (Play); in Edit, tap → pad drawer.
+- **Active** visual indicator driven by `activePadIds`.
 
-L'état d'ouverture du tiroir (`drawer`) vit dans le store (état UI, §9) et n'est muté que par
-les commandes. La **vue de `<main>`** (`view` : board ↔ bibliothèque) est une **projection de
-l'URL** (#23, §16) : seul `applyRoute` l'écrit, la navigation passe par des écritures d'URL.
+The drawer's open state (`drawer`) lives in the store (UI state, §9) and is only mutated by
+commands. The **`<main>` view** (`view`: board ↔ library) is a **projection of the
+URL** (#23, §16): only `applyRoute` writes it; navigation goes through URL writes.
 
-## 12. Cas limites & décisions de robustesse
+## 12. Edge cases & robustness decisions
 
-- **AudioContext suspendu** (retour de veille Android, politique autoplay) → `resume()` sur le prochain geste ; l'engine expose son état.
-- **Sample introuvable** (fichier supprimé hors app) → pad marqué *introuvable*, affiché comme tel, ne crashe pas ; le déclenchement est un no-op silencieux.
-- **Suppression d'une page** avec voix actives → `stopPage` d'abord, puis suppression.
-- **Import corrompu / format non décodable** → rejet avec message, aucune ligne créée.
-- **Gain** : échelle en **dB** (`[-60, +6]`, `0` = niveau d'origine, `-60` = muet), convertie en amplitude par l'engine.
-- **Redimensionnement de grille** : réduire `rows`/`cols` sous une position occupée est refusé (message) tant que le pad concerné n'est pas vidé/déplacé.
-- **Arrière-plan Android** (pause) : piloté par `Settings.backgroundBehavior`. Défaut `stopAll` = suspension de l'AudioContext + arrêt de toutes les voix ; `stopSustained` = arrête seulement Gate/Loop ; `keepPlaying` = laisse filer (usage ambiance continue).
+- **Suspended AudioContext** (Android wake from sleep, autoplay policy) → `resume()` on the next gesture; the engine exposes its state.
+- **Missing sample** (file deleted outside the app) → pad marked *missing*, displayed as such, no crash; triggering is a silent no-op.
+- **Deleting a page** with active voices → `stopPage` first, then deletion.
+- **Corrupt import / undecodable format** → rejected with a message, no row created.
+- **Gain**: **dB** scale (`[-60, +6]`, `0` = original level, `-60` = muted), converted to amplitude by the engine.
+- **Grid resizing**: shrinking `rows`/`cols` below an occupied position is refused (message) until the affected pad is emptied/moved.
+- **Android background** (pause): driven by `Settings.backgroundBehavior`. Default `stopAll` = suspend the AudioContext + stop all voices; `stopSustained` = stops only Gate/Loop; `keepPlaying` = lets it run (continuous ambience use case).
 
-## 13. Import & compression audio
+## 13. Audio import & compression
 
-**Principe : on ne stocke jamais l'original tel quel.** Tout sample importé est décodé puis **ré-encodé en OGG/Opus** avant écriture dans la bibliothèque. On évite ainsi de traîner des WAV/AIFF volumineux ; l'app ne conserve qu'un format compact et libre.
+**Principle: the original is never stored as-is.** Every imported sample is decoded then **re-encoded to OGG/Opus** before being written to the library. This avoids dragging around bulky WAV/AIFF files; the app keeps only a compact, free format.
 
-### Pipeline d'import
-1. `tauri-plugin-dialog` → sélection fichier(s). Formats **acceptés en entrée** : tout ce que la WebView sait décoder (wav, aif/aiff, mp3, ogg, m4a/aac, flac…).
-2. Lecture des octets via `tauri-plugin-fs` ; validation **taille max 20 Mo** (avant décodage, sur le fichier source) ; `decodeAudioData` → PCM (sert aussi à valider et extraire `durationMs`). Fichier trop lourd ou non décodable → rejet, aucune ligne créée.
-3. **Ré-encodage en OGG/Opus** — codec **Opus** (excellent pour voix/bruitages à faible débit et 100 % FOSS), débit fixe **96 kbps**. Mono conservé si la source est mono.
-4. Écriture du seul fichier compressé `{appDataDir}/audio/{sampleId}.ogg` + insertion `samples` (`mime = audio/ogg`). L'original n'est pas conservé.
+### Import pipeline
+1. `tauri-plugin-dialog` → file selection. **Accepted input** formats: anything the WebView can decode (wav, aif/aiff, mp3, ogg, m4a/aac, flac…).
+2. Read bytes via `tauri-plugin-fs`; validate **max size 20 MB** (before decoding, on the source file); `decodeAudioData` → PCM (also used to validate and extract `durationMs`). Too-large or undecodable file → rejected, no row created.
+3. **Re-encode to OGG/Opus** — **Opus** codec (excellent for voice/sound effects at low bitrates and 100% FOSS), fixed bitrate **96 kbps**. Mono preserved if the source is mono.
+4. Write only the compressed file `{appDataDir}/audio/{sampleId}.ogg` + insert into `samples` (`mime = audio/ogg`). The original is not kept.
 
-### Encodeur (décision : WASM embarqué)
-Le ré-encodage se fait **côté frontend** (règle « pas de logique métier en Rust »). Choix retenu pour la **portabilité maximale** : un **encodeur WASM FOSS embarqué** (libopus + conteneur ogg), indépendant de la version de l'Android System WebView. Comportement identique sur tous les appareils, aucune dépendance à une API navigateur optionnelle. WebCodecs `AudioEncoder` pourra servir de chemin accéléré **opportuniste** s'il est disponible, mais le WASM reste le socle de référence.
+### Encoder (decision: embedded WASM)
+Re-encoding happens **frontend-side** ("no business logic in Rust" rule). Choice made for **maximum portability**: an **embedded FOSS WASM encoder** (libopus + ogg container), independent of the Android System WebView version. Identical behavior on all devices, no dependency on an optional browser API. WebCodecs `AudioEncoder` may serve as an **opportunistic** accelerated path when available, but WASM remains the reference baseline.
 
-## 14. Flux de données (résumé)
+## 14. Data flow (summary)
 
 ```
 [UI Pad]  --pointer-->  [pad-input]  --intention-->  [command]
                                                         │
                     ┌───────────────────────────────────┼───────────────────────────┐
                     ▼                                   ▼                             ▼
-              [store mutation]                    [engine call]              [persistence (débouncé)]
+              [store mutation]                    [engine call]              [persistence (debounced)]
                     │                                   │
-                    └──────── activePadIds ◄────────────┘  (engine notifie, store reflète)
+                    └──────── activePadIds ◄────────────┘  (engine notifies, store reflects)
 ```
 
-## 15. Contraintes F-Droid & build
+## 15. F-Droid constraints & build
 
-- **Licence : `GPL-3.0-or-later`** — copyleft fort, la plus répandue et la mieux adaptée à l'écosystème F-Droid (compatible avec la dépendance libopus/ogg). Fichier `LICENSE` + en-têtes SPDX (`SPDX-License-Identifier: GPL-3.0-or-later`).
-- **Aucune dépendance Google** (Firebase, Play Services), aucun tracker, aucune pub, aucun compte requis.
-- **Build reproductible** : versions de toolchain épinglées, build déterministe ; Tauri v2 (WebView système, pas de dépendances Google par défaut) est adapté, contrairement à Capacitor qui traîne des dépendances propriétaires.
-- **Aucun contenu sous droits** embarqué (l'app est livrée sans audio).
-- Métadonnées F-Droid (structure fastlane : descriptions, captures, changelog) — à préparer au jalon d'empaquetage.
-- Audit des dépendances (plugins Tauri `sql`/`fs`/`dialog`, encodeur WASM libopus) : tous FOSS ; vérifier qu'aucune transitive propriétaire n'entre côté Android.
+- **License: `GPL-3.0-or-later`** — strong copyleft, the most widespread and the best suited to the F-Droid ecosystem (compatible with the libopus/ogg dependency). `LICENSE` file + SPDX headers (`SPDX-License-Identifier: GPL-3.0-or-later`).
+- **No Google dependency** (Firebase, Play Services), no trackers, no ads, no account required.
+- **Reproducible build**: pinned toolchain versions, deterministic build; Tauri v2 (system WebView, no Google dependencies by default) is a good fit, unlike Capacitor which drags in proprietary dependencies.
+- **No copyrighted content** bundled (the app ships without audio).
+- F-Droid metadata (fastlane structure: descriptions, screenshots, changelog) — to prepare at the packaging milestone.
+- Dependency audit (Tauri plugins `sql`/`fs`/`dialog`, WASM libopus encoder): all FOSS; verify that no proprietary transitive dependency enters on the Android side.
 
-## 16. Décisions verrouillées
+## 16. Locked decisions
 
-- **Vocabulaire** : voir le **Glossaire** en tête (source de vérité). Termes de comportement en terminologie contrôleur MIDI.
-- **i18n** : app multilingue, **FR par défaut** ; libellés en fichiers de langue, code/schéma en anglais.
-- **Gain** : échelle **dB** `[-60, +6]`, `0` = niveau d'origine, conversion → amplitude par l'engine.
-- **Bibliothèque** : gérée à part (CRUD) ; supprimer un sample référencé rend les pads *introuvables* (avertissement + confirmation), jamais de blocage dur.
-- **Arrière-plan** : réglable via `Settings.backgroundBehavior`, défaut **Tout stopper** (`stopAll`).
-- **Grille** : `4×4` par défaut, **redimensionnable par page**, bornée `cols ∈ [1,6]` × `rows ∈ [1,12]` (élargie 2026-07-02, migration 3).
-- **Compression à l'import** : ré-encodage systématique en **OGG/Opus à 96 kbps** ; WAV/AIFF non conservés (Vorbis abandonné).
-- **Encodeur** : **WASM libopus embarqué** (portabilité max) ; WebCodecs en accélération opportuniste seulement.
-- **Licence** : **`GPL-3.0-or-later`**.
-- **Multi-banques** : **v1 mono-banque** (une ligne `bank`) ; schéma déjà prêt pour du multi, renvoyé en v2.
-- **Nombre maximum de voix** : défaut **8** ; dépassement géré en **FIFO**, interne, non exposé.
-- **Taille max d'import** : **20 Mo** (sur le fichier source, avant décodage).
-- **Réseau** : **v1 100 % hors-ligne** — aucun accès réseau, aucune permission réseau Android (renforce la contrainte F-Droid §15, cohérent avec le côté offline-first « l'utilisateur importe ses fichiers »). L'import par URL (accès réseau, autorisation à la volée) est renvoyé en **v2**.
-- **Agencement UI v1** (2026-07-02) : **Topbar** (infos page → tiroir page) + **Bottombar**
-  (Jeu/Édition, Stop général, pages, Import rapide, Bibliothèque, Réglages) + **Drawer** droit
-  (pad — Édition seulement —, page, réglages) + **Bibliothèque en panneau plein écran**. Voir §11.
-- **Board complet à la création** (2026-07-02) : une page naît avec sa **grille remplie de
-  pads** (une case = un pad) et **chaque pad et chaque page a une couleur dès l'init**
-  (palette **OKLCH**, cycle par position/rang — `BankFactory`). Jamais de page vierge ni de
-  pad sans couleur. Style pad : **contour plein + fond teinté en transparence**.
-- **Style de code** (2026-07-02) : **orienté objet** pour services et fabriques à état
-  (classes + injection par constructeur) ; **DRY / SOLID / SoC impératifs** ; une seule
-  représentation de l'absence (`T | null`, jamais optionnel + nullable) ; typage strict via
-  les unions nommées du domaine.
-- **Unités CSS** (2026-07-02) : **jamais de `px`** hors épaisseurs de trait (bordures,
-  filets ≤ 3px) — dimensions, espacements, rayons, ombres en **rem** (ou unités
-  viewport/%) ; pilules en `999rem`.
-- **Pool** (2026-07-02) : le conteneur intermédiaire réservé est débloqué en v1 — **liste
-  de travail de session** (non persistée) alimentée depuis la bibliothèque ;
-  toucher un élément l'ARME (assignation à la volée), le pool reste affiché pendant qu'on
-  touche les pads. La gestion des tags vit dans une modale standard « Gérer les tags »
-  (en-tête du panneau Bibliothèque).
-- **Pool revu** (2026-07-04, #18) : outil d'**Édition exclusivement**. **Sidebar
-  systématique** en flux sur écran large (≥ 48 rem — ni bouton, ni fermeture) ; **tiroir
-  gauche** à bouton (bottombar) sur écran étroit, flottant aussi au-dessus de la
-  bibliothèque ouverte (`--z-pool`) pour le dépôt. **Glisser-déposer** : ligne de
-  bibliothèque → pool, élément du pool → pad (assignation immédiate) — type MIME partagé
-  `application/x-sampleboard-sample` (`ui/interaction/sample-dnd.ts`) ; raccourci
-  pointeur, le flux tactile « armer puis toucher » reste le chemin mobile. En-tête :
-  **Ajouter** (ouvre la bibliothèque) + **Vider** (`clearPool`). Curseur **main**
-  (`grab`/`grabbing`) sur les éléments glissables.
-- **Cartes de bibliothèque : waveform + progression** (2026-07-04, #19) : pics statiques
-  du sample sur chaque carte (`SampleWaveform`, tracé partagé `drawPeakBars` avec le pad) ;
-  pendant la pré-écoute, la partie jouée se remplit (`engine.previewProgress()`). rAF
-  seulement pendant la pré-écoute de la carte concernée.
-- **Gestion des tags → tiroir droit** (2026-07-04, #20) : la modale « Gérer les tags »
-  devient une vue du **tiroir contextuel** (`TagSettings`, `drawer = 'tags'`,
-  `openTagsDrawer`) — la liste se met à jour derrière, en direct.
-- **Bibliothèque = VUE du layout** (2026-07-04, #22 — supersède « panneau plein écran »
-  §11/M6) : `libraryOpen` bascule le contenu de `<main>` (grille ↔ bibliothèque), topbar
-  (titre « Bibliothèque » à la place du contexte de page ; visualiseur et Stop restent)
-  et bottombar demeurent. Ceci supprime les surcouches spéciales : plus de `--z-panel`,
-  le pool n'a plus à flotter au-dessus de la bibliothèque (sidebar en flux à côté,
-  `--z-pool: 19` réservé au tiroir étroit), le tiroir contextuel revient à
+- **Vocabulary**: see the **Glossary** at the top (source of truth). Behavior terms in MIDI controller terminology.
+- **i18n**: multilingual app, **FR by default**; labels in language files, code/schema in English.
+- **Gain**: **dB** scale `[-60, +6]`, `0` = original level, conversion → amplitude by the engine.
+- **Library**: managed separately (CRUD); deleting a referenced sample makes the pads *missing* (warning + confirmation), never a hard block.
+- **Background**: configurable via `Settings.backgroundBehavior`, default **« Tout stopper »** (`stopAll`).
+- **Grid**: `4×4` by default, **resizable per page**, bounded `cols ∈ [1,6]` × `rows ∈ [1,12]` (widened 2026-07-02, migration 3).
+- **Import compression**: systematic re-encoding to **OGG/Opus at 96 kbps**; WAV/AIFF not kept (Vorbis abandoned).
+- **Encoder**: **embedded WASM libopus** (max portability); WebCodecs as opportunistic acceleration only.
+- **License**: **`GPL-3.0-or-later`**.
+- **Multi-bank**: **v1 is single-bank** (one `bank` row); schema already multi-ready, deferred to v2.
+- **Maximum number of voices**: default **8**; overflow handled as **FIFO**, internal, not exposed.
+- **Max import size**: **20 MB** (on the source file, before decoding).
+- **Network**: **v1 is 100% offline** — no network access, no Android network permission (reinforces the F-Droid constraint §15, consistent with the offline-first stance "the user imports their files"). URL import (network access, on-the-fly permission) is deferred to **v2**.
+- **UI layout v1** (2026-07-02): **Topbar** (page info → page drawer) + **Bottombar**
+  (Play/Edit, Stop all, pages, Quick import, Library, Settings) + right **Drawer**
+  (pad — Edit only —, page, settings) + **Library as a full-screen panel**. See §11.
+- **Full board at creation** (2026-07-02): a page is born with its **grid filled with
+  pads** (one cell = one pad) and **every pad and every page has a color from init**
+  (**OKLCH** palette, cycled by position/rank — `BankFactory`). Never a blank page nor a
+  colorless pad. Pad style: **solid outline + transparency-tinted fill**.
+- **Code style** (2026-07-02): **object-oriented** for stateful services and factories
+  (classes + constructor injection); **DRY / SOLID / SoC mandatory**; a single
+  representation of absence (`T | null`, never optional + nullable); strict typing via
+  the domain's named unions.
+- **CSS units** (2026-07-02): **never `px`** except stroke widths (borders,
+  hairlines ≤ 3px) — dimensions, spacing, radii, shadows in **rem** (or
+  viewport/% units); pills as `999rem`.
+- **Pool** (2026-07-02): the reserved intermediate container is unlocked in v1 — **session
+  working list** (not persisted) fed from the library;
+  tapping an item ARMS it (on-the-fly assignment), the pool stays visible while
+  tapping pads. Tag management lives in a standard « Gérer les tags » (manage tags) modal
+  (header of the Library panel).
+- **Pool reworked** (2026-07-04, #18): an **Edit-only** tool. **Always-on sidebar**
+  in flow on wide screens (≥ 48 rem — no button, no close); button-driven **left
+  drawer** (bottombar) on narrow screens, also floating above the open
+  library (`--z-pool`) for dropping. **Drag and drop**: library row
+  → pool, pool item → pad (immediate assignment) — shared MIME type
+  `application/x-sampleboard-sample` (`ui/interaction/sample-dnd.ts`); a pointer
+  shortcut, the touch flow "arm then tap" remains the mobile path. Header:
+  **Ajouter** (add — opens the library) + **Vider** (clear — `clearPool`). **Hand** cursor
+  (`grab`/`grabbing`) on draggable items.
+- **Library cards: waveform + progress** (2026-07-04, #19): static peaks
+  of the sample on each card (`SampleWaveform`, `drawPeakBars` drawing shared with the pad);
+  during preview, the played portion fills in (`engine.previewProgress()`). rAF
+  only during the preview of the card concerned.
+- **Tag management → right drawer** (2026-07-04, #20): the « Gérer les tags » modal
+  becomes a view of the **contextual drawer** (`TagSettings`, `drawer = 'tags'`,
+  `openTagsDrawer`) — the list updates behind it, live.
+- **Library = a layout VIEW** (2026-07-04, #22 — supersedes "full-screen panel"
+  §11/M6): `libraryOpen` switches the content of `<main>` (grid ↔ library), topbar
+  (title « Bibliothèque » instead of the page context; visualizer and Stop remain)
+  and bottombar stay. This removes the special overlays: no more `--z-panel`,
+  the pool no longer needs to float above the library (sidebar in flow next to it,
+  `--z-pool: 19` reserved for the narrow drawer), the contextual drawer goes back to
   `--z-drawer: 20`.
-- **Navigation pilotée par l'URL** (2026-07-04, backlog #23 — livrée le jour même) :
-  l'affichage de la vue courante est une **projection de l'URL**, jamais une variable d'état
-  indépendante (`store.view` remplace le booléen `libraryOpen`, conservé en lecture dérivée).
-  Quatre éléments :
-  table `identifiant de vue → composant` (structure de données, pas de branchements), fonction
-  de résolution URL → composant avec **cas par défaut** (board), rendu dynamique du composant
-  résolu, synchronisation bidirectionnelle (URL → affichage à l'init/`hashchange`/retour-avance ;
-  affichage → URL par écriture d'URL uniquement, jamais de mutation directe). Paramètres fixés :
-  **encodage fragment (`#`)** — le protocole d'assets Tauri ne fait pas de fallback `index.html`,
-  le fragment fonctionne à l'identique en `tauri dev` et en APK — **avec gestion d'historique
-  délibérée** : pile cohérente pour le geste retour Android/tactile (push pour une navigation
-  réelle, `replace` pour les redirections par défaut et corrections d'URL) ; **cardinalité
-  vue + paramètres** (ex. `#/library?tag=…`), la fonction de résolution porte le décodage des
-  paramètres variables. Implémentation : `app/navigation.ts` (résolution pure) +
-  `app/router.ts` (`createHashRouter`, profondeur marquée dans `history.state` — le ✕ et le
-  geste retour dépilent la même entrée ; `createLoopbackRouter` par défaut hors navigateur),
-  table vue → composant et rendu dynamique dans `App.svelte`. Un paramètre de filtre
-  **périmé** (tag disparu) retombe sur « Tous », URL corrigée par `replace` — jamais de
-  filtre fantôme qui vide la bibliothèque. : étiquettes **n-à-n** (`tags` +
-  `sample_tags`, migration 4), personnalisables (CRUD) ; liste par défaut semée au premier
-  lancement (SFX, Répliques, Jingle, Musique, Ambiance, Voix, Réaction, Meme, Alerte —
-  libellés i18n injectés à la création). **« Non classé » = filtre virtuel** (samples sans
-  tag), jamais stocké. Filtre en bibliothèque + recherche/filtre dans la modale de choix de
-  sample ; assignation page→pad directe depuis la bibliothèque.
-- **« Découper » rapatrié en v1** (2026-07-02, tri backlog #4/#5) : **éditeur audio** en vue
-  dédiée plein écran — waveform + rognage **start/end** avant encodage (à l'import et depuis
-  la bibliothèque), **undo/redo**, pré-écoute de la sélection. Le rognage s'applique au PCM
-  décodé AVANT l'encodage Opus (le fichier stocké est déjà rogné). Empilement : modale/vue de
-  niveau 2 (au-dessus de la modale d'import, top-layer natif). Le mot « couper » reste banni
-  du reste de l'UI (« stopper »).
-- **Import multiple & archives** (2026-07-02) : les inputs d'import acceptent la **sélection
-  multifichier** et les **archives zip/rar**. UN fichier audio → éditeur audio (flux M7
-  inchangé) ; plusieurs fichiers ou une archive → **lot direct** sans éditeur (le rognage
-  reste possible après coup via « Découper »), suivi dans la **modale d'import**
-  (barre globale, statut par fichier, interruption). Le bouton d'import de la bottombar
-  **ouvre cette modale** (choix des fichiers puis progression au même endroit) ; l'input
-  de la bibliothèque reste un accès direct au sélecteur. Archives dépliées via **libarchive
-  compilé en WASM** (`libarchive.js`, MIT ; libarchive, BSD — lecteurs zip + rar4/rar5
-  clean-room) : le code **unrar officiel est refusé** (licence non libre, incompatible
-  GPL-3.0 et bloquante F-Droid). Le worker et son `.wasm` sont servis côte à côte à chemin
-  stable (plugin Vite dédié). Bornes : archive ≤ **200 Mo** (`ARCHIVE_MAX_BYTES`), chaque
-  entrée reste soumise aux 20 Mo d'import ; seules les extensions audio candidates entrent
-  dans le lot (le décodage reste l'arbitre final, §12). Build from-source du WASM : même
-  traitement que l'encodeur opus (jalon Empaquetage).
-- **Banque d'usine de référence — Freesound CC0** (2026-07-04, supersède le lot #14 de
-  78 sons à provenance non tracée) : la bibliothèque d'usine devient une **banque de
-  référence d'environ 25 classiques de soundboard** (buzzer, ding, ba-dum tss, roulement,
-  applaudissements, rires sitcom, tada, trombone triste, cloche d'hôtel, sifflet, cowbell,
-  air horn, whoosh, grillons et suspense en Loop, etc.) — « des sons de référence, pas du
-  remplissage ». Provenance **exclusivement Freesound en CC0** (previews HQ OGG →
-  ré-encodage Opus 96k via ffmpeg dockerisé) ; sélection automatique par réputation
-  (`scripts/freesound-worklist.json` + `scripts/freesound-rebank.mjs`, clé API requise)
-  puis **validation à l'écoute** ; `source` + `license` renseignés pour chaque entrée du
-  manifest — le TODO licences (bloquant F-Droid) disparaît avec le lot d'origine.
-- **Bus master & pré-écoute unifiée** (2026-07-03) : le graphe Web Audio a un **point de
-  passage unique vers la sortie** — `master (GainNode) → destination` ; **tout ce qui sonne
-  s'y raccorde** (chaînes de voix des pads, pré-écoutes), jamais à `destination` en direct.
-  C'est là que se branchent gain master, limiteur ou visualiseur global (`masterWaveform`,
-  analyseur en **dérivation paresseuse** : créé au premier appel, le son ne le traverse
-  pas). La **pré-écoute est UN comportement** partagé (bibliothèque, modale de sample,
-  éditeur audio) : **une seule à la fois** dans l'app, remplacée par la suivante, **bascule
-  ▶/■** sur le bouton, et **toute autre action fait office de stop** — règle appliquée
-  **mécaniquement** via la liste `PREVIEW_STOPPING_COMMANDS` (commands.ts, test générique
-  dédié), l'arrière-plan stoppant la pré-écoute **quel que soit** le réglage (son de
-  parcours, pas de jeu). Reflet : `store.previewingSampleId` ; mutation via `commands`
-  uniquement ; le moteur ne notifie la fin que par **identité de source** (fin naturelle).
-  **La pré-écoute s'affiche dans le visualiseur topbar** (#24, 2026-07-04) : onde en couleur
-  accent aux côtés des ondes de voix (tap `previewWaveform` en dérivation paresseuse, même
-  règle que l'analyseur master) — tout ce qui sonne sur le main out se voit.
-- **Deux distributions** (2026-07-04, précisé) : **Android/F-Droid** (M9, canal primaire) et
-  **web/PWA** (nouveau jalon **M10 — Distribution web**, `0.11.0`, APRÈS M9). L'**image
-  Docker auto-hébergeable n'est PAS une distribution à part entière** : c'est un **mode de
-  livraison** de la web/PWA sur un serveur (le même build statique, servi soi-même).
-  Persistance du canal web : **IndexedDB natif** —
-  implémentation web des dépôts `storage/types.ts` (banque, samples, réglages, tags + octets
-  audio), la couture déjà prouvée par le mode mémoire ; le schéma SQL/SQLite reste propre à
-  Tauri (pas de SQLite WASM — anti-overengineering). PWA : manifest + icônes + service
-  worker offline (l'app et les samples d'usine). Livraison de la web/PWA : hébergement
-  public ET/OU image Docker de serveur statique. Ceci rapatrie le « mode navigateur pur »
-  de v2 (§17) en M10.
-- **Ordre de validation : web d'abord, Android ensuite.** Chaque jalon est d'abord développé et validé sur **web** (dev Vite http://localhost:1420 + fenêtre `tauri dev` bureau) ; la validation sur **appareil Android réel** est un **second temps**, jamais un prérequis pour avancer. La cible finale reste F-Droid/Android (§15) — c'est l'ordre de travail qui est fixé, pas la cible.
+- **URL-driven navigation** (2026-07-04, backlog #23 — shipped same day):
+  the display of the current view is a **projection of the URL**, never an independent
+  state variable (`store.view` replaces the `libraryOpen` boolean, kept as a derived read).
+  Four elements:
+  a `view identifier → component` table (data structure, no branching), a URL → component
+  resolution function with a **default case** (board), dynamic rendering of the resolved
+  component, bidirectional synchronization (URL → display at init/`hashchange`/back-forward;
+  display → URL through URL writes only, never direct mutation). Fixed parameters:
+  **fragment encoding (`#`)** — the Tauri asset protocol has no `index.html` fallback,
+  the fragment works identically in `tauri dev` and in the APK — **with deliberate history
+  management**: a coherent stack for the Android/touch back gesture (push for a real
+  navigation, `replace` for default redirections and URL corrections); **view + parameters
+  cardinality** (e.g. `#/library?tag=…`), the resolution function owns the decoding of
+  variable parameters. Implementation: `app/navigation.ts` (pure resolution) +
+  `app/router.ts` (`createHashRouter`, depth marked in `history.state` — the ✕ and the
+  back gesture pop the same entry; `createLoopbackRouter` as the default outside a browser),
+  view → component table and dynamic rendering in `App.svelte`. A **stale** filter
+  parameter (vanished tag) falls back to « Tous » (all), URL corrected via `replace` — never a
+  ghost filter that empties the library.
+- **Sample tags** (2026-07-02, backlog triage #10-12): **n-to-n** labels (`tags` +
+  `sample_tags`, migration 4), customizable (CRUD); default list seeded on first
+  launch (SFX, Répliques, Jingle, Musique, Ambiance, Voix, Réaction, Meme, Alerte —
+  i18n labels injected at creation). **« Non classé » (untagged) = virtual filter** (samples
+  without tags), never stored. Filter in the library + search/filter in the sample-picker
+  modal; direct page→pad assignment from the library.
+- **« Découper » brought back into v1** (2026-07-02, backlog triage #4/#5): **audio editor** as a
+  dedicated full-screen view — waveform + **start/end** trimming before encoding (on import and from
+  the library), **undo/redo**, preview of the selection. Trimming applies to the decoded
+  PCM BEFORE Opus encoding (the stored file is already trimmed). Stacking: level-2
+  modal/view (above the import modal, native top layer). The word « couper » remains banned
+  from the rest of the UI (« stopper »).
+- **Batch import & archives** (2026-07-02): the import inputs accept **multi-file
+  selection** and **zip/rar archives**. ONE audio file → audio editor (M7 flow
+  unchanged); several files or an archive → **direct batch** without the editor (trimming
+  remains possible afterwards via « Découper »), tracked in the **import modal**
+  (global bar, per-file status, interruption). The bottombar import button
+  **opens this modal** (file choice then progress in the same place); the library
+  input remains a direct path to the picker. Archives unpacked via **libarchive
+  compiled to WASM** (`libarchive.js`, MIT; libarchive, BSD — zip + rar4/rar5
+  clean-room readers): the **official unrar code is refused** (non-free license, incompatible
+  with GPL-3.0 and an F-Droid blocker). The worker and its `.wasm` are served side by side at a
+  stable path (dedicated Vite plugin). Bounds: archive ≤ **200 MB** (`ARCHIVE_MAX_BYTES`), each
+  entry remains subject to the 20 MB import limit; only candidate audio extensions enter
+  the batch (decoding remains the final arbiter, §12). From-source build of the WASM: same
+  treatment as the opus encoder (Packaging milestone).
+- **Reference factory bank — Freesound CC0** (2026-07-04, supersedes batch #14 of
+  78 sounds of untraced provenance): the factory library becomes a **reference bank
+  of about 25 soundboard classics** (buzzer, ding, ba-dum tss, drum roll,
+  applause, sitcom laughter, tada, sad trombone, hotel bell, whistle, cowbell,
+  air horn, whoosh, crickets and suspense as Loops, etc.) — "reference sounds, not
+  filler". Provenance **exclusively Freesound under CC0** (HQ OGG previews →
+  Opus 96k re-encoding via dockerized ffmpeg); automatic selection by reputation
+  (`scripts/freesound-worklist.json` + `scripts/freesound-rebank.mjs`, API key required)
+  then **validation by listening**; `source` + `license` filled in for every entry of the
+  manifest — the licenses TODO (F-Droid blocker) disappears along with the original batch.
+- **Master bus & unified preview** (2026-07-03): the Web Audio graph has a **single
+  chokepoint to the output** — `master (GainNode) → destination`; **everything that sounds
+  connects to it** (pad voice chains, previews), never to `destination` directly.
+  That is where master gain, a limiter or a global visualizer plug in (`masterWaveform`,
+  analyser as a **lazy side-tap**: created on first call, audio does not flow through
+  it). The **preview is ONE shared behavior** (library, sample modal,
+  audio editor): **only one at a time** in the app, replaced by the next one, **▶/■
+  toggle** on the button, and **any other action acts as a stop** — a rule enforced
+  **mechanically** via the `PREVIEW_STOPPING_COMMANDS` list (commands.ts, dedicated
+  generic test), with the background stopping the preview **regardless** of the setting
+  (a browsing sound, not gameplay). Reflection: `store.previewingSampleId`; mutation via
+  `commands` only; the engine notifies the end only by **source identity** (natural end).
+  **The preview shows in the topbar visualizer** (#24, 2026-07-04): an accent-colored
+  wave alongside the voice waves (`previewWaveform` tap as a lazy side-tap, same
+  rule as the master analyser) — everything that sounds on the main out is visible.
+- **Two distributions** (2026-07-04, clarified): **Android/F-Droid** (M9, primary channel) and
+  **web/PWA** (new milestone **M10 — Web distribution**, `0.11.0`, AFTER M9). The **self-hostable
+  Docker image is NOT a distribution in its own right**: it is a **delivery mode**
+  of the web/PWA on a server (the same static build, self-served).
+  Web channel persistence: **native IndexedDB** —
+  web implementation of the `storage/types.ts` repositories (bank, samples, settings, tags +
+  audio bytes), a seam already proven by the memory mode; the SQL/SQLite schema remains
+  Tauri-specific (no SQLite WASM — anti-overengineering). PWA: manifest + icons + offline
+  service worker (the app and the factory samples). Web/PWA delivery: public hosting
+  AND/OR a static-server Docker image. This brings the v2 "pure browser mode"
+  (§17) forward into M10.
+- **Validation order: web first, Android second.** Every milestone is first developed and validated on the **web** (Vite dev http://localhost:1420 + desktop `tauri dev` window); validation on a **real Android device** is a **second step**, never a prerequisite to move forward. The final target remains F-Droid/Android (§15) — it is the working order that is fixed, not the target.
 
-## 17. Évolutions futures (hors v1)
+## 17. Future evolutions (beyond v1)
 
-**Découpe/rognage des samples** (« découper » : trim des silences, sélection d'un extrait à l'import), **multi-banques** (plusieurs banques indépendantes, bascule ; schéma déjà prêt), _(éventuel conteneur intermédiaire « pool » entre bibliothèque et banque)_, raccourcis clavier, enregistrement de samples, effets (volume master, fondu, pitch), affichage waveform, réorganisation drag-and-drop avancée, MIDI, export/import de banque (fichier portable), iOS. _(Le « mode navigateur pur » a été rapatrié en **M10 — Distribution web**, décision §16 du 2026-07-04.)_
+**Sample trimming/cutting** (« découper »: silence trimming, selecting an excerpt on import), **multi-bank** (several independent banks, switching; schema already ready), _(possible intermediate "pool" container between library and bank)_, keyboard shortcuts, sample recording, effects (master volume, fade, pitch), waveform display, advanced drag-and-drop reordering, MIDI, bank export/import (portable file), iOS. _(The "pure browser mode" was brought forward into **M10 — Web distribution**, decision §16 of 2026-07-04.)_
 
-## 18. Jalons de développement (incrémental)
+## 18. Development milestones (incremental)
 
-Découpage vérifiable étape par étape — chaque jalon se valide avant d'empiler le suivant.
+Verifiable step-by-step breakdown — each milestone is validated before stacking the next.
 
-- **M0 — Socle** : scaffold Vite + Svelte 5 + TS strict + Tauri v2 (SPA static, SSR off), composition root squelette, i18n minimal (FR), lancement `tauri dev`.
-- **M1 — Audio** : `AudioEngine` + un pad codé en dur qui joue un buffer importé (One-Shot). Valide Web Audio + `resume()` sur Android réel.
-- **M2 — Cœur** : domaine + store + commandes + multi-pages + les 3 Modes de lecture + Polyphonie Mono/Poly. Valide la matrice §7.
-- **M3 — Édition** : mode Édition complet (CRUD pads/pages, gain **dB**, Mode de lecture, grille `rows`×`cols`, assignation depuis la bibliothèque).
-- **M4 — Bibliothèque & import** : `Library` (CRUD samples), import via dialog/fs + **ré-encodage OGG/Opus** à l'import, pré-écoute. Valide la chaîne décodage→encodage sur appareil réel.
-- **M5 — Persistance & réglages** : schéma SQLite + repositories (banque, bibliothèque, réglages) + stockage fichiers audio + `Settings` (Arrière-plan, Nombre maximum de voix, langue) + coordinateur autosave + chargement au démarrage.
-- **M6 — Empaquetage** : build Android, audit dépendances FOSS, build reproductible, licence, métadonnées F-Droid.
+- **M0 — Foundation**: scaffold Vite + Svelte 5 + strict TS + Tauri v2 (static SPA, SSR off), skeleton composition root, minimal i18n (FR), `tauri dev` launch.
+- **M1 — Audio**: `AudioEngine` + one hard-coded pad playing an imported buffer (One-Shot). Validates Web Audio + `resume()` on a real Android device.
+- **M2 — Core**: domain + store + commands + multi-page + the 3 Play modes + Mono/Poly Polyphony. Validates the §7 matrix.
+- **M3 — Edit**: full Edit mode (pad/page CRUD, **dB** gain, Play mode, `rows`×`cols` grid, assignment from the library).
+- **M4 — Library & import**: `Library` (sample CRUD), import via dialog/fs + **OGG/Opus re-encoding** on import, preview. Validates the decode→encode chain on a real device.
+- **M5 — Persistence & settings**: SQLite schema + repositories (bank, library, settings) + audio file storage + `Settings` (Background, Maximum number of voices, language) + autosave coordinator + load on startup.
+- **M6 — Packaging**: Android build, FOSS dependency audit, reproducible build, license, F-Droid metadata.
 
 ---

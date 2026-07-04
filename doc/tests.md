@@ -1,27 +1,27 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 # Tests
 
-**Règle projet :** pour chaque feature, les tests nécessaires doivent être **écrits → exécutés →
-validés (verts)**, *puis seulement* la doc est mise à jour.
+**Project rule:** for each feature, the necessary tests must be **written → run →
+validated (green)**, and *only then* is the documentation updated.
 
-## Deux niveaux
+## Two levels
 
-**1. Unitaire — [Vitest](https://vitest.dev)** (natif Vite, TS). Cœur pur (`domain` / `engine` /
-`app`), environnement Node : rapide, déterministe. Le Web Audio y est **simulé par injection**
-(un `AudioContext` factice via `AudioEngine({ createContext })`). Fichiers dans le répertoire dédié
+**1. Unit — [Vitest](https://vitest.dev)** (Vite-native, TS). Pure core (`domain` / `engine` /
+`app`), Node environment: fast, deterministic. Web Audio is **faked by injection**
+(a fake `AudioContext` via `AudioEngine({ createContext })`). Files in the dedicated directory
 `tests/**/*.test.ts` (config `vitest.config.ts`).
 
-**2. E2E — [Playwright](https://playwright.dev) / Chromium** dans un **vrai navigateur**. Couvre
-ce que les mocks NE PEUVENT PAS voir : Web Audio réel, **Worker WASM de l'encodeur Opus**, import
-réel. C'est la leçon d'une dette concrète : un encodeur cassé (en-têtes OGG manquantes) **passait**
-les tests unitaires mockés — seul un navigateur réel l'a attrapé. Fichiers `e2e/*.spec.ts` (config
-`playwright.config.ts`) ; Playwright démarre lui-même Vite.
+**2. E2E — [Playwright](https://playwright.dev) / Chromium** in a **real browser**. Covers
+what mocks CANNOT see: real Web Audio, **the Opus encoder's WASM Worker**, real
+import. This is the lesson from a concrete debt: a broken encoder (missing OGG headers) **passed**
+the mocked unit tests — only a real browser caught it. Files `e2e/*.spec.ts` (config
+`playwright.config.ts`); Playwright starts Vite itself.
 
-## Lancer (en Docker rootless — zéro dépendance sur l'hôte)
+## Running (in rootless Docker — zero host dependency)
 
 ```bash
-# Unitaires
-docker compose -f docker-compose.dev.yml run --rm dev npm run test        # (test:watch pour le watch)
+# Unit tests
+docker compose -f docker-compose.dev.yml run --rm dev npm run test        # (test:watch for watch mode)
 # Types + build
 docker compose -f docker-compose.dev.yml run --rm dev npm run check
 docker compose -f docker-compose.dev.yml run --rm dev npm run build
@@ -29,88 +29,88 @@ docker compose -f docker-compose.dev.yml run --rm dev npm run build
 docker compose -f docker-compose.e2e.yml run --rm e2e
 ```
 
-Validation complète d'une feature = unitaires + `check` + `build` + **E2E** au vert. Pour toute
-feature qui touche au navigateur (audio, encodeur, UI), l'E2E est **obligatoire** (les mocks ne
-suffisent pas).
+Full validation of a feature = unit + `check` + `build` + **E2E** all green. For any
+feature touching the browser (audio, encoder, UI), E2E is **mandatory** (mocks are not
+enough).
 
-## Garde automatique : `tests-gate`
+## Automatic guard: `tests-gate`
 
-`.claude/hooks/tests-gate.sh` (hook `PreToolUse` sur `git commit`) applique la règle :
+`.claude/hooks/tests-gate.sh` (`PreToolUse` hook on `git commit`) enforces the rule:
 
-1. **Présence** *(non bloquant)* — du code d'implémentation commité sans aucun test → avertit.
-2. **Unitaires** *(bloquant)* — Vitest en Docker ; échec → commit refusé (`exit 2`).
-3. **E2E** *(bloquant si code navigateur touché)* — si des fichiers `src/` ou `e2e/` sont commités
-   et que l'image Playwright est présente, lance la suite E2E ; échec → commit refusé. Image
-   absente ou Docker indisponible → averti sans bloquer (à valider à la main).
+1. **Presence** *(non-blocking)* — implementation code committed without any test → warns.
+2. **Unit** *(blocking)* — Vitest in Docker; failure → commit refused (`exit 2`).
+3. **E2E** *(blocking if browser code is touched)* — if `src/` or `e2e/` files are committed
+   and the Playwright image is present, runs the E2E suite; failure → commit refused. Image
+   missing or Docker unavailable → warns without blocking (to validate manually).
 
-Complète le hook `doc-sync` (rappel de mise à jour de `doc/`). Les deux sont déclarés dans
+Complements the `doc-sync` hook (reminder to update `doc/`). Both are declared in
 `.claude/settings.json`.
 
-## Couverture actuelle (M1 → M8 en cours) — 283 unitaires + 13 E2E
+## Current coverage (M1 → M8 in progress) — 283 unit + 13 E2E
 
-> Liste ci-dessous non exhaustive pour M8 (tags, import multiple, samples d'usine) — voir
-> `doc/bibliotheque-import.md` et `doc/samples-usine.md`.
+> List below non-exhaustive for M8 (tags, multiple import, factory samples) — see
+> `doc/library-import.md` and `doc/factory-samples.md`.
 
-- `tests/engine/voice.test.ts` — conversion gain dB → amplitude (bornes, plancher -60 dB,
-  monotonie).
-- `tests/engine/audio-engine.test.ts` — contexte & autoplay (`resume` idempotent, `state`), cache
-  (`load` / `unload` / `isLoaded`), One-Shot, reflet des voix (`onPlayingChanged`).
-- `tests/engine/audio-engine.m2.test.ts` — matrice §7 : Gate (press/release), Loop (toggle),
-  choke Mono, plafond FIFO, `stopPad` / `stopPage`.
-- `tests/domain/invariants.test.ts` — bornes gain/grille, `padsFitGrid`.
-- `tests/domain/selectors.test.ts` — lectures dérivées de l'arbre banque.
-- `tests/app/commands.test.ts` — résolution pad/page + délégation au moteur (store & moteur
-  factices).
-- `tests/app/commands.edit.test.ts` — édition M3 : CRUD pads/pages, invariant de réduction de
-  grille, sélection.
-- `tests/app/commands.library.test.ts` — import M4/M5 : pipeline (taille/décodage/encodage/
-  écriture disque), preview, rename, delete (pads → `sampleId` null, §8), échecs d'écriture.
-- `tests/ui/pad-input.test.ts` — mappage Pointer Events par Mode de lecture (élément factice).
-- `tests/engine/audio-engine.m5.test.ts` — arrêts liés à l'Arrière-plan : `stopAll`,
-  `stopSustained` (voix entretenues vs One-Shot), `suspend`.
-- `tests/app/commands.settings.test.ts` — réglages M5 (bornes `maxVoices`, hydratation) +
+- `tests/engine/voice.test.ts` — dB gain → amplitude conversion (bounds, -60 dB floor,
+  monotonicity).
+- `tests/engine/audio-engine.test.ts` — context & autoplay (idempotent `resume`, `state`), cache
+  (`load` / `unload` / `isLoaded`), One-Shot, voice reflection (`onPlayingChanged`).
+- `tests/engine/audio-engine.m2.test.ts` — §7 matrix: Gate (press/release), Loop (toggle),
+  Mono choke, FIFO ceiling, `stopPad` / `stopPage`.
+- `tests/domain/invariants.test.ts` — gain/grid bounds, `padsFitGrid`.
+- `tests/domain/selectors.test.ts` — derived reads of the bank tree.
+- `tests/app/commands.test.ts` — pad/page resolution + delegation to the engine (fake store &
+  engine).
+- `tests/app/commands.edit.test.ts` — M3 editing: pad/page CRUD, grid-shrink invariant,
+  selection.
+- `tests/app/commands.library.test.ts` — M4/M5 import: pipeline (size/decode/encode/
+  disk write), preview, rename, delete (pads → `sampleId` null, §8), write failures.
+- `tests/ui/pad-input.test.ts` — Pointer Events mapping per Play mode (fake element).
+- `tests/engine/audio-engine.m5.test.ts` — Background-related stops: `stopAll`,
+  `stopSustained` (sustained voices vs One-Shot), `suspend`.
+- `tests/app/commands.settings.test.ts` — M5 settings (`maxVoices` bounds, hydration) +
   `applyBackgroundBehavior`.
-- `tests/app/persistence.test.ts` — autosave : debounce, rafale → un save, flush, stop,
-  résilience aux échecs (réactivité factice, timers simulés).
-- `tests/app/commands.ui.test.ts` — interface M6 (§11) : tiroir contextuel (pad Édition
-  seulement, page, réglages, fermetures), panneau bibliothèque (une surcouche à la fois),
-  Stop général.
+- `tests/app/persistence.test.ts` — autosave: debounce, burst → one save, flush, stop,
+  resilience to failures (fake reactivity, fake timers).
+- `tests/app/commands.ui.test.ts` — M6 interface (§11): contextual drawer (pad in Edit
+  only, page, settings, closings), library panel (one overlay at a time),
+  Stop all.
 - `tests/engine/pcm.test.ts`, `tests/app/selection-history.test.ts`,
-  `tests/app/commands.audio-editor.test.ts` — M7 : rognage/pics/bornes purs, historique
-  undo/redo, flux éditeur complet (import/retravail, échecs, restauration).
+  `tests/app/commands.audio-editor.test.ts` — M7: pure trimming/peaks/bounds, undo/redo
+  history, complete editor flow (import/rework, failures, restoration).
 - `tests/storage/db.test.ts`, `bank-repository.test.ts`, `sample-settings-repository.test.ts`,
-  `write-lock.test.ts` — couche storage contre un **vrai SQLite en mémoire** (`node:sqlite`) :
-  migrations, aller-retour banque (upsert/élagage, cascades, `ON DELETE SET NULL`), bibliothèque,
-  réglages, verrou d'écriture. Utilitaires : `node-sqlite-executor.ts`, `node-sqlite.d.ts`.
-- `tests/app/tag-filter.test.ts` — recherche texte de la bibliothèque (`filterSamples`) :
-  casse/espaces, combinaison ET avec le filtre par tag et « Non classé ».
-- `tests/engine/fake-audio-context.ts` — `AudioContext` factice partagé (utilitaire, pas un test).
-- `tests/app/fake-sample-repository.ts` — dépôt bibliothèque factice partagé (utilitaire).
-- `tests/app/fake-engine.ts` — **moteur factice PARTAGÉ** des tests de commandes (superset
-  surchargeable — remplace les sept `fakeEngine` locaux dupliqués, DRY).
-- `tests/engine/audio-engine.preview.test.ts` — pré-écoute unifiée (sample/PCM, remplacement,
-  `stopPreview` avec déconnexion synchrone, contrat `false` sur sélection vide) + **garde du
-  `onEnded` par identité de source** (le onended tardif d'une lecture stoppée/remplacée — même
-  du même sample — ne notifie pas) + **topologie du bus master** (voix et pré-écoutes →
-  master → destination, jamais `destination` en direct ; analyseur `masterWaveform` en
-  dérivation paresseuse).
-- **Règle « toute action stoppe la pré-écoute » : test GÉNÉRIQUE** (commands.library.test.ts)
-  qui itère la liste exportée `PREVIEW_STOPPING_COMMANDS` — un oubli d'appel est impossible
-  (application mécanique), un oubli d'inscription à la liste se voit en revue via ce test.
-  L'arrière-plan est couvert pour les TROIS réglages (commands.settings.test.ts).
+  `write-lock.test.ts` — storage layer against a **real in-memory SQLite** (`node:sqlite`):
+  migrations, bank round-trip (upsert/prune, cascades, `ON DELETE SET NULL`), library,
+  settings, write lock. Utilities: `node-sqlite-executor.ts`, `node-sqlite.d.ts`.
+- `tests/app/tag-filter.test.ts` — library text search (`filterSamples`):
+  case/whitespace, AND combination with the tag filter and « Non classé » (untagged).
+- `tests/engine/fake-audio-context.ts` — shared fake `AudioContext` (utility, not a test).
+- `tests/app/fake-sample-repository.ts` — shared fake library repository (utility).
+- `tests/app/fake-engine.ts` — **SHARED fake engine** for the command tests (overridable
+  superset — replaces the seven duplicated local `fakeEngine`s, DRY).
+- `tests/engine/audio-engine.preview.test.ts` — unified preview (sample/PCM, replacement,
+  `stopPreview` with synchronous disconnection, `false` contract on empty selection) + **`onEnded`
+  guard by source identity** (the late onended of a stopped/replaced playback — even
+  of the same sample — does not notify) + **master bus topology** (voices and previews →
+  master → destination, never `destination` directly; `masterWaveform` analyser as a
+  lazy side-tap).
+- **Rule "every action stops the preview": GENERIC test** (commands.library.test.ts)
+  that iterates the exported list `PREVIEW_STOPPING_COMMANDS` — forgetting a call is impossible
+  (mechanical application), forgetting to register in the list is visible in review via this test.
+  Background is covered for ALL THREE settings (commands.settings.test.ts).
 
-**E2E (navigateur réel) :**
+**E2E (real browser):**
 
-- `e2e/import.spec.ts` — import WAV → **OGG/Opus réel** (encodeur WASM) → re-décodage → entrée
-  bibliothèque.
-- `e2e/play.spec.ts` — import → assignation à un pad Loop → lecture → pad *actif* (moteur Web Audio
-  + reflet `activePadIds` réels).
-- `e2e/audio-editor.spec.ts` — M7 : rognage à la poignée (drag réel), undo, durée persistée
-  réduite, retravail d'un sample existant.
-- `e2e/library-tags.spec.ts` — M8 : tags/filtres, assignation à la volée, pool, recherche
-  (modale de sample ET panneau bibliothèque — état « aucun résultat » + Tout afficher).
-- `e2e/helpers.ts` — génération de WAV + helpers d'import/éditeur (utilitaire, pas un test).
+- `e2e/import.spec.ts` — WAV import → **real OGG/Opus** (WASM encoder) → re-decode → library
+  entry.
+- `e2e/play.spec.ts` — import → assignment to a Loop pad → playback → *active* pad (real Web Audio
+  engine + real `activePadIds` reflection).
+- `e2e/audio-editor.spec.ts` — M7: handle trimming (real drag), undo, reduced persisted
+  duration, rework of an existing sample.
+- `e2e/library-tags.spec.ts` — M8: tags/filters, on-the-fly assignment, pool, search
+  (sample modal AND library panel — "no results" state + Show all).
+- `e2e/helpers.ts` — WAV generation + import/editor helpers (utility, not a test).
 
-> Au navigateur nu, la persistance passe par les dépôts **mémoire** (voir doc M5) : l'E2E couvre
-> le boot asynchrone et la banque par défaut, pas SQLite — celui-ci est couvert par les tests
-> `tests/storage/*` (vrai SQLite) et la validation manuelle `tauri dev`.
+> In the bare browser, persistence goes through the **memory** repositories (see M5 doc): E2E covers
+> the asynchronous boot and the default bank, not SQLite — the latter is covered by the
+> `tests/storage/*` tests (real SQLite) and manual `tauri dev` validation.

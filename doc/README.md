@@ -1,37 +1,36 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
-# Documentation Sampleboard
+# Sampleboard documentation
 
-Doc **vivante**, tenue à jour au fil de l'implémentation. Elle est **séparée de la
-spécification** :
+**Living** documentation, kept up to date as implementation progresses. It is **separate from
+the specification**:
 
-- [`specifications.md`](../specifications.md) — le **quoi/pourquoi** : décisions figées,
-  architecture, vocabulaire. Change rarement.
-- `doc/` (ici) — le **comment** : guides d'utilisation et de développement de ce qui est
-  **réellement implémenté**. Suit le code.
+- [`specifications.md`](../specifications.md) — the **what/why**: frozen decisions,
+  architecture, vocabulary. Rarely changes.
+- `doc/` (here) — the **how**: usage and development guides for what is
+  **actually implemented**. Follows the code.
 
-## Conventions : garde-fous automatiques (`.claude/hooks/`)
+## Conventions: automated guardrails (`.claude/hooks/`)
 
-À chaque `git commit`, deux hooks `PreToolUse` (déclarés dans `.claude/settings.json`) appliquent
-les règles projet :
+On every `git commit`, two `PreToolUse` hooks (declared in `.claude/settings.json`) enforce
+the project rules:
 
-- **doc-sync** (`doc-sync.sh`, non bloquant) — tout commit qui touche l'implémentation (`src/`,
-  `src-tauri/src/`) met à jour la doc correspondante dans `doc/`. Signale un commit de code sans
-  mise à jour de `doc/`. Les commits purement chore/refactor peuvent s'en dispenser en
-  connaissance de cause.
-- **tests-gate** (`tests-gate.sh`) — avertit si du code est commité sans test et **exécute la
-  suite en Docker, bloquant le commit si elle échoue**. Voir [tests](./tests.md).
+- **doc-sync** (`doc-sync.sh`, non-blocking) — any commit touching the implementation (`src/`,
+  `src-tauri/src/`) must update the corresponding documentation in `doc/`. Flags a code commit
+  that does not update `doc/`. Purely chore/refactor commits may knowingly skip it.
+- **tests-gate** (`tests-gate.sh`) — warns if code is committed without tests and **runs the
+  suite in Docker, blocking the commit if it fails**. See [tests](./tests.md).
 
-## Sommaire
+## Contents
 
-- [Development quickstart (EN)](./development.md)
-- [Environnement Docker (dev / prod)](./environnement-docker.md)
-- [Moteur audio (M1)](./moteur-audio.md)
-- [Cœur jouable (M2)](./coeur-jeu.md)
-- [Édition (M3)](./edition.md)
-- [Bibliothèque & import (M4)](./bibliotheque-import.md)
-- [Persistance & réglages (M5)](./persistance-reglages.md)
+- [Development quickstart](./development.md)
+- [Docker environment (dev / prod)](./docker-environment.md)
+- [Audio engine (M1)](./audio-engine.md)
+- [Playable core (M2)](./playable-core.md)
+- [Editing (M3)](./editing.md)
+- [Library & import (M4)](./library-import.md)
+- [Persistence & settings (M5)](./persistence-settings.md)
 - [Interface (M6)](./interface.md)
-- [Éditeur audio « Découper » (M7)](./editeur-audio.md)
-- [Samples d'usine (#14)](./samples-usine.md)
-- [Audit FOSS des dépendances (M7)](./audit-foss.md)
+- [« Découper » audio editor (M7)](./audio-editor.md)
+- [Factory samples (#14)](./factory-samples.md)
+- [FOSS dependency audit (M7)](./foss-audit.md)
 - [Tests](./tests.md)
