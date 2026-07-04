@@ -1,0 +1,6 @@
+Packaging (0.10.0):
+• Starter bank replaced: 25 soundboard classics, all CC0 (Freesound), fully traced licenses
+• URL-driven navigation: back gesture closes the library, shareable filters
+• Preview now shows in the visualizer
+• WASM engines (opus, archives) built from source
+• Fixed: library looking "empty" after a reload; starter sounds missing without a gesture

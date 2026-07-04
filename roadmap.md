@@ -278,11 +278,13 @@ Task statuses: `[ ]` to do · `[~]` in progress · `[x]` done.
   minSdk 24. Signing = F-Droid (or a local key to create for direct distribution).
 - [x] FOSS audit of **all** dependencies (npm 5 runtime packages, 467 Rust crates,
   Gradle AndroidX/Material): zero proprietary, zero Play Services — see `doc/foss-audit.md`.
-- [~] Reproducible build: pinned toolchain ✓; **WASM from-source ✓ (2026-07-04)** —
+- [x] Reproducible build: pinned toolchain ✓; **WASM from-source ✓ (2026-07-04)** —
   opus encoder (opus-recorder v8.0.5, libopus/speexdsp by SHA, emsdk 3.1.26) and libarchive
   extractor (v2.0.2, 5 source tarballs verified SHA-256, emsdk 3.1.45) rebuilt in
   Docker (`scripts/build-*-wasm.sh`) and vendored under `src/vendor/` with PROVENANCE.md —
-  the pre-compiled WASM from the npm packages is no longer used at runtime. Remaining: APK determinism.
+  the pre-compiled WASM from the npm packages is no longer used at runtime.
+  **APK determinism ✓ (2026-07-05)**: two release builds (`gradlew clean` in between,
+  pinned container) produce **byte-identical** APKs (same sha256).
 - [x] Complete SPDX headers + license compliance (audit: 1 missing fixed, 100 % covered).
 - [x] F-Droid metadata (fastlane): FR/EN descriptions ✓; changelogs per versionCode
   (6000/8000/9000, FR+EN) ✓; screenshots ✓ — 5 REPRODUCIBLE fr-FR phoneScreenshots
@@ -290,8 +292,14 @@ Task statuses: `[ ]` to do · `[~]` in progress · `[x]` done.
   Loop playback, library, editor, Edit+drawer), regenerated after #22/#23
   (library = view, screenshot 5: wait for the drawer animation to finish) and **re-validated
   by the user on 2026-07-04**. (To regenerate before submission if the UI still evolves.)
-- [ ] F-Droid submission (RFP / metadata merge request).
-- [ ] **Validation**: installable APK, app functional without Play Services.
+- [ ] F-Droid submission (RFP / metadata merge request) — **deferred (2026-07-05):
+  M9 closes without the submission**; every prerequisite is met (public GitHub repo,
+  traced CC0 licenses, from-source WASM, deterministic APK, fastlane metadata).
+- [ ] **Validation**: installable APK, app functional without Play Services — on a real
+  device, second phase per §16 (web-first), not blocking milestone closure.
+
+> **M9 closed on 2026-07-05** (`v0.10.0`) — shipped in full except the submission
+> (deferred on request) and on-device validation (second phase).
 
 ### M10 — Web distribution · `0.11.0` · Phase E' _(after M9 — §16 decision of 2026-07-04)_
 - [ ] **IndexedDB repositories**: web implementation of `storage/types.ts` (bank, samples,

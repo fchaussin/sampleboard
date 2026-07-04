@@ -8,11 +8,36 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-07-05 — M9 (Packaging)
+
+> Backlog #18-25. F-Droid prerequisites complete (submission deferred): public GitHub
+> repository, CC0 starter bank with traced licenses, WASM built from source,
+> **deterministic APK** (two clean release builds → byte-identical output), fastlane
+> metadata with validated screenshots. 308 unit + 17 E2E green.
+
 ### Added
+- **URL-driven navigation** (#23): the displayed view is a **projection of the URL**
+  (`#/board`, `#/library?tag=…` — the library filter travels as a parameter), with
+  deliberate history management: the ✕ button and the Android back gesture pop the
+  same history entry; unknown URLs are normalized without polluting history.
+- **Preview in the topbar visualizer** (#24): the preview wave (library, pool, editor)
+  draws in the accent color alongside the pad-colored voice waves — everything audible
+  on the main out is visible. Lazy side-tap analyser (zero cost when nothing renders it).
 - **Waveform on library cards** (#19): static sample peaks always visible
   below the name; during preview, the played part fills in (progress).
 - **Quick preview from the pool** (#21): ▶/■ button at the head of each item +
   progress waveform behind the label.
+
+### Fixed
+- **Library looking "empty" after a reload**: a stale `?tag=` URL parameter (tag id
+  regenerated or tag deleted) filtered on a ghost tag with no active chip; an unknown
+  tag filter now falls back to « Tous » (all) and the URL is corrected.
+- **Factory seeding frozen without a user gesture**: the decode path awaited
+  `AudioContext.resume()`, which never resolves while the autoplay policy blocks —
+  first launch could show an empty library until a pad was touched. Decoding no longer
+  touches `resume()`; the full bank seeds unattended.
+- **fastlane screenshot 5** captured the pad drawer mid-open-animation
+  (semi-transparent); captures now wait for animations to finish.
 
 ### Changed
 - **The library becomes a VIEW of the layout** (#22, exit the full-screen popin): it
@@ -31,6 +56,20 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   **Drag and drop**: library row → pool, pool item → pad (immediate
   assignment); the "arm then touch" touch path remains the mobile route. Header:
   **Add** (opens the library) + **Clear**.
+- **Starter bank replaced** (decision §16): **25 soundboard classics, all CC0** from
+  Freesound (buzzer, laugh track, tada, sad trombone, applause, crickets/suspense
+  loops…), source + license traced per entry in the manifest — 1.5 MB instead of the
+  former 18.3 MB / 78 untraced sounds (also purged from the public git history).
+  Rebanking tooling: `scripts/freesound-worklist.json` + `freesound-rebank.mjs`
+  (CC0-only search by reputation, `--only=<slug>` unit replacement).
+- **WASM built from source** (F-Droid requirement): the opus encoder
+  (opus-recorder v8.0.5, libopus 1.3.1 + speexdsp pinned by submodule SHA,
+  emsdk 3.1.26) and the archive extractor (libarchive.js v2.0.2 chain, five source
+  tarballs SHA-256-verified, emsdk 3.1.45) are rebuilt in Docker and vendored under
+  `src/vendor/` with PROVENANCE files — the npm prebuilt binaries are no longer used
+  at runtime.
+- **Documentation in English**, user-oriented README; repository published on
+  **GitHub** (`fchaussin/sampleboard`, public).
 
 ## [0.9.0] - 2026-07-03 — M8 (Advanced library)
 

@@ -9,11 +9,13 @@ Contexte projet chargé à chaque session. **Lire aussi** [`specifications.md`](
 - **M0 → M8 livrés** (`v0.9.0` : éditeur audio « découper », bibliothèque avancée — tags,
   recherche, pool, import multiple/archives, samples d'usine, pré-écoute + bus master).
   Projet renommé **sampleboard** (répertoire local inchangé).
-- En cours : **M9 — Empaquetage** (`0.10.0`) presque bouclé : APK debug+release, audit FOSS,
-  fastlane (descriptions, changelogs, captures validées), banque d'usine **25 sons CC0
-  Freesound** (licences tracées), **WASM opus + libarchive from-source** (toolchains
-  épinglées, `src/vendor/`). Reste : déterminisme APK, soumission F-Droid. Ensuite :
-  **M10 — Distribution web** (PWA IndexedDB, livrée par hébergement et/ou image Docker).
+- **M0 → M9 livrés** (`v0.10.0`, clos le 2026-07-05) : tous les pré-requis F-Droid sont
+  réunis (banque **25 sons CC0** tracés, **WASM from-source**, **APK déterministe** —
+  builds identiques à l'octet —, fastlane complet) ; la **soumission F-Droid est
+  REPORTÉE** (décision explicite), la validation sur appareil reste en 2ᵉ temps.
+- Prochain jalon : **M10 — Distribution web** (`0.11.0`) : dépôts IndexedDB, PWA
+  (manifest+SW+icônes), livraison par hébergement public et/ou image Docker (Docker Hub
+  prévu). Docs du dépôt désormais **en anglais**, README orienté utilisateur final.
 - Dépôt hébergé sur **GitHub : `fchaussin/sampleboard` (public)** — historique purgé des
   78 anciens samples non tracés avant publication (2026-07-04).
 - Points ouverts : son muet fenêtre `tauri dev` WSLg (env dev — backlog #3).

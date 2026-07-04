@@ -1,0 +1,6 @@
+Empaquetage (0.10.0) :
+• Banque de démarrage remplacée : 25 classiques de soundboard, tous CC0 (Freesound), licences tracées
+• Navigation par URL : le geste retour ferme la bibliothèque, filtres partageables
+• La pré-écoute s'affiche dans le visualiseur
+• Moteurs WASM (opus, archives) compilés depuis les sources
+• Corrigé : bibliothèque « vide » après rechargement ; sons de démarrage absents sans geste
