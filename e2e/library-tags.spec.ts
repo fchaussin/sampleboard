@@ -107,7 +107,7 @@ test('pré-écoute : ▶ bascule en ■ ; re-tap ou toute autre action stoppe', 
 
 test('pool (#18, Édition seulement) : stocker deux samples, armer depuis la sidebar, assigner à la volée', async ({ page }) => {
   await gotoApp(page);
-  await importWav(page, 'kick.wav');
+  await importWav(page, 'kick.wav', 5); // 5 s : la pré-écoute (#21) couvre les assertions
   await importWav(page, 'nappe.wav');
 
   // Ajouter les deux samples au pool depuis la bibliothèque.
@@ -125,7 +125,14 @@ test('pool (#18, Édition seulement) : stocker deux samples, armer depuis la sid
   const pool = page.locator('.pool');
   await expect(pool).toBeVisible();
   await expect(pool.locator('.item')).toHaveCount(2);
+
+  // Aperçu rapide (#21) : ▶ en tête de ligne bascule en ■ ; armer (autre action) stoppe.
+  const poolPreview = pool.locator('.preview').first();
+  await poolPreview.click();
+  await expect(poolPreview).toHaveClass(/active/);
+
   await pool.locator('.item', { hasText: 'kick.wav' }).click();
+  await expect(poolPreview).not.toHaveClass(/active/); // toute action stoppe la pré-écoute
   await expect(page.locator('.banner')).toBeVisible();
   await page.locator('.grid .pad').nth(1).click();
   await page.locator('.grid .pad').nth(2).click();

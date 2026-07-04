@@ -38,10 +38,12 @@
 <canvas bind:this={canvas} class="wave" aria-hidden="true"></canvas>
 
 <style>
+  /* Remplit son conteneur : la taille est fixée par l'hôte (bande de carte, fond
+     d'élément du pool…). */
   .wave {
     display: block;
     width: 100%;
-    height: 1.75rem;
+    height: 100%;
     pointer-events: none;
   }
 </style>

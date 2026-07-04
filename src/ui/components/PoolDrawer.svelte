@@ -9,6 +9,8 @@
   import { t } from '../i18n';
   import { carriesSample, droppedSampleId, setSampleDrag } from '../interaction/sample-dnd';
   import Icon from './Icon.svelte';
+  import PreviewButton from './PreviewButton.svelte';
+  import SampleWaveform from './SampleWaveform.svelte';
 
   let {
     app,
@@ -95,6 +97,8 @@
     <ul>
       {#each items as sample (sample.id)}
         <li draggable="true" ondragstart={(e) => setSampleDrag(e, sample.id)}>
+          <!-- Aperçu rapide (#21) : ▶/■ en tête + waveform de progression derrière le libellé. -->
+          <PreviewButton {app} sampleId={sample.id} size={14} />
           <button
             class="item"
             class:armed={armed === sample.id}
@@ -102,7 +106,8 @@
             aria-pressed={armed === sample.id}
             onclick={() => arm(sample.id)}
           >
-            {sample.label}
+            <span class="wave-bg" aria-hidden="true"><SampleWaveform {app} sampleId={sample.id} /></span>
+            <span class="label">{sample.label}</span>
           </button>
           <button
             class="remove"
@@ -197,6 +202,7 @@
   }
 
   .item {
+    position: relative; /* ancre la waveform de fond (#21) */
     flex: 1;
     min-width: 0;
     min-height: 2.5rem;
@@ -210,8 +216,25 @@
     font-size: 0.85rem;
     cursor: grab; /* glissable vers un pad — le tap arme (assignation à la volée) */
     overflow: hidden;
+  }
+
+  /* Waveform derrière le libellé : pics statiques, progression pendant la pré-écoute. */
+  .wave-bg {
+    position: absolute;
+    inset: 0.2rem 0.3rem;
+    opacity: 0.6;
+  }
+
+  .item .label {
+    position: relative; /* au-dessus de l'onde */
+    display: block;
+    overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .item.armed .wave-bg {
+    opacity: 0.35; /* le fond accent prime, l'onde reste discrète */
   }
 
   .item:active {

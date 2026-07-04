@@ -11,6 +11,8 @@ versionnage **SemVer** (voir [`roadmap.md`](./roadmap.md) §1).
 ### Ajouté
 - **Waveform sur les cartes de bibliothèque** (#19) : pics statiques du sample toujours
   visibles sous le nom ; pendant la pré-écoute, la partie jouée se remplit (progression).
+- **Aperçu rapide depuis le pool** (#21) : bouton ▶/■ en tête de chaque élément +
+  waveform de progression derrière le libellé.
 
 ### Modifié
 - **Gestion des tags dans le tiroir droit** (#20) : « Gérer les tags » ouvre désormais le

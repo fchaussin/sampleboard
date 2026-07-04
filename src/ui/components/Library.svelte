@@ -148,7 +148,7 @@
             />
             <span class="meta">{meta(s.sizeBytes, s.durationMs)}</span>
             <!-- Waveform du sample (#19) : pics statiques + progression pendant la pré-écoute. -->
-            <SampleWaveform {app} sampleId={s.id} />
+            <span class="wave-slot"><SampleWaveform {app} sampleId={s.id} /></span>
           </span>
           <!-- Actions groupées : le bloc passe SOUS le nom quand la ligne est trop étroite. -->
           <div class="actions">
@@ -324,6 +324,11 @@
     font-size: 0.72rem;
     color: var(--muted);
     padding-left: 0.5rem;
+  }
+
+  .wave-slot {
+    display: block;
+    height: 1.75rem;
   }
 
   .confirm {

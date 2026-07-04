@@ -115,6 +115,9 @@ d'**Édition exclusivement** :
   l'armé venait du pool).
 - **Vers les pads** : toucher un élément l'**ARME** (assignation à la volée, M8), ou le
   **glisser directement sur un pad** (assignation immédiate, `assignSample`).
+- **Aperçu rapide** (#21) : `PreviewButton` (▶/■) en tête de chaque élément + waveform de
+  progression (`SampleWaveform`) derrière le libellé — même pré-écoute unifiée que la
+  bibliothèque (#16, toute autre action stoppe).
 
 Le DnD HTML5 (`ui/interaction/sample-dnd.ts` : type MIME partagé
 `application/x-sampleboard-sample`) est un raccourci **pointeur** ; le flux tactile
