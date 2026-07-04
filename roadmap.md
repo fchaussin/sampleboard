@@ -302,18 +302,25 @@ Task statuses: `[ ]` to do · `[~]` in progress · `[x]` done.
 > (deferred on request) and on-device validation (second phase).
 
 ### M10 — Web distribution · `0.11.0` · Phase E' _(after M9 — §16 decision of 2026-07-04)_
-- [ ] **IndexedDB repositories**: web implementation of `storage/types.ts` (bank, samples,
-  settings, tags + audio bytes) — selected when the Tauri runtime is absent, in place
-  of the memory mode (which remains the test stand-in). Minimal IDB migrations/versioning.
-- [ ] **PWA**: `manifest.webmanifest` + icons (reuse those from `src-tauri/icons`),
-  offline service worker (app shell + factory samples), installability verified.
-- [ ] **Docker delivery** (a delivery mode for the PWA, not a separate distribution —
-  §16 decision): static-server image (nginx or equivalent) serving the web build;
-  dedicated service `docker-compose`, distinct from the "prod" compose (which builds).
+- [x] **IndexedDB repositories** (2026-07-05): web implementation of `storage/types.ts`
+  (bank, samples + audio bytes, settings, tags) — SQL-cascade mirror, durable writes,
+  selected when Tauri is absent; the memory mode remains the test stand-in. 7 unit tests
+  (fake-indexeddb, dev-only) + 2 e2e (reload persistence, persisted firstLaunch guard).
+- [x] **PWA** (2026-07-05): `manifest.webmanifest` + 192/512 icons, hand-rolled service
+  worker EMITTED AT BUILD (`pwa-sw` Vite plugin: real bundle list + the 25 factory samples
+  in the precache, cache version from package.json). Network-first navigations, cache-first
+  assets, `ignoreVary` (`Vary: Origin` pitfall). A FIRST launch works fully offline
+  (25/25 seeded from the precache). Registered in prod web builds only.
+- [x] **Docker delivery** (2026-07-05, a delivery mode for the PWA — §16): `docker/web/
+  Dockerfile` (node build stage → nginx-unprivileged uid 101: cap_drop ALL, read_only) +
+  `nginx.conf` (gzip, immutable /assets/, no-cache sw.js/index, wasm MIME) +
+  `docker-compose.web.yml` → http://localhost:8080. Browser-validated against the
+  container (SW active, offline reload). Docker Hub publication to come.
 - [ ] **Public web hosting** of the PWA (address to choose — may follow the repo
   hosting choice).
-- [ ] **Validation**: full cycle in browser (import → config → faithful reload),
-  PWA offline, Docker image served locally.
+- [x] **Validation** (2026-07-05): full cycle in browser (import → assign → faithful
+  reload, e2e), PWA offline including a fully-offline first launch, Docker image served
+  and browser-validated locally.
 
 ### Phase F — Stabilization · → `1.0.0`
 - [ ] Tests on multiple real devices (latency, autoplay, sleep).

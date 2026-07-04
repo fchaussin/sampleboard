@@ -24,6 +24,7 @@ the project rules:
 
 - [Development quickstart](./development.md)
 - [Docker environment (dev / prod)](./docker-environment.md)
+- [Web distribution — PWA & Docker delivery (M10)](./web-distribution.md)
 - [Audio engine (M1)](./audio-engine.md)
 - [Playable core (M2)](./playable-core.md)
 - [Editing (M3)](./editing.md)

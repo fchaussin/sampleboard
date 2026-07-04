@@ -8,6 +8,18 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+### Added
+- **Browser persistence (IndexedDB)**: the web flavor now persists everything
+  (bank, samples + audio bytes, settings, tags) across reloads — first launch,
+  factory seeding and deletion guards behave exactly like the Android build.
+- **PWA**: installable, **fully offline** — even a first launch seeds the complete
+  25-sound starter bank from the service-worker precache. Build-time-generated
+  service worker (no third-party library), network-first navigations so updates
+  propagate.
+- **Docker self-hosting**: `docker compose -f docker-compose.web.yml up -d --build`
+  serves the web/PWA on port 8080 (unprivileged nginx, hardened container).
+  Docker Hub image planned.
+
 ## [0.10.0] - 2026-07-05 — M9 (Packaging)
 
 > Backlog #18-25. F-Droid prerequisites complete (submission deferred): public GitHub

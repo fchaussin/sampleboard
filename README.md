@@ -38,19 +38,25 @@ The **F-Droid** submission is being finalized (reproducible build, WASM compiled
 source, audited licenses). Until then, test APKs can be built from source (see
 [`doc/`](./doc/)).
 
-### Self-hosting with Docker — *coming with the web/PWA release (`0.11.0`)*
+### Self-hosting with Docker
 
-The **web/PWA** flavor (data persisted in your browser, installable, offline) will be
-delivered as a static-server **Docker image** — also published on **Docker Hub**. The
-intended usage:
+The **web/PWA** flavor persists your data in the browser (IndexedDB), works **fully
+offline** (even the very first launch) and is installable. Build and run it from the
+repository:
 
 ```bash
-# COMING SOON — the target command once the image is published:
-docker run -d --name sampleboard -p 8080:80 fchaussin/sampleboard
+git clone https://github.com/fchaussin/sampleboard.git && cd sampleboard
+docker compose -f docker-compose.web.yml up -d --build
 # then open http://localhost:8080 and install the PWA from your browser
 ```
 
-Track progress in the [roadmap](./roadmap.md) (milestone **M10 — Web distribution**).
+Serving behind a reverse proxy? Use HTTPS — service workers require a secure context.
+A prebuilt **Docker Hub** image (`fchaussin/sampleboard`) is planned:
+
+```bash
+# COMING SOON — once the image is published:
+docker run -d --name sampleboard -p 8080:8080 fchaussin/sampleboard
+```
 
 ## Your data
 
