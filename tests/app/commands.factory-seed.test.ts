@@ -57,6 +57,28 @@ describe('seedFactorySample', () => {
     expect(sample.durationMs).toBe(1500);
   });
 
+  it('sème même si resume() ne se résout JAMAIS (autoplay sans geste — le semis ne gèle plus)', async () => {
+    // Régression : decodeSource attendait engine.resume(), qui reste en attente indéfinie
+    // quand la politique autoplay bloque le contexte au boot (aucun geste utilisateur).
+    const store = fakeStore();
+    const engine = fakeEngine({ resume: vi.fn(() => new Promise<void>(() => {})) });
+    let n = 0;
+    const commands = createCommands({
+      store,
+      engine: asEngine(engine),
+      encode: vi.fn() as never,
+      sampleRepository: fakeSampleRepository(),
+      tagRepository: fakeTagRepository(),
+      ids: () => `id-${n++}`,
+      now: () => 1_700_000_000_000,
+    });
+
+    const result = await commands.seedFactorySample('brut.ogg', 'A', new Uint8Array([1]).buffer);
+
+    expect(result).toEqual({ ok: true, sampleId: 'id-0' });
+    expect(store.samples).toHaveLength(1);
+  });
+
   it('rejette un fichier indécodable sans toucher à la bibliothèque', async () => {
     const { store, engine, commands } = setup();
     engine.decode.mockRejectedValueOnce(new Error('nope'));

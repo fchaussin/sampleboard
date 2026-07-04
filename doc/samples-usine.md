@@ -28,6 +28,18 @@ Bibliothèque pré-remplie et board « Principal » pré-assigné au **premier l
 Meilleur effort à tous les étages : fichier introuvable/indécodable → journalisé, ignoré,
 le reste continue ; manifest absent (cas des e2e, qui le bloquent via `gotoApp`) → no-op.
 
+## Piège corrigé (2026-07-04) : gel du semis sous politique autoplay
+
+Le semis semblait « perdre » les samples de façon inopinée entre les rechargements :
+`decodeSource` (commands) faisait `await engine.resume()` avant chaque décodage, or
+`AudioContext.resume()` **ne se résout jamais** tant que la politique autoplay du navigateur
+attend un geste utilisateur — au boot (aucun geste), le semis gelait silencieusement sur son
+premier sample, et repartait dès qu'on touchait un pad (d'où l'aspect aléatoire, selon le
+Media Engagement du profil). Correctif : **aucun `resume()` dans le chemin de décodage**
+(`decodeAudioData` travaille contexte suspendu) — la reprise reste l'affaire des gestes
+(`resumeAudio`, `void engine.resume()` des commandes de jeu/pré-écoute). Régression couverte :
+`commands.factory-seed.test.ts` (« sème même si resume() ne se résout jamais »).
+
 ## Tests
 
 - `tests/build/factory-samples.test.ts` — validation build + intégration sur la fixture

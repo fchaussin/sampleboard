@@ -318,9 +318,15 @@ export function createCommands({
     if (pad.name === '') pad.name = defaultPadName(sample.label);
   }
 
-  /** Décode une source (après garde de taille) en PCM ; null si non décodable (§12). */
+  /**
+   * Décode une source (après garde de taille) en PCM ; null si non décodable (§12).
+   * SURTOUT PAS de `await engine.resume()` ici : décoder ne joue rien (decodeAudioData
+   * travaille contexte suspendu), et attendre resume() SANS geste utilisateur (politique
+   * autoplay) ne se résout jamais — le semis d'usine du premier lancement gelait sur son
+   * premier sample tant qu'aucun pad n'était touché. La reprise du contexte reste l'affaire
+   * des gestes (resumeAudio, `void engine.resume()` des commandes de jeu/pré-écoute).
+   */
   async function decodeSource(bytes: ArrayBuffer): Promise<PcmData | null> {
-    await engine.resume();
     try {
       const decoded = await engine.decode(bytes);
       return { channelData: decoded.channelData, sampleRate: decoded.sampleRate };
