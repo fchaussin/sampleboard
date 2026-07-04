@@ -18,6 +18,12 @@
   }
 </script>
 
+<!-- Ajout EN TÊTE : toujours accessible, jamais enfoui sous le défilement de la liste. -->
+<form class="add-tag" onsubmit={addTag}>
+  <input type="text" placeholder={t('tag.new', locale)} bind:value={newTagLabel} />
+  <button type="submit">{t('tag.add', locale)}</button>
+</form>
+
 <ul class="tag-list">
   {#each app.store.tags as tag (tag.id)}
     <li>
@@ -36,11 +42,6 @@
     </li>
   {/each}
 </ul>
-
-<form class="add-tag" onsubmit={addTag}>
-  <input type="text" placeholder={t('tag.new', locale)} bind:value={newTagLabel} />
-  <button type="submit">{t('tag.add', locale)}</button>
-</form>
 
 <style>
   .tag-list {
