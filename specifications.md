@@ -559,6 +559,16 @@ Le ré-encodage se fait **côté frontend** (règle « pas de logique métier en
   entrée reste soumise aux 20 Mo d'import ; seules les extensions audio candidates entrent
   dans le lot (le décodage reste l'arbitre final, §12). Build from-source du WASM : même
   traitement que l'encodeur opus (jalon Empaquetage).
+- **Banque d'usine de référence — Freesound CC0** (2026-07-04, supersède le lot #14 de
+  78 sons à provenance non tracée) : la bibliothèque d'usine devient une **banque de
+  référence d'environ 25 classiques de soundboard** (buzzer, ding, ba-dum tss, roulement,
+  applaudissements, rires sitcom, tada, trombone triste, cloche d'hôtel, sifflet, cowbell,
+  air horn, whoosh, grillons et suspense en Loop, etc.) — « des sons de référence, pas du
+  remplissage ». Provenance **exclusivement Freesound en CC0** (previews HQ OGG →
+  ré-encodage Opus 96k via ffmpeg dockerisé) ; sélection automatique par réputation
+  (`scripts/freesound-worklist.json` + `scripts/freesound-rebank.mjs`, clé API requise)
+  puis **validation à l'écoute** ; `source` + `license` renseignés pour chaque entrée du
+  manifest — le TODO licences (bloquant F-Droid) disparaît avec le lot d'origine.
 - **Bus master & pré-écoute unifiée** (2026-07-03) : le graphe Web Audio a un **point de
   passage unique vers la sortie** — `master (GainNode) → destination` ; **tout ce qui sonne
   s'y raccorde** (chaînes de voix des pads, pré-écoutes), jamais à `destination` en direct.
