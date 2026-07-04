@@ -584,11 +584,19 @@ Le ré-encodage se fait **côté frontend** (règle « pas de logique métier en
   **La pré-écoute s'affiche dans le visualiseur topbar** (#24, 2026-07-04) : onde en couleur
   accent aux côtés des ondes de voix (tap `previewWaveform` en dérivation paresseuse, même
   règle que l'analyseur master) — tout ce qui sonne sur le main out se voit.
+- **Trois canaux de distribution** (2026-07-04) : **Android/F-Droid** (M9, canal primaire) ;
+  **web hébergé en PWA** et **image Docker auto-hébergeable** (nouveau jalon **M10 —
+  Distribution web**, `0.11.0`, APRÈS M9). Persistance du canal web : **IndexedDB natif** —
+  implémentation web des dépôts `storage/types.ts` (banque, samples, réglages, tags + octets
+  audio), la couture déjà prouvée par le mode mémoire ; le schéma SQL/SQLite reste propre à
+  Tauri (pas de SQLite WASM — anti-overengineering). PWA : manifest + icônes + service
+  worker offline (l'app et les samples d'usine) ; Docker : image de serveur statique servant
+  le même build web. Ceci rapatrie le « mode navigateur pur » de v2 (§17) en M10.
 - **Ordre de validation : web d'abord, Android ensuite.** Chaque jalon est d'abord développé et validé sur **web** (dev Vite http://localhost:1420 + fenêtre `tauri dev` bureau) ; la validation sur **appareil Android réel** est un **second temps**, jamais un prérequis pour avancer. La cible finale reste F-Droid/Android (§15) — c'est l'ordre de travail qui est fixé, pas la cible.
 
 ## 17. Évolutions futures (hors v1)
 
-**Découpe/rognage des samples** (« découper » : trim des silences, sélection d'un extrait à l'import), **multi-banques** (plusieurs banques indépendantes, bascule ; schéma déjà prêt), _(éventuel conteneur intermédiaire « pool » entre bibliothèque et banque)_, raccourcis clavier, enregistrement de samples, effets (volume master, fondu, pitch), affichage waveform, réorganisation drag-and-drop avancée, MIDI, mode navigateur pur (implémentation web du repository), export/import de banque (fichier portable), iOS.
+**Découpe/rognage des samples** (« découper » : trim des silences, sélection d'un extrait à l'import), **multi-banques** (plusieurs banques indépendantes, bascule ; schéma déjà prêt), _(éventuel conteneur intermédiaire « pool » entre bibliothèque et banque)_, raccourcis clavier, enregistrement de samples, effets (volume master, fondu, pitch), affichage waveform, réorganisation drag-and-drop avancée, MIDI, export/import de banque (fichier portable), iOS. _(Le « mode navigateur pur » a été rapatrié en **M10 — Distribution web**, décision §16 du 2026-07-04.)_
 
 ## 18. Jalons de développement (incrémental)
 

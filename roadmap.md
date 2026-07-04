@@ -44,6 +44,7 @@ Départ : **`0.1.0`**.
 | **D'' — Éditeur audio** | M7 | `0.8.0` | « Découper » : waveform + rognage + undo/redo. |
 | **D''' — Bibliothèque avancée** | M8 | `0.9.0` | Tags + filtres, assignation directe, combobox. |
 | **E — Livraison** | M9 | `0.10.0` | Empaqueté pour F-Droid. |
+| **E' — Distribution web** | M10 | `0.11.0` | PWA hébergée (IndexedDB) + image Docker auto-hébergeable. |
 | **F — Stabilisation** | — | → `1.0.0` | Durcissement, tests réels, complétude. |
 
 Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
@@ -292,6 +293,19 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 - [ ] Soumission F-Droid (RFP / merge request metadata).
 - [ ] **Validation** : APK installable, app fonctionnelle hors Play Services.
 
+### M10 — Distribution web · `0.11.0` · Phase E' _(après M9 — décision §16 du 2026-07-04)_
+- [ ] **Dépôts IndexedDB** : implémentation web de `storage/types.ts` (banque, samples,
+  réglages, tags + octets audio) — sélectionnée quand le runtime Tauri est absent, à la
+  place du mode mémoire (qui reste la doublure de test). Migrations/versionnage IDB minimal.
+- [ ] **PWA** : `manifest.webmanifest` + icônes (reprendre celles de `src-tauri/icons`),
+  service worker offline (shell de l'app + samples d'usine), installabilité vérifiée.
+- [ ] **Image Docker auto-hébergeable** : serveur statique (nginx ou équivalent) servant le
+  build web ; `docker-compose` de service dédié, distinct du compose « prod » (qui produit).
+- [ ] **Hébergement web public** de la PWA (adresse à choisir — peut suivre le choix
+  d'hébergement du dépôt).
+- [ ] **Validation** : cycle complet en navigateur (import → config → rechargement fidèle),
+  offline PWA, image Docker servie localement.
+
 ### Phase F — Stabilisation · → `1.0.0`
 - [ ] Tests sur plusieurs appareils réels (latence, autoplay, veille).
 - [ ] Perf : polyphonie, latence de déclenchement.
@@ -348,6 +362,7 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
 | 22 | **Bibliothèque = vue du layout** (plus de popin) : `libraryOpen` bascule le contenu de `<main>` (grille ↔ bibliothèque) — topbar (titre de vue, visualiseur/Stop conservés) et bottombar restent accessibles (Stop général, bascule de mode, pages). Supprime les surcouches spéciales (`--z-panel`, pool flottant au-dessus de la bibliothèque, `--z-drawer` 27) : en Édition large, la sidebar pool est EN FLUX à côté de la bibliothèque (dnd naturel). Supersède la décision M6 « panneau plein écran » (§16). UX Édition inchangée (violet, tiroir pad, à la volée) — vérifiée par e2e + captures. **Livrée le 2026-07-04 (à la demande, design validé en discussion)**. | 2026-07-04 | — | Livrée |
 | 23 | **Navigation pilotée par l'URL** : la vue affichée devient une projection de l'URL (invariant : jamais une variable indépendante — `store.view` remplace le booléen `libraryOpen`). Table `vue → composant` (App.svelte), résolution avec défaut board (`app/navigation.ts`), rendu dynamique, sync bidirectionnelle (init/`hashchange`/retour-avance ↔ écriture d'URL uniquement, `app/router.ts` + `applyRoute` seul écrivain de la vue). Paramètres figés en spec §16 : **fragment `#` + historique délibéré** (push marqué `history.state` / `replace` ajustements / pop — le ✕ et le geste retour Android dépilent la même entrée) ; **cardinalité vue + paramètres** (`#/library?tag=…`, le filtre voyage dans l'URL). **Livrée le 2026-07-04 (à la demande)** — 15 unitaires (navigation + routeur, fenêtre factice) + 2 commandes + 1 e2e (hash, filtre, retour navigateur, ✕). Correctif le jour même : **filtre `?tag=` périmé assaini** (`hydrateTags`/`applyRoute` → « Tous », URL corrigée) — recharger un onglet resté sur un vieux `?tag=` (ids re-générés en dev mémoire) vidait la bibliothèque, samples d'usine « perdus » ; +4 unitaires +1 e2e. | 2026-07-04 | — | Livrée |
 | 24 | **Pré-écoute dans le visualiseur topbar** : l'onde de la pré-écoute (bibliothèque, pool, éditeur — tout ce qui sonne sur le main out) s'affiche en couleur **accent** aux côtés des ondes de voix. `engine.previewWaveform()` : tap analyseur en **dérivation paresseuse** (créé au premier rendu qui le consomme, la nouvelle lecture se rebranche au même tap — même règle que l'analyseur master). **Livrée le 2026-07-04 (à la demande)** — 1 unitaire moteur + vérification visuelle. | 2026-07-04 | — | Livrée |
+| 25 | **Trois canaux de distribution** : Android/F-Droid (M9) + **web hébergé en PWA** (persistance **IndexedDB natif** — implémentation web des dépôts, PAS de SQLite WASM) + **image Docker auto-hébergeable** (serveur statique du même build). Décision figée en spec §16 ; « mode navigateur pur » rapatrié de v2 → **M10 — Distribution web** (`0.11.0`), mené APRÈS M9. | 2026-07-04 | `0.11.0` | **Planifiée → M10** |
 
 ---
 
