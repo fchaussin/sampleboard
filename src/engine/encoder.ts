@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Ré-encodage OGG/Opus à l'import (voir specifications.md §13, décision §16).
-// Socle : worker WASM d'opus-recorder (libopus 1.x compilé + conteneur ogg, MIT, embarqué).
-// Le WASM est inclus dans le worker (aucun asset séparé). Reproductibilité build-from-source
-// prévue au M6. WebCodecs pourra servir de chemin accéléré opportuniste plus tard.
-import encoderWorkerUrl from 'opus-recorder/dist/encoderWorker.min.js?url';
+// Socle : worker WASM d'opus-recorder (libopus 1.3.1 + speexdsp, MIT/BSD), CONSTRUIT DEPUIS
+// LES SOURCES avec toolchain épinglée (M9, F-Droid) — voir src/vendor/opus-recorder/
+// PROVENANCE.md et scripts/build-opus-wasm.sh. Le WASM est inclus dans le worker (aucun
+// asset séparé). WebCodecs pourra servir de chemin accéléré opportuniste plus tard.
+import encoderWorkerUrl from '../vendor/opus-recorder/encoderWorker.min.js?url';
 import { trimOggTail } from './ogg';
 
 /** Débit fixe retenu pour l'encodage Opus (décision verrouillée §16). */
