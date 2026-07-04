@@ -9,11 +9,14 @@ Contexte projet chargé à chaque session. **Lire aussi** [`specifications.md`](
 - **M0 → M8 livrés** (`v0.9.0` : éditeur audio « découper », bibliothèque avancée — tags,
   recherche, pool, import multiple/archives, samples d'usine, pré-écoute + bus master).
   Projet renommé **sampleboard** (répertoire local inchangé).
-- En cours : **M9 — Empaquetage** (`0.10.0`) déjà bien entamé (APK debug+release OK, audit
-  FOSS, fastlane descriptions+changelogs) ; reste : captures, opus WASM from-source,
-  licences des 78 samples d'usine (manifest), soumission F-Droid. Voir roadmap §3.
-- Points ouverts : son muet fenêtre `tauri dev` WSLg (env dev — backlog #3) ; hébergement
-  public du dépôt à choisir (pré-requis F-Droid).
+- En cours : **M9 — Empaquetage** (`0.10.0`) presque bouclé : APK debug+release, audit FOSS,
+  fastlane (descriptions, changelogs, captures validées), banque d'usine **25 sons CC0
+  Freesound** (licences tracées), **WASM opus + libarchive from-source** (toolchains
+  épinglées, `src/vendor/`). Reste : déterminisme APK, soumission F-Droid. Ensuite :
+  **M10 — Distribution web** (PWA IndexedDB, livrée par hébergement et/ou image Docker).
+- Dépôt hébergé sur **GitHub : `fchaussin/sampleboard` (public)** — historique purgé des
+  78 anciens samples non tracés avant publication (2026-07-04).
+- Points ouverts : son muet fenêtre `tauri dev` WSLg (env dev — backlog #3).
 
 ## Stack (voir spec §3)
 Svelte 5 (runes) + Vite en **SPA** (`adapter-static`, SSR off) · TypeScript **strict** · **Tauri v2** · SQLite natif (`tauri-plugin-sql`) · `tauri-plugin-fs` + `tauri-plugin-dialog` · **Web Audio API** · encodage **Opus via WASM libopus** embarqué. Dev via `tauri dev` (jamais navigateur nu). Aucune logique métier en Rust.
