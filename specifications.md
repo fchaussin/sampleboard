@@ -514,7 +514,19 @@ Le ré-encodage se fait **côté frontend** (règle « pas de logique métier en
   le pool n'a plus à flotter au-dessus de la bibliothèque (sidebar en flux à côté,
   `--z-pool: 19` réservé au tiroir étroit), le tiroir contextuel revient à
   `--z-drawer: 20`.
-- **Tags de samples** (2026-07-02, tri backlog #10-12) : étiquettes **n-à-n** (`tags` +
+- **Navigation pilotée par l'URL** (2026-07-04, backlog #23 — décision figée, implémentation
+  à trier) : l'affichage de la vue courante devient une **projection de l'URL**, jamais une
+  variable d'état indépendante (supersède à terme le booléen `libraryOpen`). Quatre éléments :
+  table `identifiant de vue → composant` (structure de données, pas de branchements), fonction
+  de résolution URL → composant avec **cas par défaut** (board), rendu dynamique du composant
+  résolu, synchronisation bidirectionnelle (URL → affichage à l'init/`hashchange`/retour-avance ;
+  affichage → URL par écriture d'URL uniquement, jamais de mutation directe). Paramètres fixés :
+  **encodage fragment (`#`)** — le protocole d'assets Tauri ne fait pas de fallback `index.html`,
+  le fragment fonctionne à l'identique en `tauri dev` et en APK — **avec gestion d'historique
+  délibérée** : pile cohérente pour le geste retour Android/tactile (push pour une navigation
+  réelle, `replace` pour les redirections par défaut et corrections d'URL) ; **cardinalité
+  vue + paramètres** (ex. `#/library?tag=…`), la fonction de résolution porte le décodage des
+  paramètres variables. : étiquettes **n-à-n** (`tags` +
   `sample_tags`, migration 4), personnalisables (CRUD) ; liste par défaut semée au premier
   lancement (SFX, Répliques, Jingle, Musique, Ambiance, Voix, Réaction, Meme, Alerte —
   libellés i18n injectés à la création). **« Non classé » = filtre virtuel** (samples sans
