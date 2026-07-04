@@ -277,7 +277,11 @@ Statuts de tâche : `[ ]` à faire · `[~]` en cours · `[x]` fait.
   minSdk 24. Signature = F-Droid (ou clé locale à créer pour distribution directe).
 - [x] Audit FOSS de **toutes** les dépendances (npm 5 paquets runtime, 467 crates Rust,
   Gradle AndroidX/Material) : zéro propriétaire, zéro Play Services — voir `doc/audit-foss.md`.
-- [ ] Build reproductible (toolchain épinglée ✓ ; déterminisme APK + WASM opus build-from-source à traiter).
+- [~] Build reproductible : toolchain épinglée ✓ ; **WASM from-source ✓ (2026-07-04)** —
+  encodeur opus (opus-recorder v8.0.5, libopus/speexdsp par SHA, emsdk 3.1.26) et extracteur
+  libarchive (v2.0.2, 5 tarballs sources vérifiés SHA-256, emsdk 3.1.45) reconstruits en
+  Docker (`scripts/build-*-wasm.sh`) et vendorisés sous `src/vendor/` avec PROVENANCE.md —
+  les WASM pré-compilés des paquets npm ne servent plus à l'exécution. Reste : déterminisme APK.
 - [x] En-têtes SPDX complets + conformité licence (audit : 1 manquant corrigé, 100 % couvert).
 - [x] Métadonnées F-Droid (fastlane) : descriptions FR/EN ✓ ; changelogs par versionCode
   (6000/8000/9000, FR+EN) ✓ ; captures ✓ — 5 phoneScreenshots fr-FR REPRODUCTIBLES

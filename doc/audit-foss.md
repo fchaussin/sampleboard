@@ -27,13 +27,17 @@ jeu de dépendances verrouillé (`package-lock.json`, `Cargo.lock`, Gradle du pr
 | `libarchive.js` (+ dép. `comlink`) | MIT (comlink : Apache-2.0) |
 
 `opus-recorder` **embarque en WASM** : libopus (**BSD-3-Clause**), libogg (**BSD-3-Clause**),
-speexdsp (**BSD-3-Clause**) — permissives, compatibles GPL-3.0-or-later. Rappel : la
-reconstruction from-source de ce WASM est une tâche de reproductibilité M6 (voir roadmap).
+speexdsp (**BSD-3-Clause**) — permissives, compatibles GPL-3.0-or-later.
+**Depuis M9, l'artefact exécuté est reconstruit DEPUIS LES SOURCES** (toolchain emsdk
+épinglée, sous-modules par SHA) et vendorisé : `src/vendor/opus-recorder/PROVENANCE.md` ;
+le WASM pré-compilé du paquet npm ne sert plus à l'exécution.
 
 `libarchive.js` (import d'archives M8, #13) **embarque en WASM** : libarchive
 (**BSD-2-Clause**), dont les lecteurs zip et **rar4/rar5 clean-room** — le code unrar
-officiel (licence non libre) n'entre **jamais** dans l'app (décision §16). Même sujet de
-reconstruction from-source du WASM que l'encodeur opus (jalon Empaquetage).
+officiel (licence non libre) n'entre **jamais** dans l'app (décision §16).
+**Depuis M9, worker + wasm sont reconstruits DEPUIS LES SOURCES** (emsdk épinglé, tarballs
+sources — libarchive 3.7.2, zlib 1.3, xz 5.2.11, bzip2 1.0.8, openssl 1.0.2s — vérifiés par
+SHA-256) et vendorisés : `src/vendor/libarchive/PROVENANCE.md`.
 
 ### Rust — 467 crates, zéro copyleft fort tiers, zéro propriétaire
 

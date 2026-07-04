@@ -1,0 +1,72 @@
+# syntax=docker/dockerfile:1
+# Build FROM-SOURCE de l'extracteur d'archives WASM (M9, exigence F-Droid) : reproduit la
+# chaîne upstream de libarchive.js v2.0.2 (lib/tools/docker/Dockerfile + build.sh + rollup)
+# avec TOUT épinglé — image emsdk taguée, tarballs sources vérifiés par SHA-256 (l'upstream
+# partait d'un `FROM emscripten/emsdk` flottant et committait ses binaires dans le dépôt).
+# Artefacts produits (les deux seuls consommés par l'app, servis sous /libarchive/ par le
+# plugin Vite) : dist/worker-bundle.js + dist/libarchive.wasm.
+FROM emscripten/emsdk:3.1.45 AS build
+
+RUN apt-get update && apt-get install -y --no-install-recommends unzip perl \
+  && rm -rf /var/lib/apt/lists/*
+
+# --- Sources épinglées (mêmes versions que l'upstream v2.0.2, empreintes vérifiées) --------
+WORKDIR /opt
+ADD https://github.com/libarchive/libarchive/releases/download/v3.7.2/libarchive-3.7.2.zip /opt/
+ADD https://github.com/madler/zlib/releases/download/v1.3/zlib13.zip /opt/
+ADD https://github.com/tukaani-project/xz/releases/download/v5.2.11/xz-5.2.11.tar.gz /opt/
+ADD https://sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz /opt/
+ADD https://www.openssl.org/source/openssl-1.0.2s.tar.gz /opt/
+RUN echo "7a47337f6b36bc396c13843e0dc5c4c276cf0e862a8ecd9fdc5ae192f7712642  libarchive-3.7.2.zip\n\
+c561d09347f674f0d72692e7c75d9898919326c532aab7f8c07bb43b07efeb38  zlib13.zip\n\
+0089d47b966bd9ab48f1d01baf7ce146a3b591716c7477866b807010de3d96ab  xz-5.2.11.tar.gz\n\
+ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269  bzip2-1.0.8.tar.gz\n\
+cabd5c9492825ce5bd23f3c3aeed6a97f8142f606d893df216411f07d1abab96  openssl-1.0.2s.tar.gz" > SHA256SUMS \
+  && sha256sum -c SHA256SUMS \
+  && unzip -q libarchive-3.7.2.zip && unzip -q zlib13.zip \
+  && tar xf xz-5.2.11.tar.gz && tar xf bzip2-1.0.8.tar.gz && tar xf openssl-1.0.2s.tar.gz \
+  && rm -f *.zip *.tar.gz
+
+ENV CPPFLAGS="-I/usr/local/include/ -I/opt/zlib-1.3 -I/opt/bzip2-1.0.8 -I/opt/openssl-1.0.2s/include -I/opt/openssl-1.0.2s/test"
+ENV LDLIBS="-lz -lssl -lcrypto -lbz2"
+ENV LDFLAGS="-L/usr/local/lib"
+
+# --- Codecs + libarchive, recettes upstream à l'identique ----------------------------------
+RUN cd /opt/zlib-1.3 && emconfigure ./configure --static && emmake make && emmake make install
+RUN cd /opt/bzip2-1.0.8 && emmake make && emmake make install
+RUN cd /opt/openssl-1.0.2s \
+  && emconfigure /usr/bin/perl ./Configure -no-asm -no-apps no-ssl2 no-ssl3 no-hw no-deprecated shared no-dso linux-generic32 \
+  && sed -i 's/CC= $(CROSS_COMPILE)\/emsdk\/upstream\/emscripten\/emcc/CC= $(CROSS_COMPILE)cc/' Makefile \
+  && sed -i 's/-Bsymbolic/ /' Makefile.shared \
+  && emmake make \
+  && ln -s /opt/openssl-1.0.2s/libssl.a /usr/local/lib/ \
+  && ln -s /opt/openssl-1.0.2s/libcrypto.a /usr/local/lib/
+RUN cd /opt/xz-5.2.11 \
+  && emconfigure ./configure --disable-assembler --enable-threads=no --enable-static=yes \
+  && emmake make && emmake make install
+RUN cd /opt/libarchive-3.7.2 \
+  && EMCC_CFLAGS="-s USE_BZIP2=1" emconfigure ./configure --enable-static --disable-shared \
+     --enable-bsdtar=static --enable-bsdcat=static --enable-bsdcpio=static \
+     --enable-posix-regex-lib=libc --disable-xattr --disable-acl --without-nettle \
+     --without-lzo2 --without-cng --without-lz4 --without-xml2 --without-expat \
+  && EMCC_CFLAGS="-s USE_BZIP2=1" emmake make && emmake make install
+
+# --- Wrapper + glue emscripten (lib/tools/build.sh à l'identique) ---------------------------
+ARG LIBARCHIVEJS_REF=v2.0.2
+RUN git clone --branch ${LIBARCHIVEJS_REF} --depth 1 \
+  https://github.com/nika-begiashvili/libarchivejs.git /build
+WORKDIR /build/lib/tools
+RUN emcc ../wrapper/main.c -c -I /usr/local/include/ -o ../build/main.o \
+  && emcc ../build/main.o /usr/local/lib/libarchive.a /usr/local/lib/liblzma.a \
+     /usr/local/lib/libssl.a /usr/local/lib/libcrypto.a \
+     -o ../build/libarchive.js \
+     -s USE_ZLIB=1 -s USE_BZIP2=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -s EXPORT_NAME=libarchive \
+     -s WASM=1 -O3 -s ALLOW_MEMORY_GROWTH=1 \
+     -s EXPORTED_RUNTIME_METHODS='["cwrap","allocate"]' \
+     -s EXPORTED_FUNCTIONS=@$PWD/lib.exports -s ERROR_ON_UNDEFINED_SYMBOLS=0 \
+  && cp ../build/libarchive.js ../../src/webworker/wasm-gen/ \
+  && cp ../build/libarchive.wasm ../../src/webworker/wasm-gen/
+
+# --- Bundle worker (rollup, npm épinglé par le package-lock du tag) -------------------------
+WORKDIR /build
+RUN npm ci --ignore-scripts && npm run build

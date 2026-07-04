@@ -8,7 +8,9 @@ import { factorySamples } from './vite-plugin-factory-samples';
 // Worker d'extraction d'archives (libarchive.js, M8) : le worker résout `libarchive.wasm`
 // RELATIVEMENT à sa propre URL — les deux fichiers doivent donc être servis côte à côte,
 // sous un nom stable (pas de hash Vite). Ce plugin les sert en dev et les copie au build.
-const LIBARCHIVE_DIST = fileURLToPath(new URL('./node_modules/libarchive.js/dist/', import.meta.url));
+// Depuis M9 (F-Droid), les artefacts sont CONSTRUITS DEPUIS LES SOURCES et vendorisés —
+// voir src/vendor/libarchive/PROVENANCE.md + scripts/build-libarchive-wasm.sh.
+const LIBARCHIVE_DIST = fileURLToPath(new URL('./src/vendor/libarchive/', import.meta.url));
 const LIBARCHIVE_FILES = [
   { name: 'worker-bundle.js', mime: 'text/javascript' },
   { name: 'libarchive.wasm', mime: 'application/wasm' },
