@@ -584,14 +584,17 @@ Le ré-encodage se fait **côté frontend** (règle « pas de logique métier en
   **La pré-écoute s'affiche dans le visualiseur topbar** (#24, 2026-07-04) : onde en couleur
   accent aux côtés des ondes de voix (tap `previewWaveform` en dérivation paresseuse, même
   règle que l'analyseur master) — tout ce qui sonne sur le main out se voit.
-- **Trois canaux de distribution** (2026-07-04) : **Android/F-Droid** (M9, canal primaire) ;
-  **web hébergé en PWA** et **image Docker auto-hébergeable** (nouveau jalon **M10 —
-  Distribution web**, `0.11.0`, APRÈS M9). Persistance du canal web : **IndexedDB natif** —
+- **Deux distributions** (2026-07-04, précisé) : **Android/F-Droid** (M9, canal primaire) et
+  **web/PWA** (nouveau jalon **M10 — Distribution web**, `0.11.0`, APRÈS M9). L'**image
+  Docker auto-hébergeable n'est PAS une distribution à part entière** : c'est un **mode de
+  livraison** de la web/PWA sur un serveur (le même build statique, servi soi-même).
+  Persistance du canal web : **IndexedDB natif** —
   implémentation web des dépôts `storage/types.ts` (banque, samples, réglages, tags + octets
   audio), la couture déjà prouvée par le mode mémoire ; le schéma SQL/SQLite reste propre à
   Tauri (pas de SQLite WASM — anti-overengineering). PWA : manifest + icônes + service
-  worker offline (l'app et les samples d'usine) ; Docker : image de serveur statique servant
-  le même build web. Ceci rapatrie le « mode navigateur pur » de v2 (§17) en M10.
+  worker offline (l'app et les samples d'usine). Livraison de la web/PWA : hébergement
+  public ET/OU image Docker de serveur statique. Ceci rapatrie le « mode navigateur pur »
+  de v2 (§17) en M10.
 - **Ordre de validation : web d'abord, Android ensuite.** Chaque jalon est d'abord développé et validé sur **web** (dev Vite http://localhost:1420 + fenêtre `tauri dev` bureau) ; la validation sur **appareil Android réel** est un **second temps**, jamais un prérequis pour avancer. La cible finale reste F-Droid/Android (§15) — c'est l'ordre de travail qui est fixé, pas la cible.
 
 ## 17. Évolutions futures (hors v1)
