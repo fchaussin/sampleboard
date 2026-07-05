@@ -13,6 +13,7 @@
 
   const locale = $derived(app.store.locale);
   const editMode = $derived(app.store.editMode);
+  const libraryView = $derived(app.store.libraryOpen);
   const pages = $derived(app.store.bank ? pagesSorted(app.store.bank) : []);
   const activeId = $derived(app.store.activePageId);
 
@@ -95,8 +96,22 @@
     <Icon name="import" />
   </button>
 
+  <!-- Bascule de VUE de <main> (#23/#35) : « Pads » (board) ↔ Bibliothèque, l'active en
+       accent. « Pads » réutilise closeLibrary (retour au board, symétrique du geste retour). -->
+  <button
+    class="action open-board"
+    class:active-view={!libraryView}
+    type="button"
+    title={t('bottombar.board', locale)}
+    aria-label={t('bottombar.board', locale)}
+    onclick={() => app.commands.closeLibrary()}
+  >
+    <Icon name="grid" />
+  </button>
+
   <button
     class="action open-library"
+    class:active-view={libraryView}
     type="button"
     title={t('bottombar.library', locale)}
     aria-label={t('bottombar.library', locale)}
@@ -152,6 +167,11 @@
 
   .action:active {
     background: var(--border);
+  }
+
+  /* Vue courante de <main> (board ↔ bibliothèque) : le bouton actif passe en accent. */
+  .action.active-view {
+    color: var(--accent);
   }
 
   /* Icône unique d'Édition : compacte (une case d'action), violet plein quand armée. */

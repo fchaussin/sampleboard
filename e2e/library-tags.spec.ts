@@ -67,6 +67,15 @@ test("navigation pilotée par l'URL (#23) : hash source de vérité, retour navi
   await page.locator('.close-library').click();
   await expect(page).toHaveURL(/#\/board$/);
   await expect(page.locator('.grid')).toBeVisible();
+
+  // Bouton « Pads » de la bottombar (#35) : bascule de vue explicite. Actif sur le board ;
+  // ouvrir la bibliothèque bascule l'accent ; « Pads » ramène au board.
+  await expect(page.locator('.bottombar .open-board')).toHaveClass(/active-view/);
+  await openLibrary(page);
+  await expect(page.locator('.bottombar .open-library')).toHaveClass(/active-view/);
+  await page.locator('.bottombar .open-board').click();
+  await expect(page).toHaveURL(/#\/board$/);
+  await expect(page.locator('.grid')).toBeVisible();
 });
 
 test("URL d'arrivée avec filtre périmé (#23) : corrigée vers « Tous », bibliothèque intacte", async ({ page }) => {

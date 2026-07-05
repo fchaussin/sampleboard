@@ -26,7 +26,7 @@ in [`specifications.md` §11, §16](../specifications.md).
   everything sounding on the main out is displayed.
 - **`Bottombar`** — in order: **Play ↔ Edit** toggle (pencil, accented in Edit),
   **Stop all** (`stopAllVoices` → `engine.stopAll`), **page tabs** (scrollable,
-  "+" in Edit), **Quick import** (direct file input, errors as snackbar),
+  "+" in Edit), **Quick import** (direct file input, errors as snackbar), **Pads** (board view) +
   **Library** (VIEW toggle in `main`, #22), **Settings** (drawer).
 - **`Drawer`** — right panel (min(340px, 88vw)) + scrim; closed via ✕ or a tap on the scrim.
   Four contents: `PadSettings`, `PageSettings`, `Settings`, `TagSettings` (#20) —
