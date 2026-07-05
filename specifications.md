@@ -616,6 +616,9 @@ Re-encoding happens **frontend-side** ("no business logic in Rust" rule). Choice
   Play/Edit toggle), and the Edit violet extends to every Edit surface: MIDI-map pads,
   the pool (violet wash — Edit-only tool), and a subtle inner ring on the library while
   Edit is armed.
+- **Global Stop next to the master visualizer** (#30, 2026-07-05): the panic button lives
+  PERMANENTLY in the topbar, right of the waveform — discreet at rest, red while anything
+  plays — and nowhere else (removed from the action bar).
 - **Validation order: web first, Android second.** Every milestone is first developed and validated on the **web** (Vite dev http://localhost:1420 + desktop `tauri dev` window); validation on a **real Android device** is a **second step**, never a prerequisite to move forward. The final target remains F-Droid/Android (§15) — it is the working order that is fixed, not the target.
 
 ## 17. Future evolutions (beyond v1)

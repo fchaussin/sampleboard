@@ -39,17 +39,20 @@
 
     <TopbarWaveform {app} />
 
-    {#if playing}
-      <button
-        class="stop"
-        type="button"
-        title={t('bottombar.stopAll', locale)}
-        aria-label={t('bottombar.stopAll', locale)}
-        onclick={() => app.commands.stopAllVoices()}
-      >
-        <Icon name="stop" size={18} />
-      </button>
-    {/if}
+    <!-- Stop général PERMANENT à droite du visualiseur (arbitrage 2026-07-05) : le
+         visualiseur montre ce qui sonne, le Stop le coupe — même place dans toutes les
+         vues. Discret au repos, rouge pendant la lecture. Seul foyer du Stop (retiré de
+         la bottombar). -->
+    <button
+      class="stop"
+      class:playing
+      type="button"
+      title={t('bottombar.stopAll', locale)}
+      aria-label={t('bottombar.stopAll', locale)}
+      onclick={() => app.commands.stopAllVoices()}
+    >
+      <Icon name="stop" size={18} />
+    </button>
 
     {#if !libraryView}
       <button
@@ -130,7 +133,7 @@
     font-weight: 600;
   }
 
-  /* Stop général contextuel, à côté du visualiseur (visible pendant la lecture). */
+  /* Stop général PERMANENT à côté du visualiseur : discret au repos, rouge en lecture. */
   .stop {
     display: inline-flex;
     align-items: center;
@@ -141,8 +144,14 @@
     border: 1px solid var(--border);
     border-radius: 50%;
     background: transparent;
-    color: var(--danger);
+    color: var(--muted);
     cursor: pointer;
     flex-shrink: 0;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .stop.playing {
+    color: var(--danger);
+    border-color: var(--danger);
   }
 </style>

@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- Barre d'actions (§11) : Jeu ↔ Édition, Stop général, pages (défilables, ajout en
-     Édition), Import rapide, Bibliothèque, Réglages généraux. -->
+<!-- Barre d'actions (§11) : icône Édition, pages (défilables, ajout en Édition), Import
+     rapide, Bibliothèque, Réglages. Le Stop général vit en topbar (arbitrage 2026-07-05). -->
 <script lang="ts">
   import type { App } from '../../app/create-app';
   import { pagesSorted } from '../../domain/selectors';
@@ -54,15 +54,7 @@
     </button>
   {/if}
 
-  <button
-    class="action stop"
-    type="button"
-    title={t('bottombar.stopAll', locale)}
-    aria-label={t('bottombar.stopAll', locale)}
-    onclick={() => app.commands.stopAllVoices()}
-  >
-    <Icon name="stop" />
-  </button>
+  <!-- Le Stop général vit DÉSORMAIS en topbar, à droite du visualiseur (arbitrage 2026-07-05). -->
 
   <div class="pages" role="tablist" use:dragScroll>
     {#each pages as page, i (page.id)}
@@ -185,10 +177,6 @@
     color: var(--fg);
   }
 
-  .stop:active {
-    color: var(--danger);
-  }
-
   .pages {
     display: flex;
     align-items: center;
@@ -267,8 +255,8 @@
     }
 
     /* Actions réparties sur toute la largeur de leur rangée : l'espace se creuse APRÈS
-       le groupe d'Édition de gauche (bascule + pool #18), avant le stop. */
-    .stop {
+       le groupe d'Édition de gauche (icône + pool #18), avant l'import. */
+    .import {
       margin-left: auto;
     }
   }

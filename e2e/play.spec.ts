@@ -34,7 +34,7 @@ test('assigner un sample importé à un pad Loop (tiroir), puis le jouer → pad
   await expect(page.locator('.grid .pad-stop')).toHaveCount(1);
   await expect(page.locator('.grid .pad.active canvas')).toHaveCount(1);
   await expect(page.locator('.topbar canvas')).toBeVisible();
-  await expect(page.locator('.topbar .stop')).toBeVisible(); // Stop contextuel près du visualiseur
+  await expect(page.locator('.topbar .stop.playing')).toBeVisible(); // Stop armé (rouge) près du visualiseur
 
   // Stop du pad (bouton en bas à droite du pad) : la voix s'arrête.
   await page.locator('.grid .pad-stop').click();
@@ -43,6 +43,6 @@ test('assigner un sample importé à un pad Loop (tiroir), puis le jouer → pad
   // Rejouer, puis Stop général (bottombar) : même résultat.
   await page.locator('.grid .pad.idle').click();
   await expect(page.locator('.grid .pad.active')).toHaveCount(1, { timeout: 5_000 });
-  await page.locator('.bottombar .stop').click();
+  await page.locator('.topbar .stop').click();
   await expect(page.locator('.grid .pad.active')).toHaveCount(0, { timeout: 5_000 });
 });
