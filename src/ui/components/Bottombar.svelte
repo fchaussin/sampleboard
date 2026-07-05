@@ -23,9 +23,12 @@
 </script>
 
 <nav class="bottombar">
-  <!-- Toggle segmenté Jeu ↔ Édition : les DEUX options visibles, curseur glissant sur l'active. -->
+  <!-- Icône UNIQUE d'Édition (arbitrage 2026-07-05, remplace le toggle segmenté) : neutre
+       au repos (c'est le bouton d'ENTRÉE, pas un disabled), VIOLET plein quand le mode est
+       armé — même code couleur que les pads/pool/bibliothèque en Édition. Re-tap = Jeu. -->
   <button
     class="mode-toggle"
+    class:armed={editMode}
     type="button"
     role="switch"
     aria-checked={editMode}
@@ -33,9 +36,7 @@
     aria-label={t('nav.edit', locale)}
     onclick={() => app.commands.toggleEditMode()}
   >
-    <span class="knob" class:right={editMode}></span>
-    <span class="seg" class:active={!editMode}><Icon name="play" size={16} /></span>
-    <span class="seg" class:active={editMode}><Icon name="edit" size={16} /></span>
+    <Icon name="edit" size={18} />
   </button>
 
   <!-- Pool (#18) : outil d'ÉDITION, collé à la bascule — son tiroir s'ouvre à GAUCHE.
@@ -161,53 +162,27 @@
     background: var(--border);
   }
 
-  /* Toggle segmenté : curseur (knob) glissant sous le segment actif ; le segment INACTIF
-     reste lisible (pastille blanche translucide, effet grisé) ; contour marqué. */
+  /* Icône unique d'Édition : compacte (une case d'action), violet plein quand armée. */
   .mode-toggle {
-    position: relative;
-    display: inline-flex;
-    align-items: stretch;
-    gap: 0.25rem;
-    min-height: 2.75rem;
-    padding: 0.25rem;
-    border: 1px solid var(--muted);
-    border-radius: 999rem;
-    background: var(--bg);
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-
-  .mode-toggle .seg {
-    position: relative;
-    z-index: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.375rem;
-    border-radius: 999rem;
-    background: rgb(255 255 255 / 10%);
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    background: transparent;
     color: var(--muted);
-    transition: color 0.15s ease, background 0.15s ease;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
   }
 
-  .mode-toggle .seg.active {
-    background: transparent; /* le knob accentué prend le relais */
-    color: var(--accent-contrast);
-  }
-
-  .mode-toggle .knob {
-    position: absolute;
-    top: 0.25rem;
-    bottom: 0.25rem;
-    left: 0.25rem;
-    width: 2.375rem;
-    border-radius: 999rem;
-    background: var(--accent);
-    transition: transform 0.18s ease;
-  }
-
-  .mode-toggle .knob.right {
-    transform: translateX(2.625rem); /* largeur du segment + l'écart */
+  .mode-toggle.armed {
+    background: var(--c-violet);
+    border-color: var(--c-violet);
+    color: var(--fg);
   }
 
   .stop:active {

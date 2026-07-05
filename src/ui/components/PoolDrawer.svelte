@@ -125,7 +125,9 @@
 </div>
 
 <style>
-  /* Défaut : SIDEBAR en flux (dans .body), la grille se resserre à côté. */
+  /* Défaut : SIDEBAR en flux (dans .body), la grille se resserre à côté.
+     Le pool est un outil d'ÉDITION exclusivement : il porte le VIOLET du mode (même code
+     couleur que les pads MIDI-map et l'icône Édition — arbitrage 2026-07-05). */
   .pool {
     flex-shrink: 0;
     width: min(15rem, 70vw);
@@ -133,8 +135,8 @@
     flex-direction: column;
     gap: 0.5rem;
     padding: 0.75rem;
-    background: var(--panel);
-    border-right: 1px solid var(--border);
+    background: color-mix(in oklab, var(--c-violet) 14%, var(--panel));
+    border-right: 1px solid color-mix(in oklab, var(--c-violet) 55%, var(--border));
     overflow-y: auto;
   }
 

@@ -611,6 +611,11 @@ Re-encoding happens **frontend-side** ("no business logic in Rust" rule). Choice
   with bounded concurrency, and a pad whose buffer is pending shows a **loading** state
   (never a silent dead pad). Factory seeding assigns each board slot as soon as its sample
   is seeded (progressive board).
+- **Edit mode signaling** (#29, 2026-07-05): a single **Edit icon** in the action bar
+  (neutral at rest = entry button, solid violet when armed — replaces the segmented
+  Play/Edit toggle), and the Edit violet extends to every Edit surface: MIDI-map pads,
+  the pool (violet wash — Edit-only tool), and a subtle inner ring on the library while
+  Edit is armed.
 - **Validation order: web first, Android second.** Every milestone is first developed and validated on the **web** (Vite dev http://localhost:1420 + desktop `tauri dev` window); validation on a **real Android device** is a **second step**, never a prerequisite to move forward. The final target remains F-Droid/Android (§15) — it is the working order that is fixed, not the target.
 
 ## 17. Future evolutions (beyond v1)

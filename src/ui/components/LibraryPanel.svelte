@@ -12,7 +12,9 @@
   const locale = $derived(app.store.locale);
 </script>
 
-<section class="panel" aria-label={t('library.title', locale)}>
+<!-- En Édition, la bibliothèque porte un LISERÉ violet SUBTIL (arbitrage 2026-07-05) :
+     elle sert dans les deux modes, le violet signale seulement le contexte armé. -->
+<section class="panel" class:editing={app.store.editMode} aria-label={t('library.title', locale)}>
   <header>
     <!-- Gestion des tags dans le TIROIR droit (#20). -->
     <button class="manage-tags" type="button" onclick={() => app.commands.openTagsDrawer()}>
@@ -81,5 +83,10 @@
     overflow-y: auto;
     padding: 1rem;
     padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+
+  /* Édition armée : liseré intérieur discret, même violet que pads/pool/icône du mode. */
+  .panel.editing {
+    box-shadow: inset 0 0 0 2px color-mix(in oklab, var(--c-violet) 45%, transparent);
   }
 </style>
