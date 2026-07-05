@@ -11,7 +11,7 @@ editing, just what you need to fire the right sound at the right time.
 
 | The board | Playing | The library |
 |---|---|---|
-| ![Board](fastlane/metadata/android/fr-FR/images/phoneScreenshots/1.png) | ![Playing](fastlane/metadata/android/fr-FR/images/phoneScreenshots/2.png) | ![Library](fastlane/metadata/android/fr-FR/images/phoneScreenshots/3.png) |
+| ![Board](fastlane/metadata/android/en-US/images/phoneScreenshots/1.png) | ![Playing](fastlane/metadata/android/en-US/images/phoneScreenshots/2.png) | ![Library](fastlane/metadata/android/en-US/images/phoneScreenshots/3.png) |
 
 ## Features
 

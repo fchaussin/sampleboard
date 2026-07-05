@@ -17,7 +17,7 @@ export const DEFAULT_ROWS = 4;
 export const DEFAULT_COLS = 4;
 export const DEFAULT_GAIN_DB = 0;
 export const DEFAULT_MAX_VOICES = 8;
-export const DEFAULT_LOCALE = 'fr';
+export const DEFAULT_LOCALE = 'en'; // décision 2026-07-05 : anglais par défaut (fr via Réglages)
 export const DEFAULT_BACKGROUND_BEHAVIOR: BackgroundBehavior = 'stopAll';
 
 /** Réglages par défaut (voir §6) — utilisés avant hydratation et au premier lancement. */

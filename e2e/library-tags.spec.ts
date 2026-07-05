@@ -14,23 +14,23 @@ test('taguer, filtrer (tag et Non classé), assigner un pad depuis la bibliothè
   await expect(filters.locator('.chip', { hasText: 'SFX' })).toBeVisible();
 
   // Sans tag → visible sous « Non classé », pas sous « SFX ».
-  await filters.locator('.chip', { hasText: 'Non classé' }).click();
+  await filters.locator('.chip', { hasText: 'Untagged' }).click();
   await expect(page.locator('.library .list li')).toHaveCount(1);
   await filters.locator('.chip', { hasText: 'SFX' }).click();
   await expect(page.locator('.library .list')).toHaveCount(0);
 
   // Affecter « SFX » : déplier la ligne, cocher la chip.
-  await filters.locator('.chip', { hasText: 'Tous' }).click();
+  await filters.locator('.chip', { hasText: 'All' }).click();
   await page.locator('.library .tags-toggle').click();
   await page.locator('.library .expansion .chip', { hasText: 'SFX' }).click();
   await filters.locator('.chip', { hasText: 'SFX' }).click();
   await expect(page.locator('.library .list li').first()).toBeVisible();
-  await filters.locator('.chip', { hasText: 'Non classé' }).click();
+  await filters.locator('.chip', { hasText: 'Untagged' }).click();
   await expect(page.locator('.library .list')).toHaveCount(0);
 
   // Assignation À LA VOLÉE (#11) : bouton DIRECT sur la ligne → le panneau se ferme →
   // chaque pad touché reçoit le sample → Terminer.
-  await filters.locator('.chip', { hasText: 'Tous' }).click();
+  await filters.locator('.chip', { hasText: 'All' }).click();
   await page.locator('.library .assign-start').click();
   await expect(page.locator('.banner')).toBeVisible(); // bannière du mode
   await page.locator('.grid .pad').nth(0).click();
@@ -53,7 +53,7 @@ test("navigation pilotée par l'URL (#23) : hash source de vérité, retour navi
   await expect(page.locator('.library')).toBeVisible();
 
   // Filtrer = ajustement de paramètre : le hash porte le filtre, sans nouvelle entrée.
-  await page.locator('.library .filters .chip', { hasText: 'Non classé' }).click();
+  await page.locator('.library .filters .chip', { hasText: 'Untagged' }).click();
   await expect(page).toHaveURL(/#\/library\?tag=untagged$/);
 
   // Retour navigateur (geste Android) : dépile l'entrée poussée → board, bibliothèque fermée.
@@ -75,7 +75,7 @@ test("URL d'arrivée avec filtre périmé (#23) : corrigée vers « Tous », bib
   await page.route('**/factory-samples/**', (route) => route.fulfill({ status: 404, body: '' }));
   await page.goto('/#/library?tag=id-perime');
   await expect(page).toHaveURL(/#\/library$/);
-  await expect(page.locator('.library .filters .chip.active', { hasText: 'Tous' })).toBeVisible();
+  await expect(page.locator('.library .filters .chip.active', { hasText: 'All' })).toBeVisible();
 });
 
 test('modale de choix de sample : la recherche filtre la liste (#12)', async ({ page }) => {

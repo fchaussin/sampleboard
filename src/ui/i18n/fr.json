@@ -121,5 +121,6 @@
   "settings.background.keepPlaying": "Laisser jouer",
   "settings.maxVoices": "Nombre maximum de voix",
   "settings.locale": "Langue",
-  "locale.fr": "Français"
+  "locale.fr": "Français",
+  "locale.en": "Anglais"
 }

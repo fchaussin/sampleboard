@@ -51,6 +51,6 @@ test('un tag supprimé ne repousse pas au rechargement (garde firstLaunch persis
   await page.waitForTimeout(600);
   await page.reload();
   await openLibrary(page);
-  await expect(page.locator('.library .filters .chip', { hasText: 'Ambiance' })).toBeVisible();
+  await expect(page.locator('.library .filters .chip', { hasText: 'Ambience' })).toBeVisible();
   await expect(page.locator('.library .filters .chip', { hasText: 'SFX' })).toHaveCount(0);
 });

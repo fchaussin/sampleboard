@@ -11,7 +11,7 @@
     },
     {
       "file": "fs-ding.ogg",
-      "label": "Ding (bonne réponse)",
+      "label": "Ding (correct answer)",
       "tags": [
         "sfx"
       ],
@@ -30,7 +30,7 @@
     },
     {
       "file": "fs-roulement.ogg",
-      "label": "Roulement de tambour",
+      "label": "Drum roll",
       "tags": [
         "sfx",
         "music"
@@ -40,7 +40,7 @@
     },
     {
       "file": "fs-applaudissements.ogg",
-      "label": "Applaudissements",
+      "label": "Applause",
       "tags": [
         "reaction"
       ],
@@ -49,7 +49,7 @@
     },
     {
       "file": "fs-rires-sitcom.ogg",
-      "label": "Rires sitcom",
+      "label": "Laugh track",
       "tags": [
         "reaction"
       ],
@@ -58,7 +58,7 @@
     },
     {
       "file": "fs-foule-oooh.ogg",
-      "label": "Foule déçue (oooh)",
+      "label": "Crowd aww",
       "tags": [
         "reaction"
       ],
@@ -67,7 +67,7 @@
     },
     {
       "file": "fs-tada.ogg",
-      "label": "Tada !",
+      "label": "Tada!",
       "tags": [
         "jingle"
       ],
@@ -76,7 +76,7 @@
     },
     {
       "file": "fs-trombone-triste.ogg",
-      "label": "Trombone triste",
+      "label": "Sad trombone",
       "tags": [
         "reaction",
         "music"
@@ -86,7 +86,7 @@
     },
     {
       "file": "fs-cloche-hotel.ogg",
-      "label": "Cloche d'hôtel",
+      "label": "Service bell",
       "tags": [
         "sfx"
       ],
@@ -95,7 +95,7 @@
     },
     {
       "file": "fs-sifflet.ogg",
-      "label": "Sifflet d'arbitre",
+      "label": "Referee whistle",
       "tags": [
         "sfx",
         "alert"
@@ -134,7 +134,7 @@
     },
     {
       "file": "fs-grillons.ogg",
-      "label": "Grillons",
+      "label": "Crickets",
       "tags": [
         "ambience"
       ],
@@ -162,7 +162,7 @@
     },
     {
       "file": "fs-klaxon.ogg",
-      "label": "Klaxon",
+      "label": "Car horn",
       "tags": [
         "sfx"
       ],
@@ -171,7 +171,7 @@
     },
     {
       "file": "fs-verre-brise.ogg",
-      "label": "Verre brisé",
+      "label": "Broken glass",
       "tags": [
         "sfx"
       ],
@@ -189,7 +189,7 @@
     },
     {
       "file": "fs-telephone.ogg",
-      "label": "Vieux téléphone",
+      "label": "Old phone",
       "tags": [
         "alert",
         "sfx"
@@ -199,7 +199,7 @@
     },
     {
       "file": "fs-alarme.ogg",
-      "label": "Alarme",
+      "label": "Alarm",
       "tags": [
         "alert"
       ],
@@ -208,7 +208,7 @@
     },
     {
       "file": "fs-tic-tac.ogg",
-      "label": "Tic-tac",
+      "label": "Tick-tock",
       "tags": [
         "ambience"
       ],
@@ -217,7 +217,7 @@
     },
     {
       "file": "fs-compte-a-rebours.ogg",
-      "label": "Compte à rebours",
+      "label": "Countdown",
       "tags": [
         "alert",
         "sfx"
@@ -227,7 +227,7 @@
     },
     {
       "file": "fs-victoire-8bit.ogg",
-      "label": "Victoire 8-bit",
+      "label": "8-bit win",
       "tags": [
         "jingle",
         "music"

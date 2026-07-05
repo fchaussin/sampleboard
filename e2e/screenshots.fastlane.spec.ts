@@ -5,7 +5,7 @@
 // Hors suite e2e normale : ne tourne qu'avec FASTLANE_SHOTS=1 (npm run shots:fastlane).
 import { test, expect } from '@playwright/test';
 
-const OUT = 'fastlane/metadata/android/fr-FR/images/phoneScreenshots';
+const OUT = 'fastlane/metadata/android/en-US/images/phoneScreenshots';
 const shot = (n: number) => `${OUT}/${n}.png`;
 
 test.skip(!process.env.FASTLANE_SHOTS, 'captures fastlane : lancer avec FASTLANE_SHOTS=1');

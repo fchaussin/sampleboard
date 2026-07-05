@@ -27,8 +27,8 @@ Svelte 5 (runes) + Vite en **SPA** (`adapter-static`, SSR off) · TypeScript **s
 Dépendance à sens unique : `domain ← engine, storage ← app ← ui`. Le cœur (`domain`/`engine`/`storage`) ne dépend jamais de Svelte. Flux unidirectionnel `UI → intention → commande → (store + engine + persistance)`. Mutation d'état **uniquement** dans `commands.ts`. Composition root explicite (`create-app.ts`), pas de singletons.
 
 ## Conventions NON négociables
-- **i18n** : app multilingue. **Zéro texte en dur** dans le code — uniquement des **clés (tokens)**. Traductions en **JSON par langue** (`src/ui/i18n/*.json`), **`fr.json` = défaut & fallback**.
-- **Code & schéma SQLite en anglais neutre.** Les libellés FR sont dans `fr.json`.
+- **i18n** : app multilingue. **Zéro texte en dur** dans le code — uniquement des **clés (tokens)**. Traductions en **JSON par langue** (`src/ui/i18n/*.json`) ; **`en.json` = défaut & fallback** (décision 2026-07-05), `fr.json` complet, bascule dans les Réglages.
+- **Code & schéma SQLite en anglais neutre.** Les libellés localisés vivent dans les JSON de langue ; les libellés du manifest d'usine sont en anglais.
 - **Vocabulaire** : le **Glossaire en tête de `specifications.md` est la source de vérité** (concept ↔ code/clé ↔ libellé FR). S'y tenir strictement.
 - **Mot banni : « couper »** (réservé à la future feature « découper », rognage v2) → dire **« stopper » / « arrêter »**.
 - Termes de comportement en terminologie **contrôleur MIDI** : Mode de lecture = One-Shot / Gate / Loop ; Polyphonie = Mono / Poly.

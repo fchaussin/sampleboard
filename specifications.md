@@ -10,7 +10,7 @@
 The product is **multilingual** (i18n). **Convention**:
 - The **code and the SQLite schema are in neutral English** — stable, language-independent, and **easier to arbitrate** (less ambiguous than French).
 - The code contains **no hard-coded text**: only **i18n keys (tokens)**.
-- Visible labels live in **JSON translation files** (`src/ui/i18n/*.json`), **one per language**; **French (`fr.json`) is the default language and the fallback**.
+- Visible labels live in **JSON translation files** (`src/ui/i18n/*.json`), **one per language**; **English (`en.json`) is the default language and the fallback** (decision 2026-07-05 — public international repo); `fr.json` is complete, switchable in Settings.
 
 The table below is the reference: `Concept ↔ code identifier / i18n key ↔ FR label`.
 
@@ -79,7 +79,7 @@ It is a **sample board** (soundboard style), **not a sampler**: no DSP, no advan
 - Full **Edit** mode: pad and page CRUD, sample assignment, per-pad gain (**in dB**).
 - **Import** of audio files from device storage, with **Opus re-encoding** (see §13).
 - Global **Settings** (Background, Maximum number of voices, language), persisted.
-- **Multilingual interface (i18n)**, **French by default**.
+- **Multilingual interface (i18n)**, **English by default** (French switchable in Settings).
 - Reliable local persistence (config + audio file library), reloaded on startup.
 
 ### Out of scope (v1) — see §17
@@ -89,7 +89,7 @@ _(« Découper » — start/end trimming — and waveform: **brought back into v
 dedicated "Audio editor" milestone, see §16 and roadmap.)_
 
 ### Content
-The application ships **empty**: no audio clip is bundled. Quotes and sound effects are supplied by the user via import. No copyrighted content is distributed with the app (a product constraint **and** an F-Droid constraint).
+The application ships with a **CC0 starter bank** (25 soundboard classics from Freesound, source and license traced per entry — §16) seeded on first launch only. Everything else is supplied by the user via import. No copyrighted content is distributed with the app (a product constraint **and** an F-Droid constraint).
 
 ## 3. Target & constraints
 
@@ -101,7 +101,7 @@ The application ships **empty**: no audio clip is bundled. Quotes and sound effe
 | Persistence | **Native SQLite** via `tauri-plugin-sql` |
 | Files | `tauri-plugin-fs` + `tauri-plugin-dialog` for import |
 | Audio | **Web Audio API**; Opus encoding via embedded **WASM libopus** |
-| i18n | **JSON translations** per language (`fr.json` default & fallback); the code carries **only keys** (tokens), zero hard-coded text |
+| i18n | **JSON translations** per language (`en.json` default & fallback); the code carries **only keys** (tokens), zero hard-coded text |
 | Distribution | F-Droid (APK) |
 
 **F-Droid constraints** (structural, to be honored from the start — see §15): 100% FOSS, no Google dependency (Firebase/Play Services), no trackers or ads, reproducible build, free license.
@@ -151,7 +151,7 @@ sampleboard/
 │  │  ├─ persistence.ts  # debounced autosave coordinator (single subscriber)
 │  │  └─ create-app.ts   # composition root
 │  ├─ ui/
-│  │  ├─ i18n/           # JSON translations: fr.json (default), en.json… + index.ts (loader + t())
+│  │  ├─ i18n/           # JSON translations: en.json (default), fr.json… + index.ts (loader + t())
 │  │  ├─ interaction/pad-input.ts   # single pointer→intention module
 │  │  ├─ components/
 │  │  │  ├─ PadGrid.svelte
@@ -461,7 +461,11 @@ Re-encoding happens **frontend-side** ("no business logic in Rust" rule). Choice
 ## 16. Locked decisions
 
 - **Vocabulary**: see the **Glossary** at the top (source of truth). Behavior terms in MIDI controller terminology.
-- **i18n**: multilingual app, **FR by default**; labels in language files, code/schema in English.
+- **i18n**: multilingual app; labels in language files, code/schema in English.
+- **Default language: English** (2026-07-05, repo public/international): `en.json` complete
+  = default & fallback, `fr.json` complete, selector in Settings (registry-driven —
+  `availableLocales()`). The factory-manifest labels are in English (they are visible pad
+  data); fastlane screenshots live under `en-US` (F-Droid clients fall back to en-US).
 - **Gain**: **dB** scale `[-60, +6]`, `0` = original level, conversion → amplitude by the engine.
 - **Library**: managed separately (CRUD); deleting a referenced sample makes the pads *missing* (warning + confirmation), never a hard block.
 - **Background**: configurable via `Settings.backgroundBehavior`, default **« Tout stopper »** (`stopAll`).

@@ -58,5 +58,5 @@ covered: `commands.factory-seed.test.ts` ("seeds even if resume() never resolves
 - `tests/app/commands.factory-seed.test.ts` — the command never re-encodes (the encoder
   is not called), PCM duration, write failure → engine unload.
 - `tests/app/factory-seed.test.ts` — full seeding on fakes (tags, board, best effort).
-- `e2e/factory-seed.spec.ts` — real first launch: filled library + « Buzzer 1 »
+- `e2e/factory-seed.spec.ts` — real first launch: filled library + « Buzzer »
   on the first pad.

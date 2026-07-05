@@ -17,7 +17,7 @@ async function dragEndHandleTo(page: Page, ratio: number): Promise<void> {
 
 test('import → rognage à la poignée → durée persistée réduite ; undo restaure', async ({ page }) => {
   await gotoApp(page);
-  // WAV d'une seconde : les durées affichées sont non ambiguës (1 s → 0,5 s).
+  // WAV d'une seconde : les durées affichées sont non ambiguës (1 s → 0.5 s).
   await pickImportFile(page, { name: 'long.wav', mimeType: 'audio/wav', buffer: makeWav(1) });
 
   const editor = page.locator('.audio-editor');
@@ -25,16 +25,16 @@ test('import → rognage à la poignée → durée persistée réduite ; undo re
 
   // Rogne à ~50 %, puis undo (sélection pleine), puis re-rogne à 50 % et valide.
   await dragEndHandleTo(page, 0.5);
-  await expect(editor.locator('.times')).toContainText('0,5');
+  await expect(editor.locator('.times')).toContainText('0.5');
   await editor.locator('.undo').click();
   await expect(editor.locator('.times')).toContainText('· 1');
   await dragEndHandleTo(page, 0.5);
   await editor.locator('.apply').click();
   await editor.waitFor({ state: 'hidden', timeout: 20_000 });
 
-  // La bibliothèque affiche la durée ROGNÉE (~0,5 s), pas 1 s.
+  // La bibliothèque affiche la durée ROGNÉE (~0.5 s), pas 1 s.
   await openLibrary(page);
-  await expect(page.locator('.library .list li .meta')).toContainText('0,5');
+  await expect(page.locator('.library .list li .meta')).toContainText('0.5');
 });
 
 test('retravail depuis la bibliothèque : re-rognage → durée mise à jour', async ({ page }) => {
@@ -56,5 +56,5 @@ test('retravail depuis la bibliothèque : re-rognage → durée mise à jour', a
 
   // Même entrée (pas de doublon), durée réduite.
   await expect(page.locator('.library .list li')).toHaveCount(1);
-  await expect(page.locator('.library .list li .meta')).toContainText('0,5');
+  await expect(page.locator('.library .list li .meta')).toContainText('0.5');
 });
