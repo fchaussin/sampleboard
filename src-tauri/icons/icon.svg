@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- Icône Sampleboard : la matrice de pads du board (grille 4×4 par défaut), couleurs de la
-     palette OKLCH de l'app cyclées PAR POSITION — exactement la règle de BankFactory (§16).
-     Source de vérité vectorielle ; les PNG (Tauri, PWA) se régénèrent depuis ce fichier
-     (voir doc/web-distribution.md et `npm run tauri icon`). -->
+<!-- Icône Sampleboard : matrice de pads 3×3 (lisible aux petites tailles — arbitrage
+     utilisateur 2026-07-05), couleurs de la palette OKLCH de l'app cyclées PAR POSITION
+     comme le fait BankFactory (§16). Source de vérité vectorielle ; les PNG (Tauri, PWA)
+     se régénèrent depuis ce fichier (voir doc/web-distribution.md et `npm run tauri icon`). -->
 <svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <clipPath id="squircle">
@@ -12,28 +12,20 @@
   </defs>
   <g clip-path="url(#squircle)">
     <rect width="1024" height="1024" fill="oklch(18% 0.012 265)"/>
-    <!-- Grille 4×4 : marge 128, cellules 168, gouttières 32 (4×168 + 3×32 = 768). -->
+    <!-- Grille 3×3 : marge 128, cellules 224, gouttières 48 (3×224 + 2×48 = 768). -->
     <g>
-      <!-- rangée 1 : red, orange, amber, green -->
-      <rect x="128" y="128" width="168" height="168" rx="38" fill="oklch(66% 0.17 27)"/>
-      <rect x="328" y="128" width="168" height="168" rx="38" fill="oklch(70% 0.16 55)"/>
-      <rect x="528" y="128" width="168" height="168" rx="38" fill="oklch(78% 0.14 90)"/>
-      <rect x="728" y="128" width="168" height="168" rx="38" fill="oklch(70% 0.16 150)"/>
-      <!-- rangée 2 : teal, blue, violet, pink -->
-      <rect x="128" y="328" width="168" height="168" rx="38" fill="oklch(72% 0.13 190)"/>
-      <rect x="328" y="328" width="168" height="168" rx="38" fill="oklch(66% 0.17 265)"/>
-      <rect x="528" y="328" width="168" height="168" rx="38" fill="oklch(66% 0.17 300)"/>
-      <rect x="728" y="328" width="168" height="168" rx="38" fill="oklch(68% 0.17 350)"/>
-      <!-- rangée 3 : le cycle reprend — red, orange, amber, green -->
-      <rect x="128" y="528" width="168" height="168" rx="38" fill="oklch(66% 0.17 27)"/>
-      <rect x="328" y="528" width="168" height="168" rx="38" fill="oklch(70% 0.16 55)"/>
-      <rect x="528" y="528" width="168" height="168" rx="38" fill="oklch(78% 0.14 90)"/>
-      <rect x="728" y="528" width="168" height="168" rx="38" fill="oklch(70% 0.16 150)"/>
-      <!-- rangée 4 : teal, blue, violet, pink -->
-      <rect x="128" y="728" width="168" height="168" rx="38" fill="oklch(72% 0.13 190)"/>
-      <rect x="328" y="728" width="168" height="168" rx="38" fill="oklch(66% 0.17 265)"/>
-      <rect x="528" y="728" width="168" height="168" rx="38" fill="oklch(66% 0.17 300)"/>
-      <rect x="728" y="728" width="168" height="168" rx="38" fill="oklch(68% 0.17 350)"/>
+      <!-- rangée 1 : red, orange, amber -->
+      <rect x="128" y="128" width="224" height="224" rx="50" fill="oklch(66% 0.17 27)"/>
+      <rect x="400" y="128" width="224" height="224" rx="50" fill="oklch(70% 0.16 55)"/>
+      <rect x="672" y="128" width="224" height="224" rx="50" fill="oklch(78% 0.14 90)"/>
+      <!-- rangée 2 : green, teal, blue -->
+      <rect x="128" y="400" width="224" height="224" rx="50" fill="oklch(70% 0.16 150)"/>
+      <rect x="400" y="400" width="224" height="224" rx="50" fill="oklch(72% 0.13 190)"/>
+      <rect x="672" y="400" width="224" height="224" rx="50" fill="oklch(66% 0.17 265)"/>
+      <!-- rangée 3 : violet, pink, puis le cycle reprend — red -->
+      <rect x="128" y="672" width="224" height="224" rx="50" fill="oklch(66% 0.17 300)"/>
+      <rect x="400" y="672" width="224" height="224" rx="50" fill="oklch(68% 0.17 350)"/>
+      <rect x="672" y="672" width="224" height="224" rx="50" fill="oklch(66% 0.17 27)"/>
     </g>
   </g>
 </svg>
