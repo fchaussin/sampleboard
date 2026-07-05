@@ -91,17 +91,15 @@
 </script>
 
 <section class="library">
-  <!-- Barre d'outils sticky : import, recherche et filtres restent visibles au défilement. -->
+  <!-- Barre d'outils sticky : recherche et filtres restent visibles au défilement. L'import
+       vit désormais dans l'en-tête du panneau (LibraryPanel, aligné à gauche). -->
   <div class="toolbar">
-    <div class="head">
-      <!-- Point d'entrée UNIQUE de l'import : la modale (choix des fichiers + progression). -->
-      <button class="import" type="button" onclick={() => app.commands.openImport()}>
-        {t('library.import', locale)}
-      </button>
-      {#if error}
+    <!-- Erreur du flux « Découper » (rework), affichée seulement quand elle survient. -->
+    {#if error}
+      <div class="head">
         <span class="error">{t(`library.error.${error}`, locale)}</span>
-      {/if}
-    </div>
+      </div>
+    {/if}
 
     <input
       class="search"
@@ -244,16 +242,6 @@
     flex-wrap: wrap;
   }
 
-  .import {
-    padding: 0.35rem 0.9rem;
-    border: 1px solid var(--accent);
-    border-radius: 0.5rem;
-    background: transparent;
-    color: var(--accent);
-    font: inherit;
-    font-size: 0.85rem;
-    cursor: pointer;
-  }
 
   .error {
     color: var(--danger);

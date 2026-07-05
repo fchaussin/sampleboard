@@ -32,7 +32,7 @@ in [`specifications.md` §11, §16](../specifications.md).
   Four contents: `PadSettings`, `PageSettings`, `Settings`, `TagSettings` (#20) —
   form styles shared via `.drawer-form` in `app.css`.
 - **`LibraryPanel`** — a VIEW of the layout (#22, supersedes the M6 full-screen): rendered in
-  `<main>` in place of the grid, topbar/bottombar remain. `Library` content (import,
+  `<main>` in place of the grid, topbar/bottombar remain. Panel header: **Import a sound** (left), **Manage tags** + close (right). `Library` content (rename,
   rename, preview, deletion with a warning).
 - Icons: `Icon.svelte` (inline SVG, Material-style paths, zero dependencies).
 

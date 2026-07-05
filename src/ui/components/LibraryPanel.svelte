@@ -16,6 +16,12 @@
      elle sert dans les deux modes, le violet signale seulement le contexte armé. -->
 <section class="panel" class:editing={app.store.editMode} aria-label={t('library.title', locale)}>
   <header>
+    <!-- Import ALIGNÉ À GAUCHE de l'en-tête du panneau (arbitrage 2026-07-05) — point
+         d'entrée unique (la modale de choix des fichiers + progression). -->
+    <button class="import" type="button" onclick={() => app.commands.openImport()}>
+      <Icon name="import" size={16} />
+      <span>{t('library.import', locale)}</span>
+    </button>
     <!-- Gestion des tags dans le TIROIR droit (#20). -->
     <button class="manage-tags" type="button" onclick={() => app.commands.openTagsDrawer()}>
       {t('library.manageTags', locale)}
@@ -51,6 +57,23 @@
     justify-content: flex-end;
     gap: 0.4rem;
     padding: 0.25rem 0.5rem;
+  }
+
+  /* Import poussé à GAUCHE ; « Gérer les tags » + fermeture restent à droite. */
+  .import {
+    margin-right: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2.25rem;
+    padding: 0 0.8rem;
+    border: 1px solid var(--accent);
+    border-radius: 999rem;
+    background: transparent;
+    color: var(--accent);
+    font: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
   }
 
   .manage-tags {

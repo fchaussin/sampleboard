@@ -17,7 +17,7 @@ test('import WAV → OGG/Opus : le sample apparaît dans la bibliothèque', asyn
     name: 'tone.wav',
     mimeType: 'audio/wav',
     buffer: makeWav(),
-  }, '.library .import');
+  }, '.panel .import');
   await applyAudioEditor(page);
 
   const items = page.locator('.library .list li');
@@ -49,7 +49,7 @@ test('import sans crypto.randomUUID (contexte non sécurisé) : ajouté quand m�
     name: 'insecure.wav',
     mimeType: 'audio/wav',
     buffer: makeWav(),
-  }, '.library .import');
+  }, '.panel .import');
   await applyAudioEditor(page);
   await expect(page.locator('.library .list li')).toHaveCount(1, { timeout: 20_000 });
 });
@@ -65,7 +65,7 @@ test('import WAV stéréo & plus long : ajouté à la bibliothèque', async ({ p
     name: 'stereo.wav',
     mimeType: 'audio/wav',
     buffer: makeWav(2, 44100, 440, 2), // 2 s, stéréo
-  }, '.library .import');
+  }, '.panel .import');
   await applyAudioEditor(page);
 
   try {
