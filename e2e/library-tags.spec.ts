@@ -186,6 +186,28 @@ test('pool (#18, Édition seulement) : stocker deux samples, armer depuis la sid
   await expect(page.locator('.pool')).toHaveCount(0);
 });
 
+test('tiroir pad (#33) : « Ajouter au pool » depuis les propriétés du pad, puis inactif', async ({ page }) => {
+  await gotoApp(page);
+  await importWav(page, 'topool.wav');
+
+  // Assigner le sample au pad 0 (à la volée depuis la bibliothèque).
+  await openLibrary(page);
+  await page.locator('.library .assign-start').click();
+  await page.locator('.grid .pad').nth(0).click();
+  await page.locator('.banner button').click(); // Terminer
+
+  // Édition → ouvrir le tiroir du pad 0 → « Ajouter au pool » y apparaît (le pad a un sample).
+  await page.locator('.bottombar .mode-toggle').click();
+  await page.locator('.grid .pad').nth(0).click();
+  const drawer = page.locator('.drawer');
+  await expect(drawer).toBeVisible();
+  await drawer.locator('.pool-add').click();
+
+  // La sidebar pool (Édition, écran large) contient le sample ; le bouton devient inactif.
+  await expect(page.locator('.pool .item')).toHaveCount(1);
+  await expect(drawer.locator('.pool-add')).toBeDisabled();
+});
+
 test('pool (#18) : glisser une ligne de bibliothèque vers le pool, puis un élément du pool vers un pad', async ({ page }) => {
   await gotoApp(page);
   await importWav(page, 'kick.wav');

@@ -97,6 +97,7 @@
   "library.manageTags": "Gérer les tags",
   "pool.title": "Pool d'assignation",
   "pool.add": "Ajouter au pool d'assignation",
+  "pool.added": "Dans le pool",
   "pool.addSamples": "Ajouter des samples (ouvre la bibliothèque)",
   "pool.clear": "Vider le pool",
   "pool.empty": "Pool vide — ajoutez ou glissez des samples depuis la bibliothèque.",

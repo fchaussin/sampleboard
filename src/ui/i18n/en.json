@@ -97,6 +97,7 @@
   "library.manageTags": "Manage tags",
   "pool.title": "Assignment pool",
   "pool.add": "Add to the assignment pool",
+  "pool.added": "In the pool",
   "pool.addSamples": "Add samples (opens the library)",
   "pool.clear": "Clear the pool",
   "pool.empty": "Pool is empty — add or drag samples from the library.",

@@ -8,6 +8,7 @@
   import { GAIN_DB_MIN, GAIN_DB_MAX } from '../../domain/invariants';
   import { t } from '../i18n';
   import ColorPicker from './ColorPicker.svelte';
+  import Icon from './Icon.svelte';
   import SamplePicker from './SamplePicker.svelte';
 
   let { app }: { app: App } = $props();
@@ -26,6 +27,8 @@
   const currentSampleLabel = $derived(
     pad?.sampleId ? (app.store.samples.find((s) => s.id === pad.sampleId)?.label ?? '?') : null,
   );
+  // Sample déjà dans le pool d'assignation : le bouton d'ajout devient inactif (feedback).
+  const inPool = $derived(!!pad?.sampleId && app.store.poolSampleIds.includes(pad.sampleId));
 </script>
 
 {#if pad}
@@ -82,9 +85,48 @@
   </div>
   <SamplePicker {app} padId={p.id} open={pickerOpen} onclose={() => (pickerOpen = false)} />
 
+  <!-- Ajout du sample du pad au POOL d'assignation (#33) : seulement s'il en a un ;
+       inactif s'il y est déjà. Le pool est un outil d'Édition, comme ce tiroir. -->
+  {#if p.sampleId}
+    <button
+      class="pool-add"
+      type="button"
+      disabled={inPool}
+      onclick={() => {
+        if (p.sampleId) app.commands.addToPool(p.sampleId);
+      }}
+    >
+      <Icon name="pool" size={16} />
+      <span>{inPool ? t('pool.added', locale) : t('pool.add', locale)}</span>
+    </button>
+  {/if}
+
   <button class="danger" type="button" onclick={() => app.commands.deletePad(p.id)}>
     {t('editor.pad.delete', locale)}
   </button>
 {:else}
   <p class="hint">{t('editor.pad.none', locale)}</p>
 {/if}
+
+<style>
+  .pool-add {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-height: 2.5rem;
+    padding: 0 0.9rem;
+    border: 1px solid var(--accent);
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--accent);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .pool-add:disabled {
+    border-color: var(--border);
+    color: var(--muted);
+    cursor: default;
+  }
+</style>
