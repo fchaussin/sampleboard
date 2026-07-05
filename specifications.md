@@ -619,6 +619,11 @@ Re-encoding happens **frontend-side** ("no business logic in Rust" rule). Choice
 - **Global Stop next to the master visualizer** (#30, 2026-07-05): the panic button lives
   PERMANENTLY in the topbar, right of the waveform — discreet at rest, red while anything
   plays — and nowhere else (removed from the action bar).
+- **Web maintenance in Settings** (#31, 2026-07-05): an Application section shows the
+  build version and offers two SEPARATE gestures — **update** (SW re-check + reload,
+  non-destructive) and **factory reset** (native `<dialog>` confirmation; SW+caches purged,
+  IndexedDB deleted at next boot via a reset flag so no live connection blocks it).
+  Updating never costs the user their data. Web-only (Tauri ships updates through F-Droid).
 - **Validation order: web first, Android second.** Every milestone is first developed and validated on the **web** (Vite dev http://localhost:1420 + desktop `tauri dev` window); validation on a **real Android device** is a **second step**, never a prerequisite to move forward. The final target remains F-Droid/Android (§15) — it is the working order that is fixed, not the target.
 
 ## 17. Future evolutions (beyond v1)

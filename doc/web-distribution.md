@@ -54,6 +54,17 @@ and `index.html`, correct `application/wasm` MIME. Docker Hub publication planne
 Note for reverse proxies: service workers require a secure context — serve over HTTPS
 (or localhost). Nothing else is needed (fragment routing → no path fallback).
 
+## Maintenance (Settings › Application, #31)
+
+- **Reload to update** — non-destructive: asks the service worker to re-check, then
+  reloads; navigations are network-first, so the latest published build is served as soon
+  as it is reachable (offline falls back to the cache).
+- **Erase all data…** — factory reset behind a native `<dialog>` confirmation: unregisters
+  the SW, purges the caches, arms a `sessionStorage` flag and reloads; `main.ts` deletes
+  the IndexedDB database at the NEXT boot, before any connection opens (a live connection
+  would block `deleteDatabase`). The next start is a true first launch (starter bank
+  reseeded).
+
 ## Validation performed
 
 Against a production build (vite preview AND the nginx container): first load installs

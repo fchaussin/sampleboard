@@ -123,5 +123,13 @@
   "settings.maxVoices": "Nombre maximum de voix",
   "settings.locale": "Langue",
   "locale.fr": "Français",
-  "locale.en": "Anglais"
+  "locale.en": "Anglais",
+  "settings.app.title": "Application",
+  "settings.app.version": "Version",
+  "settings.app.update": "Recharger (mise à jour)",
+  "settings.app.reset": "Tout effacer…",
+  "settings.app.reset.title": "Tout effacer ?",
+  "settings.app.reset.body": "Vos sons, pads, pages et réglages seront définitivement effacés. La banque de démarrage sera re-semée au prochain lancement.",
+  "settings.app.reset.cancel": "Annuler",
+  "settings.app.reset.confirm": "Tout effacer"
 }

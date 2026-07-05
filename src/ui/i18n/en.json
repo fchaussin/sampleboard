@@ -123,5 +123,13 @@
   "settings.maxVoices": "Maximum number of voices",
   "settings.locale": "Language",
   "locale.fr": "French",
-  "locale.en": "English"
+  "locale.en": "English",
+  "settings.app.title": "Application",
+  "settings.app.version": "Version",
+  "settings.app.update": "Reload to update",
+  "settings.app.reset": "Erase all data…",
+  "settings.app.reset.title": "Erase all data?",
+  "settings.app.reset.body": "Your sounds, pads, pages and settings will be permanently erased. The starter bank will be seeded again on the next start.",
+  "settings.app.reset.cancel": "Cancel",
+  "settings.app.reset.confirm": "Erase everything"
 }

@@ -4,6 +4,7 @@ import { isTauri } from '@tauri-apps/api/core';
 import { mount } from 'svelte';
 import App from './App.svelte';
 import { createApp } from './app/create-app';
+import { applyPendingFactoryReset } from './app/maintenance';
 import { t } from './ui/i18n';
 import './app.css';
 
@@ -22,6 +23,9 @@ async function bootstrap(): Promise<void> {
   if (!target) {
     throw new Error('Cible de montage #app introuvable dans index.html');
   }
+  // Réinitialisation d'usine demandée au chargement précédent (#31) : la base se supprime
+  // ICI, avant toute connexion — le boot repart alors comme un premier lancement.
+  if (!isTauri()) await applyPendingFactoryReset();
   try {
     // Noms par défaut localisés (données créées, pas des libellés d'UI — voir CreateAppOptions).
     const app = await createApp({

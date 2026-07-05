@@ -80,6 +80,12 @@ export default defineConfig({
   // sous-chemin (GitHub Pages — https://<user>.github.io/sampleboard/). SPA à routage
   // par fragment : aucun autre impact.
   base: './',
+  // Version affichée aux Réglages (#31) — même source que le cache du service worker.
+  define: {
+    __APP_VERSION__: JSON.stringify(
+      (JSON.parse(readFileSync('package.json', 'utf8')) as { version: string }).version,
+    ),
+  },
   plugins: [svelte(), libarchiveAssets(), factorySamples(), pwaServiceWorker()],
   // SPA statique : pas de SSR (build client uniquement, sortie dans dist/).
   clearScreen: false,

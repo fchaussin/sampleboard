@@ -33,6 +33,26 @@ test('import → assignation → RECHARGEMENT : tout est relu depuis IndexedDB',
   await expect(chips).toHaveCount(1);
 });
 
+test("réinitialisation d'usine (#31) : dialog de confirmation, données effacées, re-semis", async ({ page }) => {
+  await gotoApp(page);
+  await importWav(page, 'a-effacer.wav');
+
+  // Réglages → « Tout effacer… » → la <dialog> confirme AVANT toute destruction.
+  await page.locator('.bottombar .open-settings').click();
+  await page.locator('.drawer .wide.danger').click();
+  const dialog = page.locator('.reset-dialog');
+  await expect(dialog).toBeVisible();
+  await dialog.locator('button', { hasText: 'Cancel' }).click(); // annulation = rien ne bouge
+  await page.locator('.drawer .wide.danger').click();
+  await dialog.locator('.confirm-reset').click();
+
+  // Rechargé d'usine : bibliothèque vide (samples d'usine bloqués par gotoApp), tags re-semés.
+  await page.locator('.grid .pad').first().waitFor({ timeout: 20000 });
+  await openLibrary(page);
+  await expect(page.locator('.library .list li')).toHaveCount(0);
+  await expect(page.locator('.library .filters .chip', { hasText: 'SFX' })).toBeVisible();
+});
+
 test('un tag supprimé ne repousse pas au rechargement (garde firstLaunch persistée)', async ({ page }) => {
   await gotoApp(page);
   await openLibrary(page);
