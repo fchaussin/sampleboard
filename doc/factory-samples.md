@@ -18,12 +18,14 @@ README).
 
 1. **Repository** — `public/factory-samples/`: **OGG/Opus files only** + `manifest.json`
    (source of truth: `file`, curated `label`, `tags` as factory tokens, `source`/`license`).
-   Optional `board` section: selection pre-assigned to the pads of the first page, in
-   position order (optional `playMode`). See the directory README (dockerized ffmpeg
-   conversion, license rules).
+   `boards` section (#28): per-page-rank factory boards — each may impose a grid
+   (`rows`/`cols`: the seeding resizes the page BEFORE mapping slots) and lists `slots`
+   (selection pre-assigned to the page's pads in position order, optional `playMode`;
+   a sample may occupy several pads). Page 1 = 16 classics, page 2 = the 3×3 drum kit.
+   See the directory README (dockerized ffmpeg conversion, license rules).
 2. **Build** — Vite plugin `factory-samples-manifest` (`vite-plugin-factory-samples.ts`),
    run at every build AND at dev startup: manifest ↔ files consistency (1:1), OGG
-   format, allowed tags, coherent board → **build fails** otherwise; `source`/`license` at `TODO`
+   format, allowed tags, coherent boards (legacy `board` key rejected) → **build fails** otherwise; `source`/`license` at `TODO`
    → warning (blocker to clear before F-Droid submission). Since Vite's `public/` is
    copied as-is, the fixture ships in **every dist** (web, Android, container).
 3. **First launch** — `create-app.ts` detects the pristine database (same guard as the default

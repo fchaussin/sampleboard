@@ -574,6 +574,12 @@ Re-encoding happens **frontend-side** ("no business logic in Rust" rule). Choice
   (`scripts/freesound-worklist.json` + `scripts/freesound-rebank.mjs`, API key required)
   then **validation by listening**; `source` + `license` filled in for every entry of the
   manifest — the licenses TODO (F-Droid blocker) disappears along with the original batch.
+  **Per-page factory boards** (#28, 2026-07-05): the manifest declares **`boards`** by page
+  rank (with an optional imposed grid — seeding resizes the page via `setPageGrid` before
+  mapping slots; a sample may occupy several pads; the legacy `board` key is rejected at
+  build). Page 1 = 16 classics; **page 2 = a 3×3 drum kit** (9 CC0 one-shots — Kick, Snare,
+  Clap, Closed/Open hi-hat, Shaker, Tom, Crash, Ride — new default tag « Drums »). The
+  rebank tooling is **incremental**: a deposited file is never re-picked (unless `--only`).
 - **Master bus & unified preview** (2026-07-03): the Web Audio graph has a **single
   chokepoint to the output** — `master (GainNode) → destination`; **everything that sounds
   connects to it** (pad voice chains, previews), never to `destination` directly.

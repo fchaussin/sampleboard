@@ -234,58 +234,178 @@
       ],
       "source": "https://freesound.org/people/Exchanger/sounds/415504/ (« Tadaa.wav » par Exchanger, Freesound #415504, preview HQ)",
       "license": "CC0-1.0"
+    },
+    {
+      "file": "fs-kick.ogg",
+      "label": "Kick",
+      "tags": [
+        "drums"
+      ],
+      "source": "https://freesound.org/people/Mattc90/sounds/351917/ (« House Kick 5 (Less Deep Sub) » par Mattc90, Freesound #351917, preview HQ)",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "fs-snare.ogg",
+      "label": "Snare",
+      "tags": [
+        "drums"
+      ],
+      "source": "https://freesound.org/people/deadrobotmusic/sounds/646150/ (« Peanut Butter Snare 1 » par deadrobotmusic, Freesound #646150, preview HQ)",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "fs-clap.ogg",
+      "label": "Clap",
+      "tags": [
+        "drums"
+      ],
+      "source": "https://freesound.org/people/totalcult/sounds/388543/ (« Clap 02.wav » par totalcult, Freesound #388543, preview HQ)",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "fs-hihat-closed.ogg",
+      "label": "Closed hi-hat",
+      "tags": [
+        "drums"
+      ],
+      "source": "https://freesound.org/people/blakengouda/sounds/509968/ (« Hi-Hat Closed 6.mp3 » par blakengouda, Freesound #509968, preview HQ)",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "fs-hihat-open.ogg",
+      "label": "Open hi-hat",
+      "tags": [
+        "drums"
+      ],
+      "source": "https://freesound.org/people/TheEndOfACycle/sounds/674293/ (« Hi-Hat Closing Hit » par TheEndOfACycle, Freesound #674293, preview HQ)",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "fs-shaker.ogg",
+      "label": "Shaker",
+      "tags": [
+        "drums"
+      ],
+      "source": "https://freesound.org/people/sgossner/sounds/375639/ (« Shaker (shake8.wav) » par sgossner, Freesound #375639, preview HQ)",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "fs-tom.ogg",
+      "label": "Tom",
+      "tags": [
+        "drums"
+      ],
+      "source": "https://freesound.org/people/Logicogonist/sounds/677929/ (« floor tom 1b.wav » par Logicogonist, Freesound #677929, preview HQ)",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "fs-crash.ogg",
+      "label": "Crash",
+      "tags": [
+        "drums"
+      ],
+      "source": "https://freesound.org/people/Logicogonist/sounds/264532/ (« crash - china cymbal 1.wav » par Logicogonist, Freesound #264532, preview HQ)",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "fs-ride.ogg",
+      "label": "Ride",
+      "tags": [
+        "drums"
+      ],
+      "source": "https://freesound.org/people/ankealtd/sounds/696238/ (« Meinl_Byzance_20__Extra_Dry_Medium_Ride_H_5.wav » par ankealtd, Freesound #696238, preview HQ)",
+      "license": "CC0-1.0"
     }
   ],
-  "board": [
+  "boards": [
     {
-      "file": "fs-buzzer.ogg"
+      "page": 1,
+      "slots": [
+        {
+          "file": "fs-buzzer.ogg"
+        },
+        {
+          "file": "fs-ding.ogg"
+        },
+        {
+          "file": "fs-badum-tss.ogg"
+        },
+        {
+          "file": "fs-roulement.ogg"
+        },
+        {
+          "file": "fs-applaudissements.ogg"
+        },
+        {
+          "file": "fs-rires-sitcom.ogg"
+        },
+        {
+          "file": "fs-foule-oooh.ogg"
+        },
+        {
+          "file": "fs-tada.ogg"
+        },
+        {
+          "file": "fs-trombone-triste.ogg"
+        },
+        {
+          "file": "fs-cloche-hotel.ogg"
+        },
+        {
+          "file": "fs-sifflet.ogg"
+        },
+        {
+          "file": "fs-cowbell.ogg"
+        },
+        {
+          "file": "fs-air-horn.ogg"
+        },
+        {
+          "file": "fs-whoosh.ogg"
+        },
+        {
+          "file": "fs-grillons.ogg",
+          "playMode": "loop"
+        },
+        {
+          "file": "fs-suspense.ogg",
+          "playMode": "loop"
+        }
+      ]
     },
     {
-      "file": "fs-ding.ogg"
-    },
-    {
-      "file": "fs-badum-tss.ogg"
-    },
-    {
-      "file": "fs-roulement.ogg"
-    },
-    {
-      "file": "fs-applaudissements.ogg"
-    },
-    {
-      "file": "fs-rires-sitcom.ogg"
-    },
-    {
-      "file": "fs-foule-oooh.ogg"
-    },
-    {
-      "file": "fs-tada.ogg"
-    },
-    {
-      "file": "fs-trombone-triste.ogg"
-    },
-    {
-      "file": "fs-cloche-hotel.ogg"
-    },
-    {
-      "file": "fs-sifflet.ogg"
-    },
-    {
-      "file": "fs-cowbell.ogg"
-    },
-    {
-      "file": "fs-air-horn.ogg"
-    },
-    {
-      "file": "fs-whoosh.ogg"
-    },
-    {
-      "file": "fs-grillons.ogg",
-      "playMode": "loop"
-    },
-    {
-      "file": "fs-suspense.ogg",
-      "playMode": "loop"
+      "page": 2,
+      "rows": 3,
+      "cols": 3,
+      "slots": [
+        {
+          "file": "fs-kick.ogg"
+        },
+        {
+          "file": "fs-snare.ogg"
+        },
+        {
+          "file": "fs-clap.ogg"
+        },
+        {
+          "file": "fs-hihat-closed.ogg"
+        },
+        {
+          "file": "fs-hihat-open.ogg"
+        },
+        {
+          "file": "fs-shaker.ogg"
+        },
+        {
+          "file": "fs-tom.ogg"
+        },
+        {
+          "file": "fs-crash.ogg"
+        },
+        {
+          "file": "fs-ride.ogg"
+        }
+      ]
     }
   ]
 }

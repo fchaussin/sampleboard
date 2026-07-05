@@ -1,5 +1,5 @@
 {
-  "$comment": "Banque d'usine de RÉFÉRENCE (décision 2026-07-04) : ~25 classiques de soundboard, exclusivement CC0 Freesound. Chaque entrée pilote scripts/freesound-rebank.mjs : query/durée bornent la recherche, slug donne le nom de fichier final (fs-<slug>.ogg), board.position (0-15) pré-assigne la page Principal.",
+  "$comment": "Banque d'usine de RÉFÉRENCE (décisions 2026-07-04/05) : classiques de soundboard + kit batterie, exclusivement CC0 Freesound. Chaque entrée pilote scripts/freesound-rebank.mjs ; board.page (défaut 1) et board.position pré-assignent les planches d'usine ; `boards` déclare les grilles imposées par page. Les fichiers déjà déposés dans public/factory-samples/ sont RÉUTILISÉS tels quels (jamais re-tirés) sauf --only=<slug>.",
   "sounds": [
     {
       "slug": "buzzer",
@@ -360,6 +360,156 @@
         1,
         6
       ]
+    },
+    {
+      "slug": "kick",
+      "label": "Kick",
+      "tags": [
+        "drums"
+      ],
+      "query": "kick drum one shot",
+      "durationS": [
+        0.05,
+        1.5
+      ],
+      "board": {
+        "page": 2,
+        "position": 0
+      }
+    },
+    {
+      "slug": "snare",
+      "label": "Snare",
+      "tags": [
+        "drums"
+      ],
+      "query": "snare drum one shot",
+      "durationS": [
+        0.05,
+        1.5
+      ],
+      "board": {
+        "page": 2,
+        "position": 1
+      }
+    },
+    {
+      "slug": "clap",
+      "label": "Clap",
+      "tags": [
+        "drums"
+      ],
+      "query": "hand clap one shot",
+      "durationS": [
+        0.05,
+        1.5
+      ],
+      "board": {
+        "page": 2,
+        "position": 2
+      }
+    },
+    {
+      "slug": "hihat-closed",
+      "label": "Closed hi-hat",
+      "tags": [
+        "drums"
+      ],
+      "query": "closed hi-hat",
+      "durationS": [
+        0.05,
+        1.0
+      ],
+      "board": {
+        "page": 2,
+        "position": 3
+      }
+    },
+    {
+      "slug": "hihat-open",
+      "label": "Open hi-hat",
+      "tags": [
+        "drums"
+      ],
+      "query": "open hi-hat",
+      "durationS": [
+        0.1,
+        2.0
+      ],
+      "board": {
+        "page": 2,
+        "position": 4
+      }
+    },
+    {
+      "slug": "shaker",
+      "label": "Shaker",
+      "tags": [
+        "drums"
+      ],
+      "query": "shaker one shot",
+      "durationS": [
+        0.05,
+        1.5
+      ],
+      "board": {
+        "page": 2,
+        "position": 5
+      }
+    },
+    {
+      "slug": "tom",
+      "label": "Tom",
+      "tags": [
+        "drums"
+      ],
+      "query": "floor tom drum",
+      "durationS": [
+        0.05,
+        2.0
+      ],
+      "board": {
+        "page": 2,
+        "position": 6
+      }
+    },
+    {
+      "slug": "crash",
+      "label": "Crash",
+      "tags": [
+        "drums"
+      ],
+      "query": "crash cymbal",
+      "durationS": [
+        0.3,
+        6.0
+      ],
+      "board": {
+        "page": 2,
+        "position": 7
+      }
+    },
+    {
+      "slug": "ride",
+      "label": "Ride",
+      "tags": [
+        "drums"
+      ],
+      "query": "ride cymbal",
+      "durationS": [
+        0.3,
+        6.0
+      ],
+      "board": {
+        "page": 2,
+        "position": 8
+      }
     }
-  ]
+  ],
+  "boards": {
+    "2": {
+      "rows": 3,
+      "cols": 3
+    }
+  }
 }

@@ -26,6 +26,7 @@ export const DEFAULT_TAG_TOKENS = [
   'reaction',
   'meme',
   'alert',
+  'drums',
 ] as const;
 
 export interface FactoryManifestEntry {
@@ -36,13 +37,24 @@ export interface FactoryManifestEntry {
   license: string;
 }
 
-/** Sélection pré-assignée au board par défaut (page « Principal », dans l'ordre des pads). */
+/** Slot d'une planche d'usine (dans l'ordre des positions de la page ciblée). */
 export interface FactoryBoardEntry {
   file: string;
   playMode?: string;
 }
 
+/** Planche d'usine (#28) : sélection pour la page de rang `page`, grille imposable. */
+export interface FactoryBoardSpec {
+  page?: number;
+  rows?: number;
+  cols?: number;
+  slots?: FactoryBoardEntry[];
+}
+
 const PLAY_MODES = ['oneShot', 'gate', 'loop'];
+/** Bornes de grille du domaine (§16) — dupliquées ici pour garder le plugin sans import src/. */
+const ROWS_MAX = 12;
+const COLS_MAX = 6;
 
 export interface ManifestCheck {
   errors: string[];
@@ -103,21 +115,47 @@ export function checkFactoryManifest(audioFiles: string[], manifestRaw: unknown)
     if (!listed.has(file)) errors.push(`${file} : présent dans le répertoire mais absent du manifest`);
   }
 
-  const board = (manifestRaw as { board?: unknown }).board;
-  if (board !== undefined) {
-    if (!Array.isArray(board)) {
-      errors.push('« board » : tableau attendu');
+  if ((manifestRaw as { board?: unknown }).board !== undefined) {
+    errors.push('« board » : format remplacé par « boards » (planches par page, #28)');
+  }
+  const boards = (manifestRaw as { boards?: unknown }).boards;
+  if (boards !== undefined) {
+    if (!Array.isArray(boards)) {
+      errors.push('« boards » : tableau attendu');
     } else {
-      const assigned = new Set<string>();
-      for (const entry of board as Array<Partial<FactoryBoardEntry>>) {
-        const file = typeof entry.file === 'string' ? entry.file : '';
-        if (!file || !listed.has(file)) {
-          errors.push(`board : « ${file || '(sans file)'} » ne référence aucun sample du manifest`);
+      const pagesSeen = new Set<number>();
+      for (const board of boards as FactoryBoardSpec[]) {
+        const page = board.page ?? 1;
+        const label = `boards[page ${page}]`;
+        if (!Number.isInteger(page) || page < 1) errors.push(`${label} : rang de page invalide`);
+        if (pagesSeen.has(page)) errors.push(`${label} : page déclarée deux fois`);
+        pagesSeen.add(page);
+        const hasRows = board.rows !== undefined;
+        const hasCols = board.cols !== undefined;
+        if (hasRows !== hasCols) errors.push(`${label} : rows et cols vont ensemble`);
+        if (hasRows && hasCols) {
+          if (!Number.isInteger(board.rows) || board.rows! < 1 || board.rows! > ROWS_MAX)
+            errors.push(`${label} : rows hors bornes [1, ${ROWS_MAX}]`);
+          if (!Number.isInteger(board.cols) || board.cols! < 1 || board.cols! > COLS_MAX)
+            errors.push(`${label} : cols hors bornes [1, ${COLS_MAX}]`);
         }
-        if (assigned.has(file)) errors.push(`board : « ${file} » assigné deux fois`);
-        assigned.add(file);
-        if (entry.playMode !== undefined && !PLAY_MODES.includes(entry.playMode)) {
-          errors.push(`board : « ${file} » playMode inconnu « ${String(entry.playMode)} »`);
+        const slots = board.slots ?? [];
+        if (!Array.isArray(slots)) {
+          errors.push(`${label} : « slots » tableau attendu`);
+          continue;
+        }
+        if (hasRows && hasCols && slots.length > board.rows! * board.cols!) {
+          errors.push(`${label} : ${slots.length} slots pour une grille ${board.rows}×${board.cols}`);
+        }
+        // Un même sample PEUT occuper plusieurs slots (pas d'erreur de doublon).
+        for (const entry of slots as Array<Partial<FactoryBoardEntry>>) {
+          const file = typeof entry.file === 'string' ? entry.file : '';
+          if (!file || !listed.has(file)) {
+            errors.push(`${label} : « ${file || '(sans file)'} » ne référence aucun sample`);
+          }
+          if (entry.playMode !== undefined && !PLAY_MODES.includes(entry.playMode)) {
+            errors.push(`${label} : « ${file} » playMode inconnu « ${String(entry.playMode)} »`);
+          }
         }
       }
     }

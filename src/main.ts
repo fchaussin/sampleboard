@@ -37,6 +37,7 @@ async function bootstrap(): Promise<void> {
         { token: 'reaction', label: t('tag.reaction') },
         { token: 'meme', label: t('tag.meme') },
         { token: 'alert', label: t('tag.alert') },
+        { token: 'drums', label: t('tag.drums') },
       ],
     });
     mount(App, { target, props: { app } });

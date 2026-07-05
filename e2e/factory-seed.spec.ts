@@ -30,4 +30,11 @@ test('semis d’usine : bibliothèque remplie et board Principal pré-assigné',
   await expect(page.locator('.library .list li')).toHaveCount(manifest.samples.length, {
     timeout: 120_000,
   });
+  await page.locator('.close-library').click();
+
+  // Planche batterie (#28) : la page de rang 2 est REDIMENSIONNÉE 3×3 et remplie du kit.
+  await page.locator('.bottombar .pages button', { hasText: 'Page 2' }).click();
+  await expect(page.locator('.grid .pad')).toHaveCount(9);
+  await expect(page.locator('.grid .pad .name').first()).toHaveText('Kick', { timeout: 60_000 });
+  await expect(page.locator('.grid .pad .name').nth(8)).toHaveText('Ride', { timeout: 60_000 });
 });

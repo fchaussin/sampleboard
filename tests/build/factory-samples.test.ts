@@ -58,18 +58,31 @@ describe('checkFactoryManifest', () => {
     expect(warnings).toHaveLength(1);
   });
 
-  it('valide la section board : référence connue, pas de doublon, playMode admis', () => {
+  it('valide les planches (#28) : références, playMode, grille bornée, capacité, pages uniques', () => {
     const { errors } = checkFactoryManifest(['a.ogg'], {
       samples: [entry('a.ogg')],
-      board: [
-        { file: 'a.ogg', playMode: 'loop' },
-        { file: 'a.ogg' },
-        { file: 'inconnu.ogg', playMode: 'turbo' },
+      boards: [
+        // Les DOUBLONS sont admis (un sample peut occuper plusieurs pads).
+        { slots: [{ file: 'a.ogg', playMode: 'loop' }, { file: 'a.ogg' }, { file: 'inconnu.ogg', playMode: 'turbo' }] },
+        { page: 2, rows: 1, cols: 2, slots: [{ file: 'a.ogg' }, { file: 'a.ogg' }, { file: 'a.ogg' }] },
+        { page: 2, rows: 99, cols: 0, slots: [] },
       ],
     });
-    expect(errors).toContainEqual(expect.stringContaining('assigné deux fois'));
     expect(errors).toContainEqual(expect.stringContaining('inconnu.ogg'));
     expect(errors).toContainEqual(expect.stringContaining('playMode inconnu'));
+    expect(errors).toContainEqual(expect.stringContaining('3 slots pour une grille 1×2'));
+    expect(errors).toContainEqual(expect.stringContaining('page déclarée deux fois'));
+    expect(errors).toContainEqual(expect.stringContaining('rows hors bornes'));
+    expect(errors).toContainEqual(expect.stringContaining('cols hors bornes'));
+    expect(errors).not.toContainEqual(expect.stringContaining('assigné deux fois'));
+  });
+
+  it("l'ancien format « board » est refusé (migration #28)", () => {
+    const { errors } = checkFactoryManifest(['a.ogg'], {
+      samples: [entry('a.ogg')],
+      board: [{ file: 'a.ogg' }],
+    });
+    expect(errors).toContainEqual(expect.stringContaining('remplacé par « boards »'));
   });
 });
 
