@@ -17,9 +17,14 @@
   const locale = $derived(app.store.locale);
   // svelte-ignore state_referenced_locally -- session immuable : remontée via {#key} (App.svelte)
   const duration = pcmDuration(editor.pcm);
+  // Mode POINTS CUE (M11) : édition NON destructive d'un pad (Valider écrit dans le pad).
+  // svelte-ignore state_referenced_locally
+  const isCue = editor.mode === 'cue';
+  // svelte-ignore state_referenced_locally -- sélection initiale = cue courant du pad (mode cue).
+  const initial: Selection = editor.initialSelection ?? { start: 0, end: duration };
 
-  const history = new SelectionHistory({ start: 0, end: duration });
-  let selection = $state<Selection>({ start: 0, end: duration });
+  const history = new SelectionHistory(initial);
+  let selection = $state<Selection>(initial);
   let canUndo = $state(false);
   let canRedo = $state(false);
   let busy = $state(false);
@@ -124,11 +129,25 @@
   const seconds = $derived(new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }));
 
   async function apply(): Promise<void> {
+    // Mode cue (M11) : Valider écrit les points cue dans le pad — instantané, sans encoder.
+    if (isCue) {
+      app.commands.applyPadCue(selection.start, selection.end);
+      return; // la commande referme la session, le composant se démonte
+    }
     busy = true;
     error = null;
     const result = await app.commands.applyAudioEditor(selection.start, selection.end);
     busy = false;
     if (!result.ok) error = result.reason; // succès → la session se ferme, le composant se démonte
+  }
+
+  /** « Enregistrer sous un nouveau sample » (mode cue) : encode la plage, original intact. */
+  async function saveAsNew(): Promise<void> {
+    busy = true;
+    error = null;
+    const result = await app.commands.saveEditorSelectionAsSample(selection.start, selection.end);
+    busy = false;
+    if (!result.ok) error = result.reason;
   }
 </script>
 
@@ -139,7 +158,10 @@
   oncancel={() => app.commands.cancelAudioEditor()}
 >
   <header>
-    <h2>{t('audioEditor.title', locale)} — <span class="file">{editor.fileName}</span></h2>
+    <h2>
+      {isCue ? t('audioEditor.cueTitle', locale) : t('audioEditor.title', locale)} —
+      <span class="file">{editor.fileName}</span>
+    </h2>
     <button
       class="close"
       type="button"
@@ -204,8 +226,14 @@
     <button class="cancel" type="button" onclick={() => app.commands.cancelAudioEditor()}>
       {t('audioEditor.cancel', locale)}
     </button>
+    {#if isCue}
+      <!-- Option NON destructive : encode la plage en un nouveau sample, l'original reste. -->
+      <button class="save-as-new" type="button" disabled={busy} onclick={saveAsNew}>
+        {t('audioEditor.saveAsNew', locale)}
+      </button>
+    {/if}
     <button class="apply" type="button" disabled={busy} onclick={apply}>
-      {t('audioEditor.apply', locale)}
+      {isCue ? t('audioEditor.applyCue', locale) : t('audioEditor.apply', locale)}
     </button>
   </footer>
 </dialog>
@@ -327,10 +355,21 @@
     cursor: pointer;
   }
 
-  .cancel {
+  .cancel,
+  .save-as-new {
     border: 1px solid var(--border);
     background: transparent;
     color: var(--muted);
+  }
+
+  .save-as-new {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .save-as-new:disabled {
+    opacity: 0.5;
+    cursor: wait;
   }
 
   .apply {

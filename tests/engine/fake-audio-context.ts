@@ -40,8 +40,12 @@ export class FakeAnalyserNode {
 export class FakeSourceNode {
   buffer: unknown = null;
   loop = false;
+  loopStart = 0;
+  loopEnd = 0;
   onended: (() => void) | null = null;
   started = false;
+  /** Arguments de start() capturés (when, offset, duration) — points cue M11. */
+  startArgs: number[] = [];
   stopped = false;
   disconnected = false;
   connectedTo: unknown[] = [];
@@ -52,8 +56,9 @@ export class FakeSourceNode {
   disconnect(): void {
     this.disconnected = true;
   }
-  start(): void {
+  start(...args: number[]): void {
     this.started = true;
+    this.startArgs = args;
   }
   stop(): void {
     this.stopped = true;
@@ -162,6 +167,8 @@ export function pad(overrides: Partial<Pad> = {}): Pad {
     gainDb: 0,
     position: 0,
     color: null,
+    cueStart: null,
+    cueEnd: null,
     ...overrides,
   };
 }

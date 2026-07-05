@@ -124,6 +124,8 @@ export function snapshotBank(bank: Bank): Bank {
       gainDb: p.gainDb,
       position: p.position,
       color: p.color,
+      cueStart: p.cueStart,
+      cueEnd: p.cueEnd,
     })),
   };
 }

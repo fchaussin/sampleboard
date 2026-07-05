@@ -328,6 +328,25 @@ Task statuses: `[ ]` to do · `[~]` in progress · `[x]` done.
 > (https://fchaussin.github.io/sampleboard/); Docker Hub image to follow. Bundled with a
 > UI refinement pass (#26-33).
 
+### M11 — Points cue par pad · `0.12.0` · Phase F' _(décision §16 du 2026-07-05)_
+- [x] **Modèle** : `Pad.cueStart` / `cueEnd` (secondes, `null` = bord du sample) ; défauts
+  `null` (BankFactory) ; migration SQLite 5 (`cue_start`/`cue_end` REAL nullables) +
+  bank-repository (load/save) ; IndexedDB rétro-compat (défaut null au chargement).
+- [x] **Moteur** : lecture bornée `source.start(0, offset, durée)` / `loopStart`/`loopEnd`
+  en Loop ; `progress()` relatif à la fenêtre ; helper pur `cueWindow` (borné au buffer,
+  fenêtre vide → sample entier). Buffer mutualisé par `sampleId` (aucune duplication).
+- [x] **Commandes** : `beginPadCue` (ouvre l'éditeur en mode cue, sélection = cue courant),
+  `applyPadCue` (écrit dans le pad, bords → null, aucun ré-encodage), `clearPadCue`,
+  `saveEditorSelectionAsSample` (encode la plage en NOUVEAU sample, original intact).
+- [x] **UI** : tiroir du pad → « Points cue » (fenêtre affichée + Réinitialiser), éditeur
+  waveform réutilisé (mode cue : « Appliquer au pad » + « Enregistrer sous un nouveau
+  sample »). i18n EN/FR.
+- [x] **Tests** : 12 unitaires (cueWindow, moteur one-shot/loop/progress, commandes,
+  aller-retour SQLite avec cue) + 1 e2e (éditer depuis le tiroir → appliquer → persister au
+  rechargement). 334 unit + 22 e2e.
+- [ ] **Validation** : à valider à l'écoute par l'utilisateur (plage jouée, Loop dans la
+  fenêtre, « enregistrer sous »).
+
 ### Phase F — Stabilization · → `1.0.0`
 - [ ] Tests on multiple real devices (latency, autoplay, sleep).
 - [ ] Perf: polyphony, trigger latency.
@@ -393,6 +412,7 @@ Task statuses: `[ ]` to do · `[~]` in progress · `[x]` done.
 | 31 | **Settings › Application section (web/PWA)**: current **version** display (build-injected), **« Reload to update »** (non-destructive: SW re-check + reload — network-first navigations already serve the latest published build) and **« Erase all data… »** factory reset behind a native `<dialog>` confirmation (unregisters the SW, purges caches, arms a reset flag; IndexedDB is deleted at NEXT boot before any connection opens — no blocked deleteDatabase). Updating never costs the user their data. Web-only (Tauri updates via F-Droid). **Shipped on 2026-07-05 (on request).** +1 e2e (cancel path, erase, reseed). | 2026-07-05 | — | Shipped |
 | 32 | **Import button repositioned**: the labeled « Import a sound » button leaves its lone centered spot in the library toolbar and moves to the LEFT of the library panel header (`main > .panel > header`), facing « Manage tags » + close on the right. The library toolbar keeps only search + filters (the rework/« Découper » error still shows there when it occurs). The bottombar quick-import icon is unchanged. **Shipped on 2026-07-05 (on request).** e2e openers updated (`.panel .import`). | 2026-07-05 | — | Shipped |
 | 33 | **« Add to the assignment pool » in the pad drawer**: the pad settings (Edit-mode drawer) get a button that adds the pad's assigned sample to the assignment pool (reuses `addToPool`, which already dedups). Shown only when the pad has a sample; disabled (« In the pool ») once it is already there. **Shipped on 2026-07-05 (on request).** +1 e2e (assign → drawer → add → disabled); new i18n key `pool.added`. | 2026-07-05 | — | Shipped |
+| 34 | **Pad cue points (non-destructive)**: a pad plays only a `[cueStart, cueEnd]` window of its sample without touching the bytes — cue points stored **on the pad** (SQLite migration 5, engine offset/loop window), edited from the pad drawer via the reused waveform editor (« Apply to pad », no re-encode), with an optional « Save as new sample ». Multiple pads can cue the same sample differently; go back anytime by clearing. Decision §16, own milestone **M11** (`0.12.0`). **Shipped on 2026-07-05 (on request).** 12 unit + 1 e2e. | 2026-07-05 | `0.12.0` | **Shipped → M11** |
 
 ---
 

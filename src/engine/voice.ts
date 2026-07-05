@@ -14,6 +14,8 @@ export interface Voice {
   startedAt: number;
   /** Voix entretenue (Gate tenu, Loop) — ciblée par Arrière-plan 'stopSustained' (§12). */
   sustained: boolean;
+  /** Durée de la FENÊTRE jouée (points cue, M11), en secondes — sert à `progress()`. */
+  windowDuration: number;
 }
 
 /** Convertit un gain en dB vers une amplitude linéaire (voir §7). -60 dB = muet. */

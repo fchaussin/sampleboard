@@ -20,6 +20,8 @@ function bank(): Bank {
     color: null,
     gainDb: 0,
     position,
+    cueStart: null,
+    cueEnd: null,
   });
   return {
     id: 'b',

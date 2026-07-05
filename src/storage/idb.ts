@@ -73,7 +73,14 @@ export async function createIdbRepositories(dbName = 'sampleboard'): Promise<Rep
       async load(): Promise<Bank | null> {
         const tx = db.transaction(STORES.kv, 'readonly');
         const bank = await req(tx.objectStore(STORES.kv).get('bank') as IDBRequest<Bank | undefined>);
-        return bank ?? null;
+        if (!bank) return null;
+        // Compat ascendante : une banque d'avant M11 n'a pas de points cue → défaut null
+        // (sinon la détection « a des cue » verrait `undefined !== null` comme vrai).
+        for (const pad of bank.pads) {
+          pad.cueStart ??= null;
+          pad.cueEnd ??= null;
+        }
+        return bank;
       },
       async save(bank: Bank): Promise<void> {
         const tx = db.transaction(STORES.kv, 'readwrite');

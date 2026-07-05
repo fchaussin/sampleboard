@@ -32,6 +32,8 @@ interface PadRow {
   gain_db: number;
   position: number;
   color: string | null;
+  cue_start: number | null;
+  cue_end: number | null;
 }
 
 /** Token de palette relu : un token inconnu (palette réduite, donnée altérée) devient neutre. */
@@ -64,7 +66,8 @@ export function createBankRepository(db: SqlExecutor, lock: WriteLock = NO_LOCK)
       if (pageRows.length === 0) return null;
 
       const padRows = await db.select<PadRow>(
-        `SELECT p.id, p.page_id, p.name, p.sample_id, p.play_mode, p.gain_db, p.position, p.color
+        `SELECT p.id, p.page_id, p.name, p.sample_id, p.play_mode, p.gain_db, p.position,
+                p.color, p.cue_start, p.cue_end
          FROM pads p JOIN pages pg ON pg.id = p.page_id
          WHERE pg.bank_id = ? ORDER BY p.position`,
         [bankRow.id],
@@ -88,6 +91,8 @@ export function createBankRepository(db: SqlExecutor, lock: WriteLock = NO_LOCK)
         gainDb: r.gain_db,
         position: r.position,
         color: sanitizeColor(r.color),
+        cueStart: r.cue_start,
+        cueEnd: r.cue_end,
       }));
       return { id: bankRow.id, name: bankRow.name, pages, pads };
     },
@@ -125,12 +130,13 @@ export function createBankRepository(db: SqlExecutor, lock: WriteLock = NO_LOCK)
         // sample_id via sous-requête : une référence pendante (sample supprimé entre-temps)
         // est écrite NULL au lieu de violer la clé étrangère.
         await db.execute(
-          `INSERT INTO pads (id, page_id, name, sample_id, play_mode, gain_db, position, color)
-           VALUES (?, ?, ?, (SELECT id FROM samples WHERE id = ?), ?, ?, ?, ?)
+          `INSERT INTO pads (id, page_id, name, sample_id, play_mode, gain_db, position, color, cue_start, cue_end)
+           VALUES (?, ?, ?, (SELECT id FROM samples WHERE id = ?), ?, ?, ?, ?, ?, ?)
            ON CONFLICT(id) DO UPDATE SET page_id = excluded.page_id, name = excluded.name,
              sample_id = excluded.sample_id, play_mode = excluded.play_mode,
-             gain_db = excluded.gain_db, position = excluded.position, color = excluded.color`,
-          [pad.id, pad.pageId, pad.name, pad.sampleId, pad.playMode, pad.gainDb, pad.position, pad.color],
+             gain_db = excluded.gain_db, position = excluded.position, color = excluded.color,
+             cue_start = excluded.cue_start, cue_end = excluded.cue_end`,
+          [pad.id, pad.pageId, pad.name, pad.sampleId, pad.playMode, pad.gainDb, pad.position, pad.color, pad.cueStart, pad.cueEnd],
         );
       }
       await prune('pads', bank.pads.map((p) => p.id));

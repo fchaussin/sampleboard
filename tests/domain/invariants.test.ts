@@ -21,6 +21,8 @@ const at = (position: number): Pad => ({
   color: null,
   gainDb: 0,
   position,
+  cueStart: null,
+  cueEnd: null,
 });
 
 describe('bornes de gain (dB)', () => {

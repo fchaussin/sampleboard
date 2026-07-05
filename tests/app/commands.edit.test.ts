@@ -19,6 +19,8 @@ function pad(id: string, pageId: string, position: number, extra: Partial<Pad> =
     gainDb: 0,
     position,
     color: null,
+    cueStart: null,
+    cueEnd: null,
     ...extra,
   };
 }

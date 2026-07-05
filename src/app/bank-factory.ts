@@ -46,6 +46,8 @@ export class BankFactory {
       gainDb: DEFAULT_GAIN_DB,
       position,
       color: this.padColor(position),
+      cueStart: null,
+      cueEnd: null,
     };
   }
 

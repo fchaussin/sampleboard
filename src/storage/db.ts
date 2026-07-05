@@ -135,6 +135,15 @@ export const MIGRATIONS: Migration[] = [
       )`,
     ],
   },
+  // M11 : points cue par pad (lecture NON destructive d'une plage du sample) — secondes,
+  // NULL = bord du sample. Le sample n'est jamais modifié ; le pad joue [cue_start, cue_end].
+  {
+    version: 5,
+    statements: [
+      'ALTER TABLE pads ADD COLUMN cue_start REAL',
+      'ALTER TABLE pads ADD COLUMN cue_end REAL',
+    ],
+  },
 ];
 
 /**

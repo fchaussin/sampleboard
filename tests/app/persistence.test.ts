@@ -12,7 +12,7 @@ function makeBank(): Bank {
     name: 'B',
     pages: [{ id: 'p', name: '', voiceMode: 'poly', rows: 4, cols: 4, position: 0, color: null }],
     pads: [
-      { id: 'a', pageId: 'p', name: '', sampleId: null, playMode: 'oneShot', gainDb: 0, position: 0, color: null },
+      { id: 'a', pageId: 'p', name: '', sampleId: null, playMode: 'oneShot', gainDb: 0, position: 0, color: null, cueStart: null, cueEnd: null },
     ],
   };
 }

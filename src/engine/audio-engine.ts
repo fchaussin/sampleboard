@@ -17,6 +17,22 @@ const ANTI_CLICK_FADE_S = 0.008;
 /** Taille de fenêtre des analyseurs : les visualiseurs lisent `WAVEFORM_SIZE` échantillons. */
 export const WAVEFORM_SIZE = 512;
 
+/**
+ * Fenêtre de lecture des points cue (M11) → `[offset, duration]` en secondes, bornée au
+ * buffer réel. `null` = bord du sample. Une fenêtre vide ou inversée retombe sur le sample
+ * ENTIER (robustesse : cue périmé après re-rognage, durée persistée approximative).
+ */
+export function cueWindow(
+  bufferDuration: number,
+  cueStart: number | null,
+  cueEnd: number | null,
+): [offset: number, duration: number] {
+  const offset = Math.min(Math.max(cueStart ?? 0, 0), bufferDuration);
+  const end = Math.min(Math.max(cueEnd ?? bufferDuration, 0), bufferDuration);
+  if (end - offset <= 0) return [0, bufferDuration];
+  return [offset, end - offset];
+}
+
 export interface AudioEngineOptions {
   /** Fabrique d'AudioContext. Injectable pour les tests ; défaut : `new AudioContext()`. */
   createContext?: () => AudioContext;
@@ -394,7 +410,8 @@ export class AudioEngine {
     if (!ctx) return null;
     for (const voice of this.#voices) {
       if (voice.padId !== padId) continue;
-      const duration = voice.source.buffer?.duration ?? 0;
+      // Progression relative à la FENÊTRE jouée (points cue M11), pas au sample entier.
+      const duration = voice.windowDuration;
       if (duration <= 0) return 0;
       const elapsed = ctx.currentTime - voice.startedAt;
       return voice.source.loop ? (elapsed % duration) / duration : Math.min(1, elapsed / duration);
@@ -425,6 +442,15 @@ export class AudioEngine {
     source.buffer = buffer;
     source.loop = loop;
 
+    // Fenêtre des points cue (M11) : le pad ne joue que [offset, end] du sample, sans
+    // toucher les octets. Bornée au buffer réel (durée persistée parfois ~approx). Une
+    // fenêtre invalide/vide retombe sur le sample entier (robustesse).
+    const [offset, windowDuration] = cueWindow(buffer.duration, pad.cueStart, pad.cueEnd);
+    if (loop) {
+      source.loopStart = offset;
+      source.loopEnd = offset + windowDuration;
+    }
+
     const gain = ctx.createGain();
     gain.gain.value = gainDbToAmplitude(pad.gainDb);
 
@@ -442,11 +468,15 @@ export class AudioEngine {
       analyser,
       startedAt: ctx.currentTime,
       sustained,
+      windowDuration,
     };
     source.onended = () => this.#removeVoice(voice);
 
     this.#voices.add(voice);
-    source.start();
+    // One-shot/Gate : offset + durée bornent la lecture ; Loop : offset seul, la boucle
+    // se referme sur loopStart/loopEnd posés ci-dessus.
+    if (loop) source.start(0, offset);
+    else source.start(0, offset, windowDuration);
 
     this.#enforceMaxVoices();
     this.#notifyPlayingChanged();

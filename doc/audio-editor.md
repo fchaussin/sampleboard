@@ -47,3 +47,21 @@ a rework.
 selection) → re-trim → Apply → **the library shows 0.5 s**; then rework (✂) of an
 existing sample → re-trim → same entry, updated duration. Imports in the other specs
 go through `applyAudioEditor(page)` (helper).
+
+
+## Pad cue points (M11)
+
+The same waveform editor doubles as a **non-destructive** cue editor for a pad. From the pad
+drawer, **Cue points** → the editor opens in `cue` mode (start/end handles seeded with the
+pad's current window):
+
+- **Apply to pad** writes `cueStart`/`cueEnd` onto the pad (`applyPadCue`) — instant, **no
+  re-encode**; edges snap to `null` (= no cue, full sample).
+- **Save as new sample** (`saveEditorSelectionAsSample`) encodes the window into a **new**
+  library entry — the original sample is left intact.
+
+Playback plays only `[cueStart, cueEnd]` (engine `cueWindow` → `source.start(offset,
+duration)`, `loopStart`/`loopEnd` in Loop; `progress()` is relative to the window). The
+decoded buffer stays shared per `sampleId`, so several pads can cue the same sample
+differently. Cue points are stored on the pad (SQLite migration 5; IndexedDB rides along)
+and cleared anytime from the drawer (**Reset**). See `specifications.md` §16 (#34).

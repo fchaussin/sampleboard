@@ -8,6 +8,17 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-07-05 — M11 (Pad cue points)
+
+> Backlog #34. Non-destructive per-pad trimming. 334 unit + 22 E2E green.
+
+### Added
+- **Pad cue points**: a pad can play only a `[start, end]` window of its sample **without
+  altering the audio** — cue points are stored on the pad. Edit them from the pad drawer
+  via the waveform editor: **Apply to pad** (instant, no re-encode) or **Save as new
+  sample** (bakes the window into a new library entry, original untouched). Loop respects
+  the window; clear anytime. Several pads can cue the same sample differently.
+
 ## [0.11.0] - 2026-07-05 — M10 (Web distribution) + UI pass
 
 > Backlog #25-33. Second distribution channel (web/PWA) plus a round of UI

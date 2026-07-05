@@ -624,6 +624,15 @@ Re-encoding happens **frontend-side** ("no business logic in Rust" rule). Choice
   non-destructive) and **factory reset** (native `<dialog>` confirmation; SW+caches purged,
   IndexedDB deleted at next boot via a reset flag so no live connection blocks it).
   Updating never costs the user their data. Web-only (Tauri ships updates through F-Droid).
+- **Pad cue points — non-destructive playback windows** (#34 / M11, 2026-07-05): a pad
+  carries optional `cueStart` / `cueEnd` (seconds, `null` = sample edge); playback plays only
+  that window (`source.start(offset, duration)`, `loopStart`/`loopEnd` for Loop) WITHOUT
+  altering the sample bytes. The decoded buffer stays shared per `sampleId` (several pads may
+  cue the same sample differently). Stored on the pad (SQLite migration 5; IndexedDB rides
+  along). Edited from the pad drawer via the reused waveform editor — « Apply to pad » writes
+  the cue (no re-encode), « Save as new sample » bakes the window into a new library entry
+  (the original stays). Reversible anytime (clear the cue). This is trimming made
+  non-destructive — still no DSP, consistent with "not a sampler".
 - **Validation order: web first, Android second.** Every milestone is first developed and validated on the **web** (Vite dev http://localhost:1420 + desktop `tauri dev` window); validation on a **real Android device** is a **second step**, never a prerequisite to move forward. The final target remains F-Droid/Android (§15) — it is the working order that is fixed, not the target.
 
 ## 17. Future evolutions (beyond v1)

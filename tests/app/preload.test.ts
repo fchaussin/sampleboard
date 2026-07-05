@@ -26,8 +26,8 @@ const bank: Bank = {
     { id: 'pg2', name: 'B', voiceMode: 'poly', rows: 2, cols: 2, position: 1, color: null },
   ],
   pads: [
-    { id: 'p1', pageId: 'pg1', name: '', sampleId: 's-actif', playMode: 'oneShot', gainDb: 0, position: 0, color: null },
-    { id: 'p2', pageId: 'pg2', name: '', sampleId: 's-autre-page', playMode: 'oneShot', gainDb: 0, position: 0, color: null },
+    { id: 'p1', pageId: 'pg1', name: '', sampleId: 's-actif', playMode: 'oneShot', gainDb: 0, position: 0, color: null, cueStart: null, cueEnd: null },
+    { id: 'p2', pageId: 'pg2', name: '', sampleId: 's-autre-page', playMode: 'oneShot', gainDb: 0, position: 0, color: null, cueStart: null, cueEnd: null },
   ],
 };
 

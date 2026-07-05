@@ -16,6 +16,13 @@ export interface Pad {
   position: number;
   /** Token de la palette (M6, voir COLORS) ; null = neutre. */
   color: Color | null;
+  /**
+   * Point cue de DÉBUT de lecture, en secondes dans le sample (M11) ; `null` = début du
+   * sample. NON destructif : le sample n'est pas modifié, le pad ne joue que [cueStart, cueEnd].
+   */
+  cueStart: number | null;
+  /** Point cue de FIN de lecture, en secondes ; `null` = fin du sample. */
+  cueEnd: number | null;
 }
 
 export interface Page {

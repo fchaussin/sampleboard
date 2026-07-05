@@ -15,13 +15,21 @@ export type LibraryFilter = string | 'untagged' | null;
 
 /** Session de l'éditeur audio (M7, « découper ») : PCM décodé en attente de rognage. */
 export interface AudioEditorState {
-  /** 'import' : nouveau fichier ; 'rework' : sample existant re-décodé. */
-  mode: 'import' | 'rework';
-  /** Nom du fichier source (import) ou label du sample (rework). */
+  /**
+   * 'import' : nouveau fichier ; 'rework' : sample existant re-décodé (remplacement
+   * destructif) ; 'cue' : édition NON destructive des points cue d'un pad (M11) — Valider
+   * écrit dans le pad, une option « Enregistrer sous un nouveau sample » encode la plage.
+   */
+  mode: 'import' | 'rework' | 'cue';
+  /** Nom du fichier source (import) ou label du sample (rework/cue). */
   fileName: string;
   pcm: PcmData;
-  /** Sample retravaillé (mode 'rework' uniquement). */
+  /** Sample retravaillé (mode 'rework'/'cue'). */
   sample: Sample | null;
+  /** Pad ciblé par l'édition de points cue (mode 'cue' uniquement), ou null. */
+  padId: string | null;
+  /** Sélection initiale (points cue courants du pad, mode 'cue'), ou null = plage pleine. */
+  initialSelection: { start: number; end: number } | null;
   /** Pad à assigner après validation (flux modale de choix de sample), ou null. */
   assignPadId: string | null;
   /** Ajouter le sample au pool après validation (option de la modale d'import, M8). */

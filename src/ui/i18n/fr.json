@@ -132,5 +132,11 @@
   "settings.app.reset.title": "Tout effacer ?",
   "settings.app.reset.body": "Vos sons, pads, pages et réglages seront définitivement effacés. La banque de démarrage sera re-semée au prochain lancement.",
   "settings.app.reset.cancel": "Annuler",
-  "settings.app.reset.confirm": "Tout effacer"
+  "settings.app.reset.confirm": "Tout effacer",
+  "editor.pad.cue": "Points cue",
+  "editor.pad.cueFull": "Sample entier",
+  "editor.pad.cueReset": "Réinitialiser (sample entier)",
+  "audioEditor.cueTitle": "Points cue",
+  "audioEditor.applyCue": "Appliquer au pad",
+  "audioEditor.saveAsNew": "Enregistrer sous un nouveau sample"
 }

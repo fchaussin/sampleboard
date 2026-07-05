@@ -29,7 +29,7 @@ const bank: Bank = {
   name: 'b',
   pages: [{ id: 'pg', name: 'P', voiceMode: 'poly', rows: 4, cols: 4, position: 0, color: 'red' }],
   pads: [
-    { id: 'p1', pageId: 'pg', name: 'Pad', sampleId: 's1', playMode: 'loop', gainDb: -6, position: 0, color: null },
+    { id: 'p1', pageId: 'pg', name: 'Pad', sampleId: 's1', playMode: 'loop', gainDb: -6, position: 0, color: null, cueStart: null, cueEnd: null },
   ],
 };
 

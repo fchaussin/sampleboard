@@ -132,5 +132,11 @@
   "settings.app.reset.title": "Erase all data?",
   "settings.app.reset.body": "Your sounds, pads, pages and settings will be permanently erased. The starter bank will be seeded again on the next start.",
   "settings.app.reset.cancel": "Cancel",
-  "settings.app.reset.confirm": "Erase everything"
+  "settings.app.reset.confirm": "Erase everything",
+  "editor.pad.cue": "Cue points",
+  "editor.pad.cueFull": "Full sample",
+  "editor.pad.cueReset": "Reset to full sample",
+  "audioEditor.cueTitle": "Cue points",
+  "audioEditor.applyCue": "Apply to pad",
+  "audioEditor.saveAsNew": "Save as new sample"
 }

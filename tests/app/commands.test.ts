@@ -17,7 +17,7 @@ function bank(): Bank {
       { id: 'p0', name: 'P0', voiceMode: 'poly', rows: 4, cols: 4, position: 0, color: null },
     ],
     pads: [
-      { id: 'pad-x', pageId: 'p0', name: 'x', sampleId: 's', playMode: 'oneShot', gainDb: 0, position: 0, color: null },
+      { id: 'pad-x', pageId: 'p0', name: 'x', sampleId: 's', playMode: 'oneShot', gainDb: 0, position: 0, color: null, cueStart: null, cueEnd: null },
     ],
   };
 }

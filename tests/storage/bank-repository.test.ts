@@ -27,9 +27,9 @@ function makeBank(): Bank {
       { id: 'p2', name: 'Deux', voiceMode: 'mono', rows: 2, cols: 3, position: 1, color: null },
     ],
     pads: [
-      { id: 'a', pageId: 'p1', name: 'Kick', sampleId: null, playMode: 'oneShot', gainDb: -6.5, position: 0, color: 'red' },
-      { id: 'c', pageId: 'p2', name: '', sampleId: null, playMode: 'loop', gainDb: 6, position: 5, color: null },
-      { id: 'd', pageId: 'p1', name: 'Nappe', sampleId: null, playMode: 'gate', gainDb: -60, position: 15, color: null },
+      { id: 'a', pageId: 'p1', name: 'Kick', sampleId: null, playMode: 'oneShot', gainDb: -6.5, position: 0, color: 'red', cueStart: 0.5, cueEnd: 2.25 },
+      { id: 'c', pageId: 'p2', name: '', sampleId: null, playMode: 'loop', gainDb: 6, position: 5, color: null, cueStart: null, cueEnd: null },
+      { id: 'd', pageId: 'p1', name: 'Nappe', sampleId: null, playMode: 'gate', gainDb: -60, position: 15, color: null, cueStart: null, cueEnd: null },
     ],
   };
 }

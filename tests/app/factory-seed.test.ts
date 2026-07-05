@@ -36,11 +36,11 @@ function fakeBank(): Bank {
       { id: 'p1', name: 'Principal', voiceMode: 'poly', rows: 2, cols: 2, position: 0, color: null },
     ],
     pads: [
-      { id: 'padB', pageId: 'p1', name: '', sampleId: null, playMode: 'oneShot', gainDb: 0, position: 1, color: null },
-      { id: 'padA', pageId: 'p1', name: '', sampleId: null, playMode: 'oneShot', gainDb: 0, position: 0, color: null },
-      { id: 'padAutre', pageId: 'p2', name: '', sampleId: null, playMode: 'oneShot', gainDb: 0, position: 0, color: null },
-      { id: 'padC', pageId: 'p1', name: '', sampleId: null, playMode: 'oneShot', gainDb: 0, position: 2, color: null },
-      { id: 'padD', pageId: 'p1', name: '', sampleId: null, playMode: 'oneShot', gainDb: 0, position: 3, color: null },
+      { id: 'padB', pageId: 'p1', name: '', sampleId: null, playMode: 'oneShot', gainDb: 0, position: 1, color: null, cueStart: null, cueEnd: null },
+      { id: 'padA', pageId: 'p1', name: '', sampleId: null, playMode: 'oneShot', gainDb: 0, position: 0, color: null, cueStart: null, cueEnd: null },
+      { id: 'padAutre', pageId: 'p2', name: '', sampleId: null, playMode: 'oneShot', gainDb: 0, position: 0, color: null, cueStart: null, cueEnd: null },
+      { id: 'padC', pageId: 'p1', name: '', sampleId: null, playMode: 'oneShot', gainDb: 0, position: 2, color: null, cueStart: null, cueEnd: null },
+      { id: 'padD', pageId: 'p1', name: '', sampleId: null, playMode: 'oneShot', gainDb: 0, position: 3, color: null, cueStart: null, cueEnd: null },
     ],
   };
 }

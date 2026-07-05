@@ -40,6 +40,9 @@ export type ImportError =
   | 'archiveEmpty';
 export type ImportResult = { ok: true; sampleId: string } | { ok: false; reason: ImportError };
 
+/** Tolérance (s) pour « point cue au bord » → null (pas de cue) — M11, `applyPadCue`. */
+const CUE_EPSILON = 0.001;
+
 /** Fichier source d'un lot d'import (M8) — bytes null : lecture du fichier échouée en amont. */
 export interface BatchSource {
   name: string;
@@ -165,6 +168,14 @@ export interface Commands {
   ): Promise<ImportError | null>;
   /** Re-décode un sample de la bibliothèque et ouvre l'éditeur (retravail). */
   beginSampleRework(sampleId: string): Promise<ImportError | null>;
+  /** Ouvre l'éditeur en mode POINTS CUE (M11) pour un pad — édition NON destructive. */
+  beginPadCue(padId: string): Promise<ImportError | null>;
+  /** Efface les points cue d'un pad (retour au sample entier). */
+  clearPadCue(padId: string): void;
+  /** Valide les points cue de l'éditeur dans le pad et referme (aucun ré-encodage). */
+  applyPadCue(startS: number, endS: number): void;
+  /** Encode la plage de l'éditeur en un NOUVEAU sample (l'original reste intact). */
+  saveEditorSelectionAsSample(startS: number, endS: number): Promise<ImportResult>;
   /** Pré-écoute la sélection courante de l'éditeur. */
   previewEditorSelection(startS: number, endS: number): void;
   /** Rogne à la sélection puis encode : import → nouvelle entrée ; retravail → remplacement. */
@@ -237,6 +248,10 @@ export const PREVIEW_STOPPING_COMMANDS = [
   'openTagsDrawer',
   'openImport',
   'beginSampleRework',
+  'beginPadCue',
+  'clearPadCue',
+  'applyPadCue',
+  'saveEditorSelectionAsSample',
   'previewEditorSelection',
   'applyAudioEditor',
   'cancelAudioEditor',
@@ -813,7 +828,16 @@ export function createCommands({
       if (bytes.byteLength > IMPORT_MAX_BYTES) return 'tooLarge';
       const pcm = await decodeSource(bytes);
       if (!pcm) return 'undecodable';
-      store.audioEditor = { mode: 'import', fileName, pcm, sample: null, assignPadId, addToPool };
+      store.audioEditor = {
+        mode: 'import',
+        fileName,
+        pcm,
+        sample: null,
+        padId: null,
+        initialSelection: null,
+        assignPadId,
+        addToPool,
+      };
       return null;
     },
 
@@ -833,10 +857,79 @@ export function createCommands({
         fileName: sample.label,
         pcm,
         sample,
+        padId: null,
+        initialSelection: null,
         assignPadId: null,
         addToPool: false,
       };
       return null;
+    },
+
+    async beginPadCue(padId: string): Promise<ImportError | null> {
+      const bank = store.bank;
+      const pad = bank ? findPad(bank, padId) : null;
+      if (!pad || pad.sampleId === null) return 'readFailed';
+      const sample = store.samples.find((s) => s.id === pad.sampleId);
+      if (!sample) return 'readFailed';
+      let bytes: Uint8Array;
+      try {
+        bytes = await sampleRepository.readBytes(sample.fileName);
+      } catch {
+        return 'readFailed';
+      }
+      const pcm = await decodeSource(bytes.slice().buffer as ArrayBuffer);
+      if (!pcm) return 'undecodable';
+      const total = pcmDuration(pcm);
+      // Sélection initiale = points cue courants du pad (bornés à la durée décodée).
+      const start = Math.min(Math.max(pad.cueStart ?? 0, 0), total);
+      const end = Math.min(Math.max(pad.cueEnd ?? total, start), total);
+      store.audioEditor = {
+        mode: 'cue',
+        fileName: sample.label,
+        pcm,
+        sample,
+        padId,
+        initialSelection: { start, end },
+        assignPadId: null,
+        addToPool: false,
+      };
+      return null;
+    },
+
+    /** Efface les points cue d'un pad (retour au sample entier). */
+    clearPadCue(padId: string): void {
+      const bank = store.bank;
+      const pad = bank ? findPad(bank, padId) : null;
+      if (!pad) return;
+      pad.cueStart = null;
+      pad.cueEnd = null;
+    },
+    /** Valide les points cue depuis l'éditeur (mode 'cue') et referme — aucun ré-encodage. */
+    applyPadCue(startS: number, endS: number): void {
+      const editor = store.audioEditor;
+      if (!editor || editor.mode !== 'cue' || editor.padId === null) return;
+      const total = pcmDuration(editor.pcm);
+      // Bords de la plage → null : « pas de cue » (le pad joue le sample entier).
+      const start = startS <= CUE_EPSILON ? null : startS;
+      const end = endS >= total - CUE_EPSILON ? null : endS;
+      const pad = store.bank ? findPad(store.bank, editor.padId) : null;
+      if (pad) {
+        pad.cueStart = start;
+        pad.cueEnd = end;
+      }
+      store.audioEditor = null;
+    },
+    /**
+     * « Enregistrer sous un nouveau sample » : encode la PLAGE de l'éditeur en une nouvelle
+     * entrée de bibliothèque (les octets d'origine restent intacts). Terminal : referme
+     * l'éditeur en cas de succès (message conservé sinon).
+     */
+    async saveEditorSelectionAsSample(startS: number, endS: number): Promise<ImportResult> {
+      const editor = store.audioEditor;
+      if (!editor) return { ok: false, reason: 'readFailed' };
+      const result = await finishImport(editor.fileName, trimPcm(editor.pcm, startS, endS), null);
+      if (result.ok) store.audioEditor = null;
+      return result;
     },
 
     previewEditorSelection(startS: number, endS: number): void {

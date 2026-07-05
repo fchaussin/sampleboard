@@ -29,6 +29,18 @@
   );
   // Sample déjà dans le pool d'assignation : le bouton d'ajout devient inactif (feedback).
   const inPool = $derived(!!pad?.sampleId && app.store.poolSampleIds.includes(pad.sampleId));
+
+  // Points cue (M11) : le pad joue une plage du sample sans le modifier (non destructif).
+  const cueSample = $derived(
+    pad?.sampleId ? (app.store.samples.find((s) => s.id === pad.sampleId) ?? null) : null,
+  );
+  const hasCue = $derived(!!pad && (pad.cueStart !== null || pad.cueEnd !== null));
+  const cueText = $derived.by(() => {
+    if (!pad || !cueSample) return '';
+    const total = (cueSample.durationMs ?? 0) / 1000;
+    const fmt = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 });
+    return `${fmt.format(pad.cueStart ?? 0)} – ${fmt.format(pad.cueEnd ?? total)} ${t('unit.seconds', locale)}`;
+  });
 </script>
 
 {#if pad}
@@ -85,6 +97,29 @@
   </div>
   <SamplePicker {app} padId={p.id} open={pickerOpen} onclose={() => (pickerOpen = false)} />
 
+  <!-- Points cue (M11) : plage de lecture NON destructive ; seulement si le pad a un sample. -->
+  {#if p.sampleId}
+    <div class="row">
+      <span>{t('editor.pad.cue', locale)}</span>
+      <span class="cue-controls">
+        <button class="cue-edit" type="button" onclick={() => void app.commands.beginPadCue(p.id)}>
+          {hasCue ? cueText : t('editor.pad.cueFull', locale)}
+        </button>
+        {#if hasCue}
+          <button
+            class="cue-reset"
+            type="button"
+            title={t('editor.pad.cueReset', locale)}
+            aria-label={t('editor.pad.cueReset', locale)}
+            onclick={() => app.commands.clearPadCue(p.id)}
+          >
+            <Icon name="undo" size={16} />
+          </button>
+        {/if}
+      </span>
+    </div>
+  {/if}
+
   <!-- Ajout du sample du pad au POOL d'assignation (#33) : seulement s'il en a un ;
        inactif s'il y est déjà. Le pool est un outil d'Édition, comme ce tiroir. -->
   {#if p.sampleId}
@@ -109,6 +144,37 @@
 {/if}
 
 <style>
+  .cue-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .cue-edit {
+    min-height: 2.25rem;
+    padding: 0 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+
+  .cue-reset {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+  }
+
   .pool-add {
     display: inline-flex;
     align-items: center;
