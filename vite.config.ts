@@ -76,6 +76,10 @@ function pwaServiceWorker(): Plugin {
 const envHost = process.env.TAURI_DEV_HOST;
 
 export default defineConfig({
+  // Base RELATIVE : le même build se sert à la racine (Tauri, nginx) ou sous un
+  // sous-chemin (GitHub Pages — https://<user>.github.io/sampleboard/). SPA à routage
+  // par fragment : aucun autre impact.
+  base: './',
   plugins: [svelte(), libarchiveAssets(), factorySamples(), pwaServiceWorker()],
   // SPA statique : pas de SSR (build client uniquement, sortie dans dist/).
   clearScreen: false,

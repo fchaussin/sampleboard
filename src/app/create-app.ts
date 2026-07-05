@@ -149,7 +149,8 @@ export async function createApp(options: CreateAppOptions = {}): Promise<App> {
       tagIdByToken,
       fetchBytes: async (path) => {
         try {
-          const response = await fetch(`/${path}`);
+          // RELATIF au document (sous-chemin GitHub Pages possible ; racine sous Tauri).
+          const response = await fetch(path);
           return response.ok ? await response.arrayBuffer() : null;
         } catch {
           return null;

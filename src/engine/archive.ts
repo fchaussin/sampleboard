@@ -14,7 +14,8 @@ export interface ExtractedEntry {
 /** Port d'extraction injecté dans les commandes (factice dans les tests). */
 export type ArchiveExtractor = (fileName: string, bytes: ArrayBuffer) => Promise<ExtractedEntry[]>;
 
-const WORKER_URL = '/libarchive/worker-bundle.js';
+// RELATIF au document : la web/PWA peut vivre sous un sous-chemin (GitHub Pages).
+const WORKER_URL = 'libarchive/worker-bundle.js';
 
 let initialized = false;
 

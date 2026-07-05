@@ -11,7 +11,8 @@ import './app.css';
 // WebView Tauri, qui a son propre empaquetage), et en build de prod seulement (le dev
 // Vite + un SW qui cache seraient un enfer de fraîcheur).
 if (import.meta.env.PROD && !isTauri() && 'serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch((err) => {
+  // Chemin RELATIF : la web/PWA peut être servie sous un sous-chemin (GitHub Pages).
+  navigator.serviceWorker.register('sw.js').catch((err) => {
     console.warn('pwa: enregistrement du service worker refusé', err);
   });
 }
