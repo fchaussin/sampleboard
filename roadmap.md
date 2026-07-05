@@ -316,8 +316,10 @@ Task statuses: `[ ]` to do · `[~]` in progress · `[x]` done.
   `nginx.conf` (gzip, immutable /assets/, no-cache sw.js/index, wasm MIME) +
   `docker-compose.web.yml` → http://localhost:8080. Browser-validated against the
   container (SW active, offline reload). Docker Hub publication to come.
-- [ ] **Public web hosting** of the PWA (address to choose — may follow the repo
-  hosting choice).
+- [x] **Public web hosting** (2026-07-05, user choice): **GitHub Pages** —
+  https://fchaussin.github.io/sampleboard/ (workflow `pages.yml`: build on every push to
+  main, deploy via actions/deploy-pages). Relative base: the same build serves at the root
+  (Tauri, nginx) or under the subpath. Browser-validated on the LIVE site, offline included.
 - [x] **Validation** (2026-07-05): full cycle in browser (import → assign → faithful
   reload, e2e), PWA offline including a fully-offline first launch, Docker image served
   and browser-validated locally.
