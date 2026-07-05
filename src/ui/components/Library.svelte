@@ -225,7 +225,9 @@
   /* Colle au bord haut du conteneur scrollable (.content du panneau) ; la liste défile derrière. */
   .toolbar {
     position: sticky;
-    top: 0;
+    /* -1rem compense le padding-top de .content (LibraryPanel) : le sticky se colle au
+       vrai bord haut au défilement, sans bande de fond au-dessus. */
+    top: -1rem;
     z-index: 1;
     display: flex;
     flex-direction: column;
