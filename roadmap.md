@@ -324,6 +324,10 @@ Task statuses: `[ ]` to do · `[~]` in progress · `[x]` done.
   reload, e2e), PWA offline including a fully-offline first launch, Docker image served
   and browser-validated locally.
 
+> **M10 closed on 2026-07-05** (`v0.11.0`) — live on GitHub Pages
+> (https://fchaussin.github.io/sampleboard/); Docker Hub image to follow. Bundled with a
+> UI refinement pass (#26-33).
+
 ### Phase F — Stabilization · → `1.0.0`
 - [ ] Tests on multiple real devices (latency, autoplay, sleep).
 - [ ] Perf: polyphony, trigger latency.

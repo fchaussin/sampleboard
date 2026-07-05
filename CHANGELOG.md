@@ -8,17 +8,37 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-07-05 — M10 (Web distribution) + UI pass
+
+> Backlog #25-33. Second distribution channel (web/PWA) plus a round of UI
+> refinements. 322 unit + 21 E2E green; live on GitHub Pages.
+
 ### Added
-- **Browser persistence (IndexedDB)**: the web flavor now persists everything
+- **Browser persistence (IndexedDB)**: the web flavor persists everything
   (bank, samples + audio bytes, settings, tags) across reloads — first launch,
   factory seeding and deletion guards behave exactly like the Android build.
 - **PWA**: installable, **fully offline** — even a first launch seeds the complete
   25-sound starter bank from the service-worker precache. Build-time-generated
   service worker (no third-party library), network-first navigations so updates
   propagate.
-- **Docker self-hosting**: `docker compose -f docker-compose.web.yml up -d --build`
-  serves the web/PWA on port 8080 (unprivileged nginx, hardened container).
-  Docker Hub image planned.
+- **Docker self-hosting** (`docker-compose.web.yml`, unprivileged nginx) and
+  **public hosting on GitHub Pages** (relative base, auto-deploy on push).
+- **Second factory board** (#28): a 3×3 **drum kit** on page 2 (9 CC0 one-shots),
+  per-page `boards` in the manifest.
+- **Buffer preloader/pacer** (#27): the app mounts without waiting for decoding;
+  pads show a **loading** state while their buffer decodes (priority: active page
+  first).
+- **Settings › Application** (#31): version display, **update** (non-destructive) and
+  **factory reset** behind a `<dialog>` confirmation.
+- **Add to the assignment pool** button in the pad drawer (#33).
+
+### Changed
+- **English by default** (#26), French switchable in Settings; English screenshots.
+- **New app icon**: 3×3 pad matrix in the app palette (replaces the placeholder).
+- **Edit mode = one icon** + the Edit violet on every Edit surface (pads, pool,
+  library ring) (#29); **global Stop moved next to the master visualizer** (#30);
+  **Import a sound** relocated to the left of the library panel header (#32); library
+  search toolbar sticks flush to the top.
 
 ## [0.10.0] - 2026-07-05 — M9 (Packaging)
 
