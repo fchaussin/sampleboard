@@ -41,7 +41,28 @@ export async function seedFactoryContent({
     return;
   }
 
-  const sampleIdByFile = new Map<string, string>();
+  // Sélection « board » préparée AVANT le semis : chaque slot est assigné DÈS que son
+  // sample est semé (#27, préchargeur/paceur) — le board se remplit progressivement,
+  // chaque pad est jouable à l'instant où il apparaît (plus de board qui « pop » à la fin).
+  const bank = store.bank;
+  const mainPage = bank ? pagesSorted(bank)[0] : undefined;
+  const pads = (bank?.pads ?? [])
+    .filter((pad) => pad.pageId === mainPage?.id)
+    .sort((a, b) => a.position - b.position);
+  // LISTE de slots par fichier : un même sample peut occuper plusieurs pads du board.
+  const slotsByFile = new Map<string, Array<{ padId: string; playMode: PlayMode | null }>>();
+  (manifest.board ?? []).forEach((slot, index) => {
+    const pad = pads[index];
+    if (!pad) return;
+    const playMode =
+      slot.playMode !== undefined && (PLAY_MODES as readonly string[]).includes(slot.playMode)
+        ? (slot.playMode as PlayMode)
+        : null;
+    const slots = slotsByFile.get(slot.file) ?? [];
+    slots.push({ padId: pad.id, playMode });
+    slotsByFile.set(slot.file, slots);
+  });
+
   for (const entry of manifest.samples ?? []) {
     const bytes = await fetchBytes(`factory-samples/${encodeURIComponent(entry.file)}`);
     if (!bytes) {
@@ -53,27 +74,13 @@ export async function seedFactoryContent({
       console.warn(`semis d’usine : ${entry.file} rejeté (${result.reason})`);
       continue;
     }
-    sampleIdByFile.set(entry.file, result.sampleId);
     for (const token of entry.tags ?? []) {
       const tagId = tagIdByToken.get(token);
       if (tagId !== undefined) commands.toggleSampleTag(result.sampleId, tagId);
     }
-  }
-
-  // Sélection « board » → pads de la première page (« Principal »), dans l'ordre des positions.
-  const bank = store.bank;
-  const mainPage = bank ? pagesSorted(bank)[0] : undefined;
-  if (!bank || !mainPage) return;
-  const pads = bank.pads
-    .filter((pad) => pad.pageId === mainPage.id)
-    .sort((a, b) => a.position - b.position);
-  (manifest.board ?? []).forEach((slot, index) => {
-    const pad = pads[index];
-    const sampleId = sampleIdByFile.get(slot.file);
-    if (!pad || sampleId === undefined) return;
-    commands.assignSample(pad.id, sampleId);
-    if (slot.playMode !== undefined && (PLAY_MODES as readonly string[]).includes(slot.playMode)) {
-      commands.setPadPlayMode(pad.id, slot.playMode as PlayMode);
+    for (const slot of slotsByFile.get(entry.file) ?? []) {
+      commands.assignSample(slot.padId, result.sampleId);
+      if (slot.playMode) commands.setPadPlayMode(slot.padId, slot.playMode);
     }
-  });
+  }
 }

@@ -600,6 +600,11 @@ Re-encoding happens **frontend-side** ("no business logic in Rust" rule). Choice
   service worker (the app and the factory samples). Web/PWA delivery: public hosting
   AND/OR a static-server Docker image. This brings the v2 "pure browser mode"
   (§17) forward into M10.
+- **Buffer preloader/pacer** (#27, 2026-07-05): startup never blocks on audio decoding —
+  the app mounts immediately, buffers load by priority (active page → other pads → library)
+  with bounded concurrency, and a pad whose buffer is pending shows a **loading** state
+  (never a silent dead pad). Factory seeding assigns each board slot as soon as its sample
+  is seeded (progressive board).
 - **Validation order: web first, Android second.** Every milestone is first developed and validated on the **web** (Vite dev http://localhost:1420 + desktop `tauri dev` window); validation on a **real Android device** is a **second step**, never a prerequisite to move forward. The final target remains F-Droid/Android (§15) — it is the working order that is fixed, not the target.
 
 ## 17. Future evolutions (beyond v1)

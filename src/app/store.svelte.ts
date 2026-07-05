@@ -90,6 +90,8 @@ export class AppStore {
   poolOpen = $state(false);
   /** Reflet minimal des voix actives émis par l'engine (jamais calculé ici). */
   activePadIds = $state<Set<string>>(new Set());
+  /** Buffers audio pas encore décodés (préchargeur #27) — le pad s'affiche « loading ». */
+  pendingBufferIds = $state<Set<string>>(new Set());
 
   /** La bibliothèque est la vue courante (#22/#23) — lecture dérivée de `view`. */
   get libraryOpen(): boolean {

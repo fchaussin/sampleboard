@@ -24,9 +24,22 @@
   const inLibrary = $derived(
     pad.sampleId !== null && app.store.samples.some((s) => s.id === pad.sampleId),
   );
-  // active > vide (aucun sample) > introuvable (sample supprimé) > au repos (§12, Glossaire).
+  // Buffer pas encore décodé (préchargeur #27) : le pad l'affiche au lieu d'être un
+  // no-op mystérieux — il redevient « idle » dès que son tour de décodage passe.
+  const loading = $derived(
+    pad.sampleId !== null && app.store.pendingBufferIds.has(pad.sampleId),
+  );
+  // active > vide (aucun sample) > introuvable (supprimé) > loading > au repos (§12, Glossaire).
   const status = $derived<PadStatus>(
-    playing ? 'active' : pad.sampleId === null ? 'empty' : inLibrary ? 'idle' : 'missing',
+    playing
+      ? 'active'
+      : pad.sampleId === null
+        ? 'empty'
+        : !inLibrary
+          ? 'missing'
+          : loading
+            ? 'loading'
+            : 'idle',
   );
 
   const handlers: PadInputHandlers = {
@@ -223,6 +236,26 @@
   .pad.missing {
     border-color: var(--danger);
     border-style: dashed;
+  }
+
+  /* Buffer en cours de décodage (#27) : pad présent mais en retrait, PULSATION discrète —
+     jamais un pad silencieux sans explication. Redevient « idle » une fois décodé. */
+  .pad.loading {
+    animation: pad-loading 1.1s ease-in-out infinite;
+  }
+
+  .pad.loading .name {
+    font-weight: 700;
+  }
+
+  @keyframes pad-loading {
+    0%,
+    100% {
+      opacity: 0.35;
+    }
+    50% {
+      opacity: 0.65;
+    }
   }
 
   /* EN LECTURE : intensité maximale — fond plein, halo, montée sans transition. */

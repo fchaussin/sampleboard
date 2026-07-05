@@ -11,7 +11,7 @@ export type VoiceMode = 'mono' | 'poly';
 export type BackgroundBehavior = 'stopAll' | 'stopSustained' | 'keepPlaying';
 
 /** État visuel d'un pad dérivé de son assignation (voir Glossaire). */
-export type PadStatus = 'active' | 'missing' | 'empty' | 'idle';
+export type PadStatus = 'active' | 'missing' | 'empty' | 'loading' | 'idle';
 
 /**
  * Palette de couleurs assignables (pages, pads). Tokens stables persistés en base ;

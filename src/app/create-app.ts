@@ -18,6 +18,7 @@ import { createHashRouter } from './router';
 import { createPersistence, type Persistence } from './persistence';
 import { createRunesWatch } from './watch.svelte';
 import { BankFactory } from './bank-factory';
+import { preloadBuffers } from './preload';
 import { seedFactoryContent } from './factory-seed';
 
 export interface App {
@@ -105,17 +106,6 @@ export async function createApp(options: CreateAppOptions = {}): Promise<App> {
 
   const samples = await sampleRepository.list();
   commands.hydrateLibrary(samples);
-  await Promise.all(
-    samples.map(async (sample) => {
-      try {
-        const data = await sampleRepository.readBytes(sample.fileName);
-        await engine.load(sample.id, data.slice().buffer as ArrayBuffer);
-      } catch (err) {
-        // Fichier disparu hors app (§12) : le pad joue un no-op silencieux, pas de crash.
-        console.warn(`bibliothèque: octets audio illisibles (${sample.fileName})`, err);
-      }
-    }),
-  );
 
   commands.hydrateTags(await tagRepository.list(), await tagRepository.assignments());
 
@@ -132,6 +122,20 @@ export async function createApp(options: CreateAppOptions = {}): Promise<App> {
 
   // L'autosave ne démarre QU'après hydratation : l'état par défaut n'écrase jamais la base.
   persistence.start();
+
+  // Préchargeur/paceur (#27) : l'app se monte SANS attendre les décodages — les buffers se
+  // chargent par priorité (page active → autres pads → bibliothèque), 3 décodages à la
+  // fois ; un pad au buffer absent s'affiche « loading » (store.pendingBufferIds).
+  void preloadBuffers({
+    samples,
+    bank: store.bank,
+    activePageId: store.activePageId,
+    load: async (sample) => {
+      const data = await sampleRepository.readBytes(sample.fileName);
+      await engine.load(sample.id, data.slice().buffer as ArrayBuffer);
+    },
+    settle: (sampleId) => commands.markBufferSettled(sampleId),
+  });
 
   // Semis d'usine (#14) — même garde « premier lancement » que banque et tags : supprimé
   // par l'utilisateur, un sample d'usine ne repousse JAMAIS. Non bloquant : l'app est

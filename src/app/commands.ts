@@ -98,6 +98,8 @@ export interface Commands {
   hydrateLibrary(samples: Sample[]): void;
   hydrateSettings(settings: Settings): void;
   setActivePage(pageId: string): void;
+  /** Un buffer est réglé — chargé ou en échec (préchargeur #27) : le pad quitte « loading ». */
+  markBufferSettled(sampleId: string): void;
 
   // Jeu (matrice §7)
   firePad(padId: string): void;
@@ -212,7 +214,8 @@ export interface Commands {
  * (stop conditionné au masquage, géré dans son corps), hydratations et pipelines d'import
  * (importSample, importBatch : non interactifs — le semis d'usine ne stoppe jamais une
  * pré-écoute en cours), applyRoute (#23 : sync URL → store, pas une intention — les
- * intentions de navigation closeLibrary/setLibraryFilter portent déjà la règle).
+ * intentions de navigation closeLibrary/setLibraryFilter portent déjà la règle),
+ * markBufferSettled (#27 : notification du préchargeur, pas une interaction).
  */
 export const PREVIEW_STOPPING_COMMANDS = [
   'stopAllVoices',
@@ -523,6 +526,15 @@ export function createCommands({
     },
     hydrateLibrary(samples: Sample[]): void {
       store.samples = samples;
+      // Tous les buffers restent à décoder (préchargeur #27) : pads « loading » en attendant.
+      store.pendingBufferIds = new Set(samples.map((s) => s.id));
+    },
+    markBufferSettled(sampleId: string): void {
+      const pending = store.pendingBufferIds as Set<string> | undefined; // stores factices
+      if (!pending || !pending.has(sampleId)) return;
+      const next = new Set(pending);
+      next.delete(sampleId);
+      store.pendingBufferIds = next;
     },
     hydrateSettings(settings: Settings): void {
       store.settings = { ...settings };
@@ -1026,6 +1038,7 @@ export function createCommands({
       }
       store.poolSampleIds = store.poolSampleIds.filter((id) => id !== sampleId);
       if (store.assigningSampleId === sampleId) store.assigningSampleId = null;
+      commands.markBufferSettled(sampleId); // plus rien à précharger pour lui (#27)
       // Affectations de tags épurées (miroir du ON DELETE CASCADE).
       if (store.sampleTags.has(sampleId)) {
         const map = new Map(store.sampleTags);

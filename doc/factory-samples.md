@@ -28,7 +28,7 @@ README).
    copied as-is, the fixture ships in **every dist** (web, Android, container).
 3. **First launch** — `create-app.ts` detects the pristine database (same guard as the default
    bank and tags: a deleted factory sample **never** grows back) and runs
-   `seedFactoryContent` (`src/app/factory-seed.ts`), **non-blocking** (the app is playable
+   `seedFactoryContent` (`src/app/factory-seed.ts`), **non-blocking** (each board slot is assigned AS SOON AS its sample is seeded — progressive board, #27; the app is playable
    while seeding): manifest fetch → `commands.seedFactorySample` per file
    (decode for duration/playability then **byte copy without re-encoding** — hence
    the OGG requirement) → tags by token (bootstrap `defaultTags`: `{ token, label }`) →
