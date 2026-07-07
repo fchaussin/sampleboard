@@ -220,7 +220,7 @@ describe('création par la fabrique (M6 — board complet, coloré, nommé)', ()
     });
     const { commands } = setup(store);
     commands.assignSample('pad', 's1');
-    expect(store.bank!.pads[0]!.name).toBe('explosion-de');
+    expect(store.bank!.pads[0]!.name).toBe('explosion-de-fin-du-monde');
   });
 
   it('assignSample n’écrase jamais un nom choisi par l’utilisateur', () => {

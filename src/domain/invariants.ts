@@ -60,9 +60,9 @@ export function isAudioFileName(name: string): boolean {
 }
 
 /** Longueur max du nom de pad auto-généré à l'assignation (M6). */
-export const PAD_NAME_MAX = 12;
+export const PAD_NAME_MAX = 32;
 
-/** Nom de pad par défaut dérivé d'un label de sample : extension retirée, rogné à 12 car. */
+/** Nom de pad par défaut dérivé d'un label de sample : extension retirée, rogné à 32 car. */
 export function defaultPadName(label: string): string {
   const base = label.replace(/\.[^./\\\s]{1,8}$/, '');
   return base.slice(0, PAD_NAME_MAX).trim();

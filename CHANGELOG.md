@@ -8,6 +8,18 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+### Changed
+- **README rewritten as an illustrated user manual**: centered logo/title, prominent
+  live-demo link (GitHub Pages), and a screen-by-screen guide (board, play modes, pool,
+  pad, page, library, trim/cue, settings) with eight freshly generated screenshots.
+- **Starter board demonstrates all three play modes**: the *Air horn* pad on the Main page
+  is now a **Gate** (hold-to-blast), alongside the existing One-Shot and Loop pads.
+- **Auto pad name crop raised from 12 to 32 characters** (`PAD_NAME_MAX`): assigned pad
+  names keep far more of the sample label (e.g. *Ding (correct answer)* instead of
+  *Ding (correc*).
+- **Fastlane/manual screenshots**: the capture spec now produces eight views and waits for
+  the non-blocking seed to finish; sample count read from the manifest (25 + drum kit).
+
 ## [0.12.0] - 2026-07-05 — M11 (Pad cue points)
 
 > Backlog #34. Non-destructive per-pad trimming. 334 unit + 22 E2E green.

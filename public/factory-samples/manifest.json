@@ -358,7 +358,8 @@
           "file": "fs-cowbell.ogg"
         },
         {
-          "file": "fs-air-horn.ogg"
+          "file": "fs-air-horn.ogg",
+          "playMode": "gate"
         },
         {
           "file": "fs-whoosh.ogg"

@@ -18,14 +18,16 @@ describe('isValidColor', () => {
 });
 
 describe('defaultPadName', () => {
-  it('retire l’extension et rogne à 12 caractères', () => {
+  it('retire l’extension et rogne à 32 caractères', () => {
     expect(defaultPadName('kick.wav')).toBe('kick');
-    expect(defaultPadName('explosion-de-fin-du-monde.mp3')).toBe('explosion-de');
-    expect(defaultPadName('explosion-de-fin-du-monde.mp3').length).toBe(PAD_NAME_MAX);
+    expect(defaultPadName('explosion-de-fin-du-monde.mp3')).toBe('explosion-de-fin-du-monde');
+    const long = 'un-nom-de-sample-vraiment-tres-tres-long-a-rogner.mp3';
+    expect(defaultPadName(long)).toBe('un-nom-de-sample-vraiment-tres-t');
+    expect(defaultPadName(long).length).toBe(PAD_NAME_MAX);
   });
 
-  it('sans extension : rogne simplement', () => {
-    expect(defaultPadName('ambiance nocturne forêt')).toBe('ambiance noc');
+  it('sans extension : renvoie tel quel sous la limite', () => {
+    expect(defaultPadName('ambiance nocturne forêt')).toBe('ambiance nocturne forêt');
   });
 
   it('ne mange pas un nom à points sans extension finale courte', () => {
