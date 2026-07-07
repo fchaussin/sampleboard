@@ -81,17 +81,17 @@ test('captures fastlane : board, lecture, pool, pad, page, bibliothèque, édite
     await page.locator('.drawer > header .close').click();
   }
 
-  // 3 — pool d'assignation (Édition) : liste de travail, un son ARMÉ se pose ensuite sur les pads.
+  // 3 — pool d'assignation (Édition) : liste de travail, à côté du board EN ÉDITION.
+  // On N'ARME PAS de son : l'armement bascule le board en surbrillance « cibles
+  // d'assignation » (pads brillants) et masque le rendu Édition — incohérent avec l'UX
+  // (le pool est un outil d'Édition, le board doit rester visiblement en Édition).
   await page.locator('.bottombar .open-pool').click();
   const pool = page.locator('.pool.overlay');
   await expect(pool.locator('ul li').first()).toBeVisible();
   await settle(pool);
-  // Armer le premier son du pool pour montrer l'état d'assignation actif.
-  await pool.locator('ul li .item').first().click();
   await page.screenshot({ path: shot(3) });
-  // Désarmer puis refermer via le bouton du tiroir pool : en overlay (étroit), le pool
-  // RECOUVRE la bottombar/topbar à gauche — son propre « close » est le seul point sûr.
-  await pool.locator('ul li .item').first().click(); // re-tap = désarme
+  // Refermer via le bouton du tiroir pool : en overlay (étroit), le pool RECOUVRE la
+  // bottombar/topbar à gauche — son propre « close » est le seul point sûr.
   await pool.locator('.close').click(); // referme le pool
 
   // 5 — réglages de PAGE (depuis la topbar) : renommer, Polyphonie Mono/Poly, grille rows×cols.
